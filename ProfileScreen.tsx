@@ -104,9 +104,9 @@ export function ProfileScreen() {
 
       // Categorize posts
       const allPosts = userPosts
-      const videos = userPosts.filter(post => isVideoPost(post))
-      const news = userPosts.filter(post => isNewsPost(post))
-      const regularPosts = userPosts.filter(post => !isVideoPost(post) && !isNewsPost(post))
+      const videos = userPosts.filter((post: any) => isVideoPost(post))
+      const news = userPosts.filter((post: any) => isNewsPost(post))
+      const regularPosts = userPosts.filter((post: any) => !isVideoPost(post) && !isNewsPost(post))
 
       setPosts(regularPosts)
       setVideoPosts(videos)
