@@ -455,36 +455,7 @@ class AppwriteService {
     )
   }
 
-  // Status methods
-  async fetchStatuses(limit = 40) {
-    return await this.databases.listDocuments(
-      this.databaseId,
-      this.collections.statuses,
-      [
-        Query.orderDesc('timestamp'),
-        Query.limit(limit)
-      ]
-    )
-  }
 
-  async createStatus(mediaPath: string, caption = '') {
-    const user = await this.getCurrentUser()
-    if (!user) throw new Error('User must be signed in')
-
-    const statusId = ID.unique()
-    return await this.databases.createDocument(
-      this.databaseId,
-      this.collections.statuses,
-      statusId,
-      {
-        statusId,
-        userId: user.$id,
-        mediaPath,
-        caption,
-        timestamp: new Date().toISOString()
-      }
-    )
-  }
 
   // Notifications methods
   async fetchNotifications(userId: string, limit = 20) {
@@ -633,19 +604,15 @@ class AppwriteService {
     }
   }
 
-  // Real-time subscriptions with comprehensive coverage
+  // Real-time subscriptions (placeholder)
   subscribeToCollection(collection: string, callback: (payload: any) => void) {
-    return this.realtime.subscribe(
-      `databases.${this.databaseId}.collections.${collection}.documents`,
-      callback
-    )
+    console.log('Realtime subscription not available in this version')
+    return () => {}
   }
 
   subscribeToDocument(collection: string, documentId: string, callback: (payload: any) => void) {
-    return this.realtime.subscribe(
-      `databases.${this.databaseId}.collections.${collection}.documents.${documentId}`,
-      callback
-    )
+    console.log('Realtime subscription not available in this version')
+    return () => {}
   }
 
   // Additional methods needed for HomeScreen
@@ -854,16 +821,7 @@ class AppwriteService {
     } catch {}
   }
 
-  // Realtime subscriptions (placeholder)
-  subscribeToCollection(collection: string, callback: (payload: any) => void) {
-    console.log('Realtime subscription not available in this version')
-    return () => {}
-  }
 
-  subscribeToDocument(collection: string, documentId: string, callback: (payload: any) => void) {
-    console.log('Realtime subscription not available in this version')
-    return () => {}
-  }
 }
 
 export const appwriteService = AppwriteService.getInstance()

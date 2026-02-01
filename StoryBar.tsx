@@ -4,11 +4,11 @@ import { Plus } from 'lucide-react'
 import { Story } from './types'
 
 const mockStories: Story[] = [
-  { id: '1', username: 'Your Story', imageUrl: '', isViewed: false },
-  { id: '2', username: 'alice_wonder', imageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100', isViewed: false },
-  { id: '3', username: 'bob_builder', imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100', isViewed: true },
-  { id: '4', username: 'carol_singer', imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100', isViewed: false },
-  { id: '5', username: 'dave_coder', imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100', isViewed: true },
+  { id: '1', statusId: '1', userId: 'user1', username: 'Your Story', userAvatar: '', mediaPath: '', mediaUrls: [], caption: '', timestamp: new Date(), isViewed: false, mediaCount: 0 },
+  { id: '2', statusId: '2', userId: 'user2', username: 'alice_wonder', userAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100', mediaPath: '', mediaUrls: [], caption: '', timestamp: new Date(), isViewed: false, mediaCount: 1 },
+  { id: '3', statusId: '3', userId: 'user3', username: 'bob_builder', userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100', mediaPath: '', mediaUrls: [], caption: '', timestamp: new Date(), isViewed: true, mediaCount: 1 },
+  { id: '4', statusId: '4', userId: 'user4', username: 'carol_singer', userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100', mediaPath: '', mediaUrls: [], caption: '', timestamp: new Date(), isViewed: false, mediaCount: 1 },
+  { id: '5', statusId: '5', userId: 'user5', username: 'dave_coder', userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100', mediaPath: '', mediaUrls: [], caption: '', timestamp: new Date(), isViewed: true, mediaCount: 1 },
 ]
 
 export function StoryBar() {
@@ -32,9 +32,9 @@ export function StoryBar() {
                   <div className="w-full h-full rounded-full bg-muted flex items-center justify-center">
                     <Plus size={20} className="text-muted-foreground" />
                   </div>
-                ) : story.imageUrl ? (
+                ) : story.userAvatar ? (
                   <img 
-                    src={story.imageUrl} 
+                    src={story.userAvatar} 
                     alt={story.username}
                     className="w-full h-full rounded-full object-cover"
                   />

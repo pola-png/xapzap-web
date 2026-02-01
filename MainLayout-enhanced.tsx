@@ -3,7 +3,7 @@
 import { ReactNode, useState, useEffect } from 'react'
 import { Home, MessageCircle, PlusSquare, Upload, Zap, Bell, User, Search } from 'lucide-react'
 import { cn } from './utils'
-import appwriteService from './appwrite'
+import appwriteService from './appwriteService'
 
 interface MainLayoutProps {
   children: ReactNode

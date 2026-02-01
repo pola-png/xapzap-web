@@ -1,5 +1,5 @@
 import { ID } from 'appwrite'
-import appwriteService from './appwrite'
+import appwriteService from './appwriteService'
 
 class StorageService {
   private static instance: StorageService

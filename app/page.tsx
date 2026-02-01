@@ -11,7 +11,7 @@ import { ProfileScreen } from '../ProfileScreen'
 import { NotificationsScreen, SearchScreen } from '../screens'
 import { CreatePostModal } from '../CreatePostModal'
 import { RealtimeStatus } from '../RealtimeStatus'
-import appwriteService from '../appwrite'
+import appwriteService from '../appwriteService'
 
 function App() {
   const [currentTab, setCurrentTab] = useState(0)

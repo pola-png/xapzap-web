@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react'
 import { X, Image, Video, FileText, Upload } from 'lucide-react'
 import { UploadType } from './types'
-import appwriteService from './appwrite'
+import appwriteService from './appwriteService'
 import storageService from './storage'
 import { cn } from './utils'
 

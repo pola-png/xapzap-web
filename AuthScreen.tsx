@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Eye, EyeOff, Mail, Lock, User, AtSign } from 'lucide-react'
-import appwriteService from './appwrite'
+import appwriteService from './appwriteService'
 import { cn } from './utils'
 
 type AuthMode = 'signin' | 'signup'

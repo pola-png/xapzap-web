@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { AuthScreen } from './AuthScreen'
-import appwriteService from './appwrite'
+import appwriteService from './appwriteService'
 
 interface AuthWrapperProps {
   children: React.ReactNode

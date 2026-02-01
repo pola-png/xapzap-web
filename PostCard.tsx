@@ -6,7 +6,7 @@ import { Post } from './types'
 import { cn } from './utils'
 import { VideoPlayer } from './VideoPlayer'
 import { useRealtimePost } from './realtime'
-import appwriteService from './appwrite'
+import appwriteService from './appwriteService'
 
 interface PostCardProps {
   post: Post

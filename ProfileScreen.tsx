@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Settings, MapPin, Calendar, Link as LinkIcon, MoreHorizontal, UserPlus, UserMinus, MessageCircle, Share, LogOut } from 'lucide-react'
 import { PostCard } from './PostCard'
 import { Post } from './types'
-import appwriteService from './appwrite'
+import appwriteService from './appwriteService'
 import { cn } from './utils'
 
 interface Profile {
@@ -81,6 +81,8 @@ export function ProfileScreen() {
         .filter((doc: any) => doc.userId === user.$id)
         .map((doc: any) => ({
           id: doc.$id,
+          postId: doc.postId || doc.$id,
+          userId: doc.userId,
           username: profileData?.displayName || profileData?.username || user.name || 'User',
           userAvatar: profileData?.avatarUrl || '',
           content: doc.content || '',
@@ -90,6 +92,7 @@ export function ProfileScreen() {
           title: doc.title || '',
           thumbnailUrl: doc.thumbnailUrl || '',
           timestamp: new Date(doc.createdAt || doc.$createdAt),
+          createdAt: doc.createdAt || doc.$createdAt,
           likes: doc.likes || 0,
           comments: doc.comments || 0,
           reposts: doc.reposts || 0,

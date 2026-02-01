@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { PostCard } from './PostCard'
 import { StoryBar } from './StoryBar'
 import { Post, Story, NewsArticle } from './types'
-import appwriteService from './appwrite'
+import appwriteService from './appwriteService'
 import { Home, Play, Video, Radio, Newspaper, Users } from 'lucide-react'
 
 interface HomeScreenProps {
@@ -61,7 +61,24 @@ export function HomeScreen({ isGuest = false }: HomeScreenProps) {
           break
         case 4: // News
           const newsResult = await appwriteService.fetchNewsArticles(20, refresh ? undefined : cursor)
-          setNews(refresh ? newsResult.documents : [...news, ...newsResult.documents])
+          const newsData = newsResult.documents.map((doc: any) => ({
+            id: doc.$id,
+            newsId: doc.newsId || doc.$id,
+            title: doc.title || '',
+            subtitle: doc.subtitle,
+            content: doc.content || '',
+            summary: doc.summary,
+            category: doc.category,
+            tags: doc.tags || [],
+            topic: doc.topic,
+            thumbnailUrl: doc.thumbnailUrl,
+            imageUrls: doc.imageUrls || [],
+            language: doc.language || 'en',
+            sourceType: doc.sourceType || 'user',
+            aiGenerated: doc.aiGenerated || false,
+            createdAt: new Date(doc.createdAt || doc.$createdAt)
+          }))
+          setNews(refresh ? newsData : [...news, ...newsData])
           setLoading(false)
           setRefreshing(false)
           return

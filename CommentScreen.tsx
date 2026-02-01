@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { ArrowLeft, Heart, Reply, Mic, Send, MoreHorizontal } from 'lucide-react'
 import { Post } from './types'
-import appwriteService from './appwrite'
+import appwriteService from './appwriteService'
 import { cn } from './utils'
 
 interface Comment {

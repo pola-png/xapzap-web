@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { Chat, Message } from './types'
-import appwriteService from './appwrite'
+import appwriteService from './appwriteService'
 
 interface RealtimeUpdate {
   type: 'like' | 'comment' | 'repost' | 'share' | 'impression'
@@ -86,7 +86,7 @@ class RealtimeService {
           senderId: messageData.senderId,
           content: messageData.content,
           timestamp: new Date(messageData.timestamp),
-          isRead: false,
+          readBy: messageData.readBy || '',
           messageType: messageData.messageType || 'text'
         }
         
@@ -194,7 +194,7 @@ class RealtimeService {
       senderId: messageDoc.senderId,
       content: messageDoc.content,
       timestamp: new Date(messageDoc.timestamp),
-      isRead: true,
+      readBy: messageDoc.readBy || '',
       messageType: messageDoc.messageType || 'text'
     }
 
@@ -284,7 +284,7 @@ export function useRealtimeChat(chatId: string) {
           senderId: doc.senderId,
           content: doc.content,
           timestamp: new Date(doc.timestamp),
-          isRead: doc.readBy?.includes(doc.senderId) || false,
+          readBy: doc.readBy || '',
           messageType: doc.messageType || 'text'
         })).reverse()
         setMessages(messages)
