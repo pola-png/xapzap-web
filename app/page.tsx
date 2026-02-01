@@ -1,17 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AuthScreen } from './AuthScreen'
-import { MainLayout } from './MainLayout'
-import { HomeScreen } from './HomeScreen'
-import { ChatScreen } from './ChatScreen'
-import { UploadScreen } from './UploadScreen'
-import { UpdatesScreen } from './UpdatesScreen'
-import { ProfileScreen } from './ProfileScreen'
-import { NotificationsScreen, SearchScreen } from './screens'
-import { CreatePostModal } from './CreatePostModal'
-import { RealtimeStatus } from './RealtimeStatus'
-import appwriteService from './appwrite'
+import { AuthScreen } from '../AuthScreen'
+import { MainLayout } from '../MainLayout'
+import { HomeScreen } from '../HomeScreen'
+import { ChatScreen } from '../ChatScreen'
+import { UploadScreen } from '../UploadScreen'
+import { UpdatesScreen } from '../UpdatesScreen'
+import { ProfileScreen } from '../ProfileScreen'
+import { NotificationsScreen, SearchScreen } from '../screens'
+import { CreatePostModal } from '../CreatePostModal'
+import { RealtimeStatus } from '../RealtimeStatus'
+import appwriteService from '../appwrite'
 
 function App() {
   const [currentTab, setCurrentTab] = useState(0)
