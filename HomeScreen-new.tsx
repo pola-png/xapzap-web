@@ -250,7 +250,7 @@ export function HomeScreen({ isGuest = false }: HomeScreenProps) {
       {/* Stories - Only show on For You tab */}
       {activeTab === 0 && stories.length > 0 && (
         <div className="border-b border-border">
-          <StoryBar stories={stories} />
+          <StoryBar />
         </div>
       )}
 
