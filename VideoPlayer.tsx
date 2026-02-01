@@ -1,1 +1,113 @@
-'use client'\n\nimport { useState, useRef } from 'react'\nimport { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react'\nimport { cn } from './utils'\n\ninterface VideoPlayerProps {\n  src: string\n  poster?: string\n  className?: string\n  autoPlay?: boolean\n  muted?: boolean\n}\n\nexport function VideoPlayer({ src, poster, className, autoPlay = false, muted = true }: VideoPlayerProps) {\n  const [isPlaying, setIsPlaying] = useState(autoPlay)\n  const [isMuted, setIsMuted] = useState(muted)\n  const [showControls, setShowControls] = useState(true)\n  const videoRef = useRef<HTMLVideoElement>(null)\n\n  const togglePlay = () => {\n    if (videoRef.current) {\n      if (isPlaying) {\n        videoRef.current.pause()\n      } else {\n        videoRef.current.play()\n      }\n      setIsPlaying(!isPlaying)\n    }\n  }\n\n  const toggleMute = () => {\n    if (videoRef.current) {\n      videoRef.current.muted = !isMuted\n      setIsMuted(!isMuted)\n    }\n  }\n\n  const toggleFullscreen = () => {\n    if (videoRef.current) {\n      if (document.fullscreenElement) {\n        document.exitFullscreen()\n      } else {\n        videoRef.current.requestFullscreen()\n      }\n    }\n  }\n\n  return (\n    <div \n      className={cn(\"relative group\", className)}\n      onMouseEnter={() => setShowControls(true)}\n      onMouseLeave={() => setShowControls(false)}\n    >\n      <video\n        ref={videoRef}\n        src={src}\n        poster={poster}\n        className=\"w-full h-full object-cover\"\n        autoPlay={autoPlay}\n        muted={muted}\n        loop\n        playsInline\n        onClick={togglePlay}\n        onPlay={() => setIsPlaying(true)}\n        onPause={() => setIsPlaying(false)}\n      />\n      \n      {/* Controls Overlay */}\n      <div className={cn(\n        \"absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent transition-opacity\",\n        showControls ? \"opacity-100\" : \"opacity-0\"\n      )}>\n        {/* Center Play Button */}\n        {!isPlaying && (\n          <div className=\"absolute inset-0 flex items-center justify-center\">\n            <button\n              onClick={togglePlay}\n              className=\"w-16 h-16 bg-black/50 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors\"\n            >\n              <Play size={24} className=\"text-white ml-1\" />\n            </button>\n          </div>\n        )}\n        \n        {/* Bottom Controls */}\n        <div className=\"absolute bottom-0 left-0 right-0 p-4\">\n          <div className=\"flex items-center justify-between\">\n            <div className=\"flex items-center space-x-3\">\n              <button\n                onClick={togglePlay}\n                className=\"text-white hover:text-gray-300 transition-colors\"\n              >\n                {isPlaying ? <Pause size={20} /> : <Play size={20} />}\n              </button>\n              \n              <button\n                onClick={toggleMute}\n                className=\"text-white hover:text-gray-300 transition-colors\"\n              >\n                {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}\n              </button>\n            </div>\n            \n            <button\n              onClick={toggleFullscreen}\n              className=\"text-white hover:text-gray-300 transition-colors\"\n            >\n              <Maximize size={20} />\n            </button>\n          </div>\n        </div>\n      </div>\n    </div>\n  )\n}
+'use client'
+
+import { useState, useRef } from 'react'
+import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react'
+import { cn } from './utils'
+
+interface VideoPlayerProps {
+  src: string
+  poster?: string
+  className?: string
+  autoPlay?: boolean
+  muted?: boolean
+}
+
+export function VideoPlayer({ src, poster, className, autoPlay = false, muted = true }: VideoPlayerProps) {
+  const [isPlaying, setIsPlaying] = useState(autoPlay)
+  const [isMuted, setIsMuted] = useState(muted)
+  const [showControls, setShowControls] = useState(true)
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause()
+      } else {
+        videoRef.current.play()
+      }
+      setIsPlaying(!isPlaying)
+    }
+  }
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted
+      setIsMuted(!isMuted)
+    }
+  }
+
+  const toggleFullscreen = () => {
+    if (videoRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen()
+      } else {
+        videoRef.current.requestFullscreen()
+      }
+    }
+  }
+
+  return (
+    <div 
+      className={cn("relative group", className)}
+      onMouseEnter={() => setShowControls(true)}
+      onMouseLeave={() => setShowControls(false)}
+    >
+      <video
+        ref={videoRef}
+        src={src}
+        poster={poster}
+        className="w-full h-full object-cover"
+        autoPlay={autoPlay}
+        muted={muted}
+        loop
+        playsInline
+        onClick={togglePlay}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+      />
+      
+      <div className={cn(
+        "absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent transition-opacity",
+        showControls ? "opacity-100" : "opacity-0"
+      )}>
+        {!isPlaying && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <button
+              onClick={togglePlay}
+              className="w-16 h-16 bg-black/50 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors"
+            >
+              <Play size={24} className="text-white ml-1" />
+            </button>
+          </div>
+        )}
+        
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={togglePlay}
+                className="text-white hover:text-gray-300 transition-colors"
+              >
+                {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+              </button>
+              
+              <button
+                onClick={toggleMute}
+                className="text-white hover:text-gray-300 transition-colors"
+              >
+                {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+              </button>
+            </div>
+            
+            <button
+              onClick={toggleFullscreen}
+              className="text-white hover:text-gray-300 transition-colors"
+            >
+              <Maximize size={20} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
