@@ -2,10 +2,13 @@
 const nextConfig = {
   output: 'export',
   trailingSlash: true,
+  distDir: 'out',
   images: {
-    domains: ['xapzapolami.b-cdn.net', 'storage.bunnycdn.com'],
     unoptimized: true
   },
+  experimental: {
+    esmExternals: false
+  }
 }
 
 module.exports = nextConfig
