@@ -46,15 +46,15 @@ export function HomeScreen({ isGuest = false }: HomeScreenProps) {
           break
         case 1: // Watch (Videos)
           result = await appwriteService.fetchPosts(20, refresh ? undefined : cursor)
-          result.documents = result.documents.filter(doc => doc.videoUrl || doc.kind === 'video')
+          result.documents = result.documents.filter((doc: any) => doc.videoUrl || doc.kind === 'video')
           break
         case 2: // Reels
           result = await appwriteService.fetchPosts(20, refresh ? undefined : cursor)
-          result.documents = result.documents.filter(doc => doc.kind === 'reel')
+          result.documents = result.documents.filter((doc: any) => doc.kind === 'reel')
           break
         case 3: // Live
           result = await appwriteService.fetchPosts(20, refresh ? undefined : cursor)
-          result.documents = result.documents.filter(doc => doc.kind === 'live')
+          result.documents = result.documents.filter((doc: any) => doc.kind === 'live')
           break
         case 4: // News
           const newsResult = await appwriteService.fetchNewsArticles(20, refresh ? undefined : cursor)
@@ -78,7 +78,7 @@ export function HomeScreen({ isGuest = false }: HomeScreenProps) {
           result = await appwriteService.fetchPosts(20, refresh ? undefined : cursor)
       }
 
-      const newPosts = result.documents.map(doc => ({
+      const newPosts = result.documents.map((doc: any) => ({
         id: doc.$id,
         postId: doc.postId || doc.$id,
         userId: doc.userId,
@@ -143,7 +143,7 @@ export function HomeScreen({ isGuest = false }: HomeScreenProps) {
   const loadStories = useCallback(async () => {
     try {
       const result = await appwriteService.fetchStatuses(40)
-      const storyData = result.documents.map(doc => ({
+      const storyData = result.documents.map((doc: any) => ({
         id: doc.$id,
         statusId: doc.statusId || doc.$id,
         userId: doc.userId,
@@ -171,13 +171,13 @@ export function HomeScreen({ isGuest = false }: HomeScreenProps) {
 
   useEffect(() => {
     const unsubscribePosts = appwriteService.subscribeToCollection('posts', (response) => {
-      if (response.events.some(event => event.includes('create'))) {
+      if (response.events.some((event: any) => event.includes('create'))) {
         loadPosts(true)
       }
     })
 
     const unsubscribeStatuses = appwriteService.subscribeToCollection('statuses', (response) => {
-      if (response.events.some(event => event.includes('create'))) {
+      if (response.events.some((event: any) => event.includes('create'))) {
         loadStories()
       }
     })
@@ -242,7 +242,7 @@ export function HomeScreen({ isGuest = false }: HomeScreenProps) {
 
       {activeTab === 0 && stories.length > 0 && (
         <div className="border-b border-border">
-          <StoryBar stories={stories} />
+          <StoryBar />
         </div>
       )}
 

@@ -87,7 +87,7 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
                     className="w-full h-full object-cover"
                   />
                   <button
-                    onClick={() => setSelectedMedia(prev => prev.filter((_, i) => i !== index))}
+                    onClick={() => setSelectedMedia((prev: File[]) => prev.filter((_, i) => i !== index))}
                     className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70"
                   >
                     <X size={14} />
@@ -108,7 +108,7 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
                   className="hidden"
                   onChange={(e) => {
                     const files = Array.from(e.target.files || [])
-                    setSelectedMedia(prev => [...prev, ...files])
+                    setSelectedMedia((prev: File[]) => [...prev, ...files])
                   }}
                 />
               </label>
@@ -121,7 +121,7 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
                   className="hidden"
                   onChange={(e) => {
                     const files = Array.from(e.target.files || [])
-                    setSelectedMedia(prev => [...prev, ...files])
+                    setSelectedMedia((prev: File[]) => [...prev, ...files])
                   }}
                 />
               </label>
