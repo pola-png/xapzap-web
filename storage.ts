@@ -1,11 +1,8 @@
 import { ID } from 'appwrite'
+import appwriteService from './appwrite'
 
 class StorageService {
   private static instance: StorageService
-  private readonly bunnyStorageZone = 'xapzap'
-  private readonly bunnyStorageHost = 'storage.bunnycdn.com'
-  private readonly bunnyStorageKey = process.env.NEXT_PUBLIC_BUNNY_STORAGE_KEY || ''
-  private readonly bunnyCdnBaseUrl = 'https://xapzapolami.b-cdn.net'
 
   private constructor() {}
 
@@ -17,51 +14,56 @@ class StorageService {
   }
 
   async uploadFile(file: File, path?: string): Promise<string> {
-    const fileName = path || `${Date.now()}_${file.name}`
-    
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const response = await fetch(`https://${this.bunnyStorageHost}/${this.bunnyStorageZone}/${fileName}`, {
-        method: 'PUT',
+      // Convert file to base64
+      const base64 = await this.fileToBase64(file)
+      const fileName = path || `${Date.now()}_${file.name}`
+      
+      // Call Appwrite function that handles Bunny CDN upload
+      const response = await fetch('/v1/functions/bunny-upload/executions', {
+        method: 'POST',
         headers: {
-          'AccessKey': this.bunnyStorageKey,
+          'Content-Type': 'application/json',
+          'X-Appwrite-Project': '690641ad0029b51eefe0'
         },
-        body: file
+        body: JSON.stringify({
+          path: fileName,
+          fileBase64: base64
+        })
       })
 
+      const result = await response.json()
+      
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`)
+        throw new Error(result.error || 'Upload failed')
       }
 
-      return `${this.bunnyCdnBaseUrl}/${fileName}`
+      return result.url
     } catch (error) {
       console.error('Upload error:', error)
       throw error
     }
   }
 
-  async deleteFile(fileName: string): Promise<void> {
-    try {
-      const response = await fetch(`https://${this.bunnyStorageHost}/${this.bunnyStorageZone}/${fileName}`, {
-        method: 'DELETE',
-        headers: {
-          'AccessKey': this.bunnyStorageKey,
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error(`Delete failed: ${response.statusText}`)
+  private fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => {
+        const base64 = (reader.result as string).split(',')[1]
+        resolve(base64)
       }
-    } catch (error) {
-      console.error('Delete error:', error)
-      throw error
-    }
+      reader.onerror = reject
+    })
+  }
+
+  async deleteFile(fileName: string): Promise<void> {
+    // Implement delete via Appwrite function if needed
+    console.log('Delete not implemented yet:', fileName)
   }
 
   getFileUrl(fileName: string): string {
-    return `${this.bunnyCdnBaseUrl}/${fileName}`
+    return `https://xapzapolami.b-cdn.net/${fileName}`
   }
 }
 
