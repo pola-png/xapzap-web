@@ -47,17 +47,17 @@ export function HomeScreen({ isGuest = false }: HomeScreenProps) {
         case 1: // Watch (Videos)
           result = await appwriteService.fetchPosts(20, refresh ? undefined : cursor)
           // Filter for video posts
-          result.documents = result.documents.filter(doc => doc.videoUrl || doc.kind === 'video')
+          result.documents = result.documents.filter((doc: any) => doc.videoUrl || doc.kind === 'video')
           break
         case 2: // Reels
           result = await appwriteService.fetchPosts(20, refresh ? undefined : cursor)
           // Filter for reel posts
-          result.documents = result.documents.filter(doc => doc.kind === 'reel')
+          result.documents = result.documents.filter((doc: any) => doc.kind === 'reel')
           break
         case 3: // Live
           result = await appwriteService.fetchPosts(20, refresh ? undefined : cursor)
           // Filter for live posts
-          result.documents = result.documents.filter(doc => doc.kind === 'live')
+          result.documents = result.documents.filter((doc: any) => doc.kind === 'live')
           break
         case 4: // News
           const newsResult = await appwriteService.fetchNewsArticles(20, refresh ? undefined : cursor)

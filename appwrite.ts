@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Storage, Realtime, ID, Query } from 'appwrite'
+import { Client, Account, Databases, Storage, ID, Query } from 'appwrite'
 import { Chat, Message } from './types'
 
 class AppwriteService {
@@ -7,7 +7,6 @@ class AppwriteService {
   private account: Account
   private databases: Databases
   private storage: Storage
-  private realtime: Realtime
 
   // Configuration - matching Flutter app exactly
   private readonly endpoint = 'https://nyc.cloud.appwrite.io/v1'
@@ -45,7 +44,6 @@ class AppwriteService {
     this.account = new Account(this.client)
     this.databases = new Databases(this.client)
     this.storage = new Storage(this.client)
-    this.realtime = new Realtime(this.client)
   }
 
   static getInstance(): AppwriteService {
@@ -856,19 +854,15 @@ class AppwriteService {
     } catch {}
   }
 
-  // Realtime subscriptions
+  // Realtime subscriptions (placeholder)
   subscribeToCollection(collection: string, callback: (payload: any) => void) {
-    return this.realtime.subscribe(
-      `databases.${this.databaseId}.collections.${collection}.documents`,
-      callback
-    )
+    console.log('Realtime subscription not available in this version')
+    return () => {}
   }
 
   subscribeToDocument(collection: string, documentId: string, callback: (payload: any) => void) {
-    return this.realtime.subscribe(
-      `databases.${this.databaseId}.collections.${collection}.documents.${documentId}`,
-      callback
-    )
+    console.log('Realtime subscription not available in this version')
+    return () => {}
   }
 }
 
