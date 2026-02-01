@@ -82,7 +82,7 @@ export function HomeScreen({ isGuest = false }: HomeScreenProps) {
       }
 
       // Transform documents to Post objects
-      const newPosts = result.documents.map(doc => ({
+      const newPosts = result.documents.map((doc: any) => ({
         id: doc.$id,
         postId: doc.postId || doc.$id,
         userId: doc.userId,
@@ -148,7 +148,7 @@ export function HomeScreen({ isGuest = false }: HomeScreenProps) {
   const loadStories = useCallback(async () => {
     try {
       const result = await appwriteService.fetchStatuses(40)
-      const storyData = result.documents.map(doc => ({
+      const storyData = result.documents.map((doc: any) => ({
         id: doc.$id,
         statusId: doc.statusId || doc.$id,
         userId: doc.userId,
