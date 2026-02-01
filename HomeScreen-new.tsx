@@ -177,13 +177,13 @@ export function HomeScreen({ isGuest = false }: HomeScreenProps) {
   useEffect(() => {
     // Set up real-time subscriptions
     const unsubscribePosts = appwriteService.subscribeToCollection('posts', (response) => {
-      if (response.events.some(event => event.includes('create'))) {
+      if (response.events.some((event: any) => event.includes('create'))) {
         loadPosts(true)
       }
     })
 
     const unsubscribeStatuses = appwriteService.subscribeToCollection('statuses', (response) => {
-      if (response.events.some(event => event.includes('create'))) {
+      if (response.events.some((event: any) => event.includes('create'))) {
         loadStories()
       }
     })
