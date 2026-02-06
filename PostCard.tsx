@@ -75,36 +75,36 @@ export function PostCard({ post, isGuest = false, onGuestAction }: PostCardProps
         </div>
 
         <div className="bg-white dark:bg-[#1F1F1F] rounded-xl p-3 shadow-sm border border-gray-100 dark:border-[#374151]">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <button
               onClick={handleLike}
               className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all ${
-                isLiked ? 'text-[#FF2D55] bg-red-50' : 'text-[#6B7280] hover:text-[#FF2D55] hover:bg-red-50'
+                isLiked ? 'text-[#FF2D55] bg-red-50 dark:bg-red-950/30' : 'text-[#6B7280] hover:text-[#FF2D55] hover:bg-red-50 dark:hover:bg-red-950/30'
               }`}
             >
               <Heart size={20} className={isLiked ? 'fill-current' : ''} />
               <span className="text-sm font-medium">{likes}</span>
             </button>
 
-            <button className="flex items-center gap-2 px-3 py-2 rounded-full text-[#6B7280] hover:text-blue-500 hover:bg-blue-50 transition-all">
+            <button className="flex items-center gap-2 px-3 py-2 rounded-full text-[#6B7280] hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all">
               <MessageCircle size={20} />
               <span className="text-sm font-medium">{post.comments}</span>
             </button>
 
-            <button className="flex items-center gap-2 px-3 py-2 rounded-full text-[#6B7280] hover:text-green-500 hover:bg-green-50 transition-all">
+            <button className="flex items-center gap-2 px-3 py-2 rounded-full text-[#6B7280] hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-950/30 transition-all">
               <Repeat2 size={20} />
               <span className="text-sm font-medium">{post.reposts}</span>
             </button>
 
-            <button className="flex items-center gap-2 px-3 py-2 rounded-full text-[#6B7280] hover:text-blue-500 hover:bg-blue-50 transition-all">
+            <button className="flex items-center gap-2 px-3 py-2 rounded-full text-[#6B7280] hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all">
               <Share size={20} />
-              <span className="text-sm font-medium">0</span>
+              <span className="text-sm font-medium hidden sm:inline">Share</span>
             </button>
 
             <div className="flex items-center gap-2 px-3 py-2 text-[#6B7280]">
               <BarChart2 size={20} />
               <span className="text-sm font-medium">{post.impressions}</span>
-              <span className="text-xs">Views</span>
+              <span className="text-xs hidden md:inline">Views</span>
             </div>
 
             <button className="p-2 rounded-full text-[#6B7280] hover:text-yellow-500 transition-colors">

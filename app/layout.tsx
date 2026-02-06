@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'XapZap - Social Media Platform',
   description: 'Connect, share, and discover with XapZap',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.png',
   },
 }
 
