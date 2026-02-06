@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Search, Home, Play, Video, Radio, Newspaper, Users } from 'lucide-react'
 import { PostCard } from './PostCard'
+import { StoryBar } from './StoryBar'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 
@@ -90,6 +91,8 @@ export function HomeScreen() {
           })}
         </div>
       </div>
+
+      {activeTab === 0 && <StoryBar />}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
