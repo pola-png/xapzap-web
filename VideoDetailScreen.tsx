@@ -21,7 +21,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>()
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   useEffect(() => {
     const video = videoRef.current
@@ -185,11 +185,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       <div className="bg-background border-t border-border">
         <div className="max-w-2xl mx-auto">
           <PostCard
-            post={{ ...post, videoUrl: undefined }} // Hide video in card since we're showing it above
+            post={{ ...post, videoUrl: undefined }}
             isGuest={isGuest}
             onGuestAction={onGuestAction}
-            isDetail={true}
-            onOpenComments={() => setShowComments(true)}
           />
         </div>
       </div>
