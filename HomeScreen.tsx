@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search } from 'lucide-react'
+import { Search, Home, MessageCircle, PlusSquare, Upload, Zap, Bell, User } from 'lucide-react'
 import { PostCard } from './PostCard'
 import { StoryBar } from './StoryBar'
 import { Post } from './types'
@@ -13,6 +13,15 @@ export function HomeScreen() {
   const [loading, setLoading] = useState(true)
 
   const tabs = ['For You', 'Watch', 'Reels', 'Live', 'News', 'Following']
+  const navItems = [
+    { icon: Home, label: 'Home' },
+    { icon: MessageCircle, label: 'Chat' },
+    { icon: PlusSquare, label: 'Create' },
+    { icon: Upload, label: 'Upload' },
+    { icon: Zap, label: 'Updates' },
+    { icon: Bell, label: 'Notifications' },
+    { icon: User, label: 'Profile' },
+  ]
 
   useEffect(() => {
     loadPosts()
@@ -55,7 +64,7 @@ export function HomeScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#121212]">
+    <div className="min-h-screen bg-white dark:bg-[#121212] pb-16">
       {/* Sticky Header */}
       <div className="sticky top-0 bg-white dark:bg-[#121212] z-50 border-b border-gray-200 dark:border-gray-800">
         {/* Top Bar */}
@@ -105,6 +114,26 @@ export function HomeScreen() {
           </div>
         )}
       </div>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1F1F1F] border-t border-gray-200 dark:border-gray-800 z-50">
+        <div className="flex items-center justify-around py-2">
+          {navItems.map((item, index) => {
+            const Icon = item.icon
+            const isActive = index === 0
+            return (
+              <button
+                key={item.label}
+                className={`flex flex-col items-center p-2 transition-colors ${
+                  isActive ? 'text-[#1DA1F2]' : 'text-gray-500 dark:text-gray-400'
+                }`}
+              >
+                <Icon size={28} />
+              </button>
+            )
+          })}
+        </div>
+      </nav>
     </div>
   )
 }
