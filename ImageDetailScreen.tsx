@@ -85,11 +85,9 @@ export function ImageDetailScreen({ post, onClose, isGuest = false, onGuestActio
           {/* Post Info */}
           <div className="border-t border-border">
             <PostCard
-              post={{ ...post, imageUrl: undefined }} // Hide image in card since we're showing it above
+              post={{ ...post, imageUrl: undefined }}
               isGuest={isGuest}
               onGuestAction={onGuestAction}
-              isDetail={true}
-              onOpenComments={() => setShowComments(true)}
             />
           </div>
         </div>
