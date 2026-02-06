@@ -48,8 +48,6 @@ export function PostDetailScreen({ post, onClose, isGuest = false, onGuestAction
             post={post}
             isGuest={isGuest}
             onGuestAction={onGuestAction}
-            isDetail={true}
-            onOpenComments={() => setShowComments(true)}
           />
           
           {/* Comments Preview */}
