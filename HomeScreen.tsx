@@ -58,7 +58,7 @@ export function HomeScreen() {
     <div className="min-h-screen bg-white dark:bg-[#121212]">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-[#121212] z-50">
+        <div className="sticky top-0 bg-white dark:bg-[#121212] z-50 border-b border-[#E5E7EB] dark:border-[#2D2D2D]">
           <div className="flex items-center justify-between px-4 h-14">
             <h1 className="text-2xl font-bold text-[#1DA1F2]">XapZap</h1>
             <button className="p-2">
@@ -67,12 +67,12 @@ export function HomeScreen() {
           </div>
 
           {/* Tabs */}
-          <div className="flex border-b border-[#E5E7EB] dark:border-[#374151]">
+          <div className="flex overflow-x-auto scrollbar-hide">
             {tabs.map((tab, index) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(index)}
-                className={`flex-1 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                className={`flex-shrink-0 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                   activeTab === index
                     ? 'border-black dark:border-white text-black dark:text-white'
                     : 'border-transparent text-[#6B7280] hover:text-black dark:hover:text-white'
