@@ -57,7 +57,7 @@ export function PostCard({ post, isGuest = false, onGuestAction }: PostCardProps
                 <h3 className="text-[22px] font-extrabold leading-tight text-black dark:text-white">{post.username}</h3>
                 <time className="text-[13px] text-[#6B7280]">{formatTime(post.timestamp)}</time>
               </div>
-              <button className="p-1">
+              <button className="p-1" aria-label="More options">
                 <MoreHorizontal size={16} className="text-[#6B7280]" />
               </button>
             </div>
@@ -107,7 +107,7 @@ export function PostCard({ post, isGuest = false, onGuestAction }: PostCardProps
               <span className="text-xs hidden md:inline">Views</span>
             </div>
 
-            <button className="p-2 rounded-full text-[#6B7280] hover:text-yellow-500 transition-colors">
+            <button className="p-2 rounded-full text-[#6B7280] hover:text-yellow-500 transition-colors" aria-label="Bookmark">
               <Bookmark size={20} />
             </button>
           </div>

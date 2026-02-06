@@ -56,41 +56,46 @@ export function HomeScreen() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#121212]">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-[#121212] z-50 border-b border-[#E5E7EB] dark:border-[#2D2D2D]">
-          <div className="flex items-center justify-between px-4 h-14">
-            <h1 className="text-2xl font-bold text-[#1DA1F2]">XapZap</h1>
-            <button className="p-2">
-              <Search size={28} className="text-black dark:text-white" />
-            </button>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex overflow-x-auto scrollbar-hide">
-            {tabs.map((tab, index) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(index)}
-                className={`flex-shrink-0 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  activeTab === index
-                    ? 'border-black dark:border-white text-black dark:text-white'
-                    : 'border-transparent text-[#6B7280] hover:text-black dark:hover:text-white'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+      {/* Sticky Header */}
+      <div className="sticky top-0 bg-white dark:bg-[#121212] z-50 border-b border-gray-200 dark:border-gray-800">
+        {/* Top Bar */}
+        <div className="flex items-center justify-between px-4 h-14">
+          <h1 className="text-2xl font-bold text-[#1DA1F2]">XapZap</h1>
+          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+            <Search size={24} className="text-gray-900 dark:text-white" />
+          </button>
         </div>
 
-        {/* Story Bar - Only on For You tab */}
-        {activeTab === 0 && <StoryBar />}
+        {/* Tabs */}
+        <div className="flex overflow-x-auto scrollbar-hide">
+          {tabs.map((tab, index) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(index)}
+              className={`flex-shrink-0 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === index
+                  ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      </div>
 
-        {/* Posts Feed */}
+      {/* Story Bar */}
+      {activeTab === 0 && <StoryBar />}
+
+      {/* Posts Feed */}
+      <div className="max-w-2xl mx-auto">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="w-8 h-8 border-2 border-[#1DA1F2] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+            <p>No posts yet</p>
           </div>
         ) : (
           <div>
