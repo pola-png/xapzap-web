@@ -18,6 +18,7 @@ function formatTime(date: Date): string {
 interface ChatListProps {
   chats: Chat[]
   onChatSelect: (chat: Chat) => void
+  loading?: boolean
 }
 
 function ChatList({ chats, onChatSelect }: ChatListProps) {
@@ -299,7 +300,7 @@ export function ChatScreen() {
         <div className={`lg:col-span-2 lg:border-r lg:border-border ${
           selectedChat ? 'hidden lg:block' : 'block'
         }`}>
-          <ChatList chats={chats} onChatSelect={setSelectedChat} />
+          <ChatList chats={chats} onChatSelect={setSelectedChat} loading={loading} />
         </div>
 
         {/* Chat View - Hidden on mobile when no chat is selected */}
