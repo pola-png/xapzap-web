@@ -135,4 +135,16 @@ export function DashboardScreen() {
           </div>
         </div>
 
-        <div className="bg-card p
+        <div className="bg-card p-6 rounded-xl border shadow-sm">
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+            <Users className="w-5 h-5 text-secondary-foreground" />
+            Follower Growth (30 days)
+          </h2>
+          <div className="h-80 bg-gradient-to-r from-muted to-muted/50 rounded-2xl flex items-center justify-center text-muted-foreground">
+            Chart placeholder - integrate Recharts or similar
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
