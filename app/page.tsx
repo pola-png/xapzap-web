@@ -4,6 +4,13 @@ import { useState } from 'react'
 import { MainLayout } from '../MainLayout'
 import { HomeScreen } from '../HomeScreen'
 
+import { ChatScreen } from '../ChatScreen'
+import { NotificationsScreen, SearchScreen } from '../screens'
+import { ProfileScreen } from '../ProfileScreen'
+import { DashboardScreen } from '../DashboardScreen'
+import { AuthScreen } from '../AuthScreen'
+import { CreatePostModal } from '../CreatePostModal-enhanced'
+
 export default function Home() {
   const [currentTab, setCurrentTab] = useState(0)
   const [showSearch, setShowSearch] = useState(false)
