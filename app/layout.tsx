@@ -18,8 +18,21 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) { 
+                document.documentElement.classList.add('dark')
+              } else { 
+                document.documentElement.classList.remove('dark')
+              }
+            `,
+          }}
+        />
+        {children}
+      </body>
     </html>
   )
 }
