@@ -1,13 +1,13 @@
-/** @type {import('next').NextConfig} */
+import { NextConfig } from 'next'
+import withSitemap from 'next-sitemap'
+
 const nextConfig = {
   images: {
     unoptimized: true
   }
 }
 
-const { withSitemap } = require('next-sitemap');
-
-module.exports = withSitemap({
+export default withSitemap({
   siteUrl: process.env.SITE_URL || 'https://xapzap.com',
   generateSitemap: true,
   sitemapSize: 5000,
