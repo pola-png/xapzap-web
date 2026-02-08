@@ -44,7 +44,11 @@ function ChatList({ chats, onChatSelect }: ChatListProps) {
       </div>
       
       <div className="flex-1 overflow-y-auto">
-        {filteredChats.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredChats.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No conversations found</p>
           </div>
@@ -240,7 +244,53 @@ function ChatView({ chat, onBack }: ChatViewProps) {
 
 export function ChatScreen() {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
-  const [chats] = useState<Chat[]>([])
+  const [chats, setChats] = useState<Chat[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadChats()
+  }, [])
+
+  const loadChats = async () => {
+    setLoading(true)
+    try {
+      const user = await appwriteService.getCurrentUser()
+      if (!user) {
+        setLoading(false)
+        return
+      }
+      const result = await appwriteService.fetchChatsForUser(user.$id)
+      const mappedChats = result.documents.map((doc: any) => {
+        // Stub parse partner from memberIds
+        const memberIds = doc.memberIds.split(',').map(id => id.trim())
+        const partnerId = memberIds.find(id => id !== user.$id) || 'unknown'
+        return {
+          id: doc.$id,
+          chatId: doc.chatId,
+          memberIds: doc.memberIds,
+          partnerId,
+          partnerName: doc.partnerName || partnerId.slice(0,8),
+          partnerAvatar: doc.partnerAvatar || '',
+          lastMessage: doc.lastMessage || 'No messages',
+          timestamp: new Date(doc.timestamp || doc.createdAt),
+          unreadCount: doc.unreadCount || 0,
+          isOnline: false,
+        } as Chat
+      })
+      setChats(mappedChats)
+    } catch (error) {
+      console.error('Failed to load chats:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    const unsubscribe = appwriteService.subscribeToCollection('messages', () => {
+      loadChats()
+    })
+    return unsubscribe
+  }, [])
 
   return (
     <div className="h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)]">
