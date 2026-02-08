@@ -158,7 +158,7 @@ class AppwriteService {
   // Posts methods
   async fetchPosts(limit = 20, cursor?: string) {
     const queries = [
-      Query.orderDesc('createdAt'),
+      Query.orderDesc('$createdAt'),
       Query.limit(limit)
     ]
     if (cursor) queries.push(Query.cursorAfter(cursor))
@@ -223,7 +223,7 @@ class AppwriteService {
   // News methods
   async fetchNewsArticles(limit = 20, cursor?: string) {
     const queries = [
-      Query.orderDesc('createdAt'),
+      Query.orderDesc('$createdAt'),
       Query.limit(limit)
     ]
     if (cursor) queries.push(Query.cursorAfter(cursor))
@@ -637,9 +637,10 @@ class AppwriteService {
   async fetchPostsByUserIds(userIds: string[], limit = 20, cursor?: string) {
     if (userIds.length === 0) return { documents: [], total: 0 }
     
+    const orQueries = userIds.map(id => Query.equal('userId', id))
     const queries = [
-      Query.equal('userId', userIds),
-      Query.orderDesc('createdAt'),
+      Query.or(orQueries),
+      Query.orderDesc('$createdAt'),
       Query.limit(limit)
     ]
     if (cursor) queries.push(Query.cursorAfter(cursor))
