@@ -6,6 +6,8 @@ import { Post } from './types'
 
 interface PostCardProps {
   post: Post
+  isGuest?: boolean
+  onGuestAction?: () => void
 }
 
 export const PostCard = ({ post }: PostCardProps) => {
