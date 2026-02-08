@@ -21,7 +21,7 @@ export default function Home() {
     switch (currentTab) {
       case 0: return <HomeScreen />
       case 1: return <ChatScreen />
-      case 2: return setShowCreate(true) || <div />
+      case 2: return (setShowCreate(true), <div />);
       case 3: return <NotificationsScreen />
       case 4: return <ProfileScreen />
       case 5: return <DashboardScreen />
