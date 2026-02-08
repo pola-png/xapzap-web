@@ -25,7 +25,7 @@ export default function Home() {
       case 3: return <NotificationsScreen />
       case 4: return <ProfileScreen />
       case 5: return <DashboardScreen />
-      case 6: return <AuthScreen />
+      case 6: return <AuthScreen onAuthSuccess={() => { setIsGuest(false); setCurrentTab(0); }} />
       default: return <HomeScreen />
     }
   }
@@ -48,7 +48,7 @@ export default function Home() {
         <SearchScreen onClose={() => setShowSearch(false)} />
       )}
       {showCreate && (
-        <CreatePostModal onClose={() => setShowCreate(false)} />
+        <CreatePostModal isOpen={showCreate} onClose={() => setShowCreate(false)} />
       )}
     </>
   )
