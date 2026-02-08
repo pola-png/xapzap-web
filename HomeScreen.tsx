@@ -13,15 +13,6 @@ export function HomeScreen() {
   const [loading, setLoading] = useState(true)
 
   const tabs = ['For You', 'Watch', 'Reels', 'Live', 'News', 'Following']
-  const navItems = [
-    { icon: Home, label: 'Home' },
-    { icon: MessageCircle, label: 'Chat' },
-    { icon: PlusSquare, label: 'Create' },
-    { icon: Upload, label: 'Upload' },
-    { icon: Zap, label: 'Updates' },
-    { icon: Bell, label: 'Notifications' },
-    { icon: User, label: 'Profile' },
-  ]
 
   useEffect(() => {
     loadPosts()
@@ -64,19 +55,43 @@ export function HomeScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#121212] pb-16">
-      {/* Sticky Header */}
-      <div className="sticky top-0 bg-white dark:bg-[#121212] z-50 border-b border-gray-200 dark:border-gray-800">
-        {/* Top Bar */}
-        <div className="flex items-center justify-between px-4 h-14">
+    <div className="min-h-screen bg-white dark:bg-[#121212]">
+      {/* Header */}
+      <div className="sticky top-0 bg-white dark:bg-[#121212] z-50">
+        <div className="flex items-center justify-between px-4 h-14 border-b border-gray-200 dark:border-gray-800">
           <h1 className="text-2xl font-bold text-[#1DA1F2]">XapZap</h1>
-          <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
-            <Search size={24} className="text-gray-900 dark:text-white" />
-          </button>
+          
+          {/* Navigation Icons */}
+          <div className="flex items-center gap-2">
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+              <Home size={26} className="text-gray-900 dark:text-white" />
+            </button>
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+              <MessageCircle size={26} className="text-gray-900 dark:text-white" />
+            </button>
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+              <PlusSquare size={26} className="text-gray-900 dark:text-white" />
+            </button>
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+              <Upload size={26} className="text-gray-900 dark:text-white" />
+            </button>
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+              <Zap size={26} className="text-gray-900 dark:text-white" />
+            </button>
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+              <Bell size={26} className="text-gray-900 dark:text-white" />
+            </button>
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+              <User size={26} className="text-gray-900 dark:text-white" />
+            </button>
+            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+              <Search size={26} className="text-gray-900 dark:text-white" />
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex overflow-x-auto scrollbar-hide">
+        <div className="flex overflow-x-auto scrollbar-hide border-b border-gray-200 dark:border-gray-800">
           {tabs.map((tab, index) => (
             <button
               key={tab}
@@ -114,26 +129,6 @@ export function HomeScreen() {
           </div>
         )}
       </div>
-
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1F1F1F] border-t border-gray-200 dark:border-gray-800 z-50">
-        <div className="flex items-center justify-around py-2">
-          {navItems.map((item, index) => {
-            const Icon = item.icon
-            const isActive = index === 0
-            return (
-              <button
-                key={item.label}
-                className={`flex flex-col items-center p-2 transition-colors ${
-                  isActive ? 'text-[#1DA1F2]' : 'text-gray-500 dark:text-gray-400'
-                }`}
-              >
-                <Icon size={28} />
-              </button>
-            )
-          })}
-        </div>
-      </nav>
     </div>
   )
 }

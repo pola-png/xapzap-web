@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { Settings, MapPin, Calendar, Link as LinkIcon, MoreHorizontal, UserPlus, UserMinus, MessageCircle, Share, LogOut } from 'lucide-react'
+import { BarChart3, DollarSign, Settings, MapPin, Calendar, Link as LinkIcon, MoreHorizontal, UserPlus, UserMinus, MessageCircle, Share, LogOut } from 'lucide-react'
 import { PostCard } from './PostCard'
 import { Post } from './types'
 import appwriteService from './appwriteService'
@@ -76,10 +76,8 @@ export function ProfileScreen() {
       await syncFollowState(user.$id)
 
       // Load user's posts
-      const postsResult = await appwriteService.fetchPosts(50)
-      const userPosts = postsResult.documents
-        .filter((doc: any) => doc.userId === user.$id)
-        .map((doc: any) => ({
+      const postsResult = await appwriteService.fetchPostsByUserIds([user.$id], 50)
+      const userPosts = postsResult.documents.map((doc: any) => ({
           id: doc.$id,
           postId: doc.postId || doc.$id,
           userId: doc.userId,
