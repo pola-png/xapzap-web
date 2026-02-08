@@ -604,15 +604,17 @@ class AppwriteService {
     }
   }
 
-  // Real-time subscriptions (placeholder)
-  subscribeToCollection(collection: string, callback: (payload: any) => void) {
-    console.log('Realtime subscription not available in this version')
-    return () => {}
+  // Real-time subscriptions
+  subscribeToCollection(collectionId: string, callback: (payload: any) => void) {
+    const channel = `databases.${this.databaseId}.collections.${collectionId}.documents`;
+    const unsubscribe = this.client.subscribe([channel], callback);
+    return unsubscribe;
   }
 
-  subscribeToDocument(collection: string, documentId: string, callback: (payload: any) => void) {
-    console.log('Realtime subscription not available in this version')
-    return () => {}
+  subscribeToDocument(collectionId: string, documentId: string, callback: (payload: any) => void) {
+    const channel = `databases.${this.databaseId}.collections.${collectionId}.documents.${documentId}`;
+    const unsubscribe = this.client.subscribe([channel], callback);
+    return unsubscribe;
   }
 
   // Additional methods needed for HomeScreen
