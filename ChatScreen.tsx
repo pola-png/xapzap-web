@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { ArrowLeft, Send, Image, Video, Smile, MoreVertical, Phone, VideoIcon, Search } from 'lucide-react'
 import { Chat, Message } from './types'
+import appwriteService from './appwriteService'
 import { useRealtimeChat } from './realtime'
 
 function formatTime(date: Date): string {
@@ -21,7 +22,7 @@ interface ChatListProps {
   loading?: boolean
 }
 
-function ChatList({ chats, onChatSelect }: ChatListProps) {
+function ChatList({ chats, onChatSelect, loading }: ChatListProps) {
   const [searchQuery, setSearchQuery] = useState('')
   
   const filteredChats = chats.filter(chat =>
@@ -140,6 +141,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
           <button
             onClick={onBack}
             className="p-2 hover:bg-accent rounded-full lg:hidden"
+            aria-label="Back"
           >
             <ArrowLeft size={20} />
           </button>
@@ -161,13 +163,13 @@ function ChatView({ chat, onBack }: ChatViewProps) {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <button className="p-2 hover:bg-accent rounded-full">
+          <button className="p-2 hover:bg-accent rounded-full" aria-label="Call">
             <Phone size={20} />
           </button>
-          <button className="p-2 hover:bg-accent rounded-full">
+          <button className="p-2 hover:bg-accent rounded-full" aria-label="Video call">
             <VideoIcon size={20} />
           </button>
-          <button className="p-2 hover:bg-accent rounded-full">
+          <button className="p-2 hover:bg-accent rounded-full" aria-label="More">
             <MoreVertical size={20} />
           </button>
         </div>
@@ -210,10 +212,10 @@ function ChatView({ chat, onBack }: ChatViewProps) {
       <div className="p-4 border-t border-border">
         <div className="flex items-end space-x-2">
           <div className="flex space-x-2">
-            <button className="p-2 hover:bg-accent rounded-full">
+            <button className="p-2 hover:bg-accent rounded-full" aria-label="Send image">
               <Image size={20} className="text-muted-foreground" />
             </button>
-            <button className="p-2 hover:bg-accent rounded-full">
+            <button className="p-2 hover:bg-accent rounded-full" aria-label="Send video">
               <Video size={20} className="text-muted-foreground" />
             </button>
           </div>
@@ -226,7 +228,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
               className="w-full px-4 py-2 pr-12 bg-muted rounded-2xl border-0 focus:outline-none focus:ring-2 focus:ring-xapzap-blue resize-none"
               rows={1}
             />
-            <button className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-accent rounded-full">
+            <button className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-accent rounded-full" aria-label="Emoji">
               <Smile size={16} className="text-muted-foreground" />
             </button>
           </div>
@@ -234,6 +236,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
             onClick={handleSend}
             disabled={!newMessage.trim()}
             className="p-2 bg-xapzap-blue text-white rounded-full hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Send message"
           >
             <Send size={20} />
           </button>
@@ -263,8 +266,8 @@ export function ChatScreen() {
       const result = await appwriteService.fetchChatsForUser(user.$id)
       const mappedChats = result.documents.map((doc: any) => {
         // Stub parse partner from memberIds
-        const memberIds = doc.memberIds.split(',').map(id => id.trim())
-        const partnerId = memberIds.find(id => id !== user.$id) || 'unknown'
+        const memberIds = doc.memberIds.split(',').map((id: string) => id.trim())
+        const partnerId = memberIds.find((id: string) => id !== user.$id) || 'unknown'
         return {
           id: doc.$id,
           chatId: doc.chatId,
