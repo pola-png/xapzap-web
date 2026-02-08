@@ -8,6 +8,7 @@ interface PostCardProps {
   post: Post
   isGuest?: boolean
   onGuestAction?: () => void
+  currentUserId?: string
 }
 
 export const PostCard = ({ post }: PostCardProps) => {
