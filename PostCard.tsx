@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal } from 'lucide-react'
+import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2 } from 'lucide-react'
 import { Post } from './types'
 
 interface PostCardProps {
@@ -33,21 +33,21 @@ export const PostCard = ({ post }: PostCardProps) => {
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
-              <span className="text-[rgb(var(--text-primary))] font-semibold text-[15px]">{post.username}</span>
-              <span className="text-[rgb(var(--text-secondary))] text-sm">{new Date(post.createdAt).toLocaleDateString()}</span>
+              <span className="text-[rgb(var(--text-primary))] font-bold text-lg">{post.username}</span>
+              <span className="text-[rgb(var(--text-secondary))] text-xs">{new Date(post.createdAt).toLocaleDateString()}</span>
             </div>
             <button className="text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))]" aria-label="More options">
               <MoreHorizontal size={20} />
             </button>
           </div>
-          <p className="text-[rgb(var(--text-primary))] text-[15px] mb-3 leading-relaxed">{post.content}</p>
+          <p className="text-[rgb(var(--text-primary))] text-base mb-2 leading-relaxed">{post.content}</p>
           {post.imageUrl && (
-            <img src={post.imageUrl} alt="Post" className="w-full rounded-2xl mb-3" />
+            <img src={post.imageUrl} alt="Post" className="w-full rounded-xl mb-2" />
           )}
           {post.videoUrl && (
             <video src={post.videoUrl} className="w-full rounded-2xl mb-3" controls />
           )}
-          <div className="flex items-center gap-6 text-[rgb(var(--text-secondary))]">
+          <div className="flex items-center gap-3 md:gap-6 text-[rgb(var(--text-secondary))]">
             <button onClick={handleLike} className={`flex items-center gap-1 hover:text-red-500 ${liked ? 'text-red-500' : ''}`} aria-label="Like">
               <Heart size={20} className={liked ? 'fill-red-500' : ''} />
               <span className="text-sm">{likes}</span>
@@ -59,6 +59,10 @@ export const PostCard = ({ post }: PostCardProps) => {
             <button className="flex items-center gap-1 hover:text-green-500" aria-label="Repost">
               <Repeat2 size={20} />
               <span className="text-sm">{post.reposts}</span>
+            </button>
+            <button className="flex items-center gap-1 hover:text-indigo-500" aria-label="Impressions">
+              <BarChart2 size={20} />
+              <span className="text-sm">{post.impressions}</span>
             </button>
             <button className="hover:text-blue-500" aria-label="Share">
               <Share size={20} />

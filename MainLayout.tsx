@@ -83,6 +83,8 @@ export function MainLayout({ children, currentTab, onTabChange, onSearchClick, i
     { icon: Users, label: 'Following', index: 11 },
   ]
 
+  const isHomeTab = [0, 7, 8, 9, 10, 11].includes(currentTab)
+
   return (
     <div className="min-h-screen bg-[rgb(var(--bg-primary))]">
       {/* Desktop Layout */}
@@ -167,13 +169,34 @@ export function MainLayout({ children, currentTab, onTabChange, onSearchClick, i
             </button>
           </div>
         </header>
-        <main className="pb-16">{children}</main>
+        {isHomeTab && (
+          <div className="sticky top-14 z-40 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))] px-4 pb-0">
+            <div className="flex overflow-x-auto -mb-px">
+              {sidebarItems.map((item) => (
+                <button
+                  key={item.index}
+                  onClick={() => onTabChange(item.index)}
+                  className={cn(
+                    "-mb-px px-1 py-4 text-sm font-semibold whitespace-nowrap flex-shrink-0 border-b-2 transition-colors",
+                    currentTab === item.index
+                      ? "border-[#1DA1F2] text-[#1DA1F2]"
+                      : "border-transparent text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--text-primary))]/50 hover:text-[rgb(var(--text-primary))]"
+                  )}
+                  aria-label={item.label}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <main className="pb-20">{children}</main>
         <nav className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--bg-primary))] border-t border-[rgb(var(--border-color))]">
           <div className="flex items-center justify-around py-2">
-            {[{ icon: Home, index: 0 }, { icon: MessageCircle, index: 1 }, { icon: PlusSquare, index: 2 }, { icon: Bell, index: 3 }, { icon: User, index: 4 }].map((item) => {
+            {[{ icon: Home, index: 0, label: 'Home' }, { icon: MessageCircle, index: 1, label: 'Chat' }, { icon: PlusSquare, index: 2, label: 'Create' }, { icon: Bell, index: 3, label: 'Notifications' }, { icon: User, index: 4, label: 'Profile' }].map((item) => {
               const Icon = item.icon
               return (
-                <button key={item.index} onClick={() => onTabChange(item.index)} className={cn("p-2", currentTab === item.index ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))]")}>
+                <button key={item.index} onClick={() => onTabChange(item.index)} className={cn("p-2", currentTab === item.index ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))]")} aria-label={item.label}>
                   <Icon size={28} />
                 </button>
               )
