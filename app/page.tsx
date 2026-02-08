@@ -1,15 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import MainLayout from '../MainLayout'
-import HomeScreen from '../HomeScreen'
-import ChatScreen from '../ChatScreen'
-import { CreatePostModal } from '../CreatePostModal-enhanced'
-import { SearchScreen, NotificationsScreen } from '../screens'
-import ProfileScreen from '../ProfileScreen'
-import AuthScreen from '../AuthScreen'
-import DashboardScreen from '../DashboardScreen' // example extra
-import MonetizationScreen from '../MonetizationScreen'
+import { MainLayout } from '../MainLayout'
+import { HomeScreen } from '../HomeScreen'
 
 export default function Home() {
   const [currentTab, setCurrentTab] = useState(0)
