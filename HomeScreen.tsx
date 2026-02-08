@@ -13,7 +13,24 @@ export function HomeScreen() {
   const tabs = ["For You", "Watch", "Reels", "Live", "News", "Following"];
 
   useEffect(() => {
-    loadPosts();
+    appwriteService.fetchPosts(20).then(result => {
+      setPosts(result.documents.map((d: any) => ({
+        id: d.$id,
+        postId: d.postId,
+        userId: d.userId,
+        username: d.username,
+        userAvatar: d.userAvatar,
+        content: d.content,
+        likes: d.likes || 0,
+        comments: d.comments || 0,
+        reposts: d.reposts || 0,
+        timestamp: new Date(d.createdAt),
+        createdAt: d.createdAt,
+        isLiked: false,
+        isReposted: false,
+        isSaved: false,
+        isBoosted: false,
+      })) as Post[]);
+      setLoading(false);
+    }).catch(console.error);
   }, []);
-
-  const loadPosts
