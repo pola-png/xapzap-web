@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode, useState, useEffect } from 'react'
-import { Home, MessageCircle, PlusSquare, Bell, User, Search } from 'lucide-react'
+import { Home, MessageCircle, PlusSquare, Bell, User, Search, Video, Film, Radio, Newspaper, Users } from 'lucide-react'
 import { cn } from './utils'
 import appwriteService from './appwriteService'
 
@@ -74,177 +74,107 @@ export function MainLayout({ children, currentTab, onTabChange, onSearchClick, i
     }
   }
 
-  const navItems = [
-    { icon: Home, label: 'Home', index: 0, badge: null },
-    { icon: MessageCircle, label: 'Chat', index: 1, badge: unreadChats > 0 ? unreadChats : null },
-    { icon: PlusSquare, label: 'Create', index: 2, badge: null },
-    { icon: Bell, label: 'Notifications', index: 3, badge: unreadNotifications > 0 ? unreadNotifications : null },
-    { icon: User, label: 'Profile', index: 4, badge: null },
+  const sidebarItems = [
+    { icon: Home, label: 'For You', index: 0 },
+    { icon: Video, label: 'Watch', index: 7 },
+    { icon: Film, label: 'Reels', index: 8 },
+    { icon: Radio, label: 'Live', index: 9 },
+    { icon: Newspaper, label: 'News', index: 10 },
+    { icon: Users, label: 'Following', index: 11 },
   ]
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[rgb(var(--bg-primary))]">
       {/* Desktop Layout */}
-      <div className="hidden lg:flex h-screen">
-        {/* Sidebar */}
-        <aside className="fixed left-0 top-0 h-full w-16 bg-background border-r border-border flex flex-col z-40">
-          <div className="p-6 border-b border-border">
-            <h1 className="text-2xl font-bold text-xapzap-blue">XapZap</h1>
+      <div className="hidden lg:flex h-screen flex-col">
+        {/* Header */}
+        <header className="fixed top-0 left-0 right-0 z-50 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))] px-6 py-3 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-[rgb(var(--text-primary))]">XapZap</h1>
+          
+          <div className="flex items-center gap-8">
+            <button onClick={() => onTabChange(0)} className={cn("p-2 rounded-lg transition-colors", currentTab === 0 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Home">
+              <Home size={24} />
+            </button>
+            <button onClick={() => onTabChange(1)} className={cn("p-2 rounded-lg transition-colors relative", currentTab === 1 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Chat">
+              <MessageCircle size={24} />
+              {unreadChats > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadChats}</span>}
+            </button>
+            <button onClick={() => onTabChange(2)} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2] transition-colors" aria-label="Create">
+              <PlusSquare size={24} />
+            </button>
+            <button onClick={() => onTabChange(3)} className={cn("p-2 rounded-lg transition-colors relative", currentTab === 3 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Notifications">
+              <Bell size={24} />
+              {unreadNotifications > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadNotifications}</span>}
+            </button>
+            <button onClick={() => onTabChange(4)} className={cn("p-2 rounded-lg transition-colors", currentTab === 4 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Profile">
+              <User size={24} />
+            </button>
           </div>
-          <nav className="flex-1 p-6 space-y-6 flex flex-col items-center overflow-y-auto">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              const isActive = currentTab === item.index
-              const badge = item.badge
-              
-              return (
-                <button
-                  key={item.index}
-                  onClick={() => onTabChange(item.index)}
-                  className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center p-3 transition-all group",
-                    isActive 
-                      ? "bg-primary text-primary-foreground shadow-lg border border-primary/50 font-medium" 
-                      : "hover:bg-accent hover:text-foreground text-muted-foreground"
-                  )}
-                >
-                  <Icon size={20} />
-                  <span className="text-sm">{item.label}</span>
-                  {badge && (
-                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] flex items-center justify-center">
-                      {badge}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </nav>
 
-          <div className="p-4 border-t border-border mt-auto">
-            {isGuest ? (
-              <button
-                onClick={() => onTabChange(6)}
-                className="w-full px-4 py-2 bg-xapzap-blue text-white rounded-xl hover:bg-blue-600 transition-colors text-sm font-medium"
-              >
-                Sign In
-              </button>
+          <div className="flex items-center gap-4">
+            <button onClick={onSearchClick} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2] transition-colors" aria-label="Search">
+              <Search size={24} />
+            </button>
+            {userAvatar ? (
+              <img src={userAvatar} alt="Profile" className="w-9 h-9 rounded-full object-cover cursor-pointer" onClick={() => onTabChange(4)} />
             ) : (
-              <div className="flex items-center space-x-3 p-3 hover:bg-accent rounded-xl cursor-pointer" onClick={() => onTabChange(6)}>
-                {userAvatar ? (
-                  <img src={userAvatar} alt="Profile" className="w-10 h-10 rounded-full object-cover" />
-                ) : (
-                  <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                    <User size={20} />
-                  </div>
-                )}
-                <div>
-                  <p className="font-medium text-sm">{user?.name || 'Profile'}</p>
-                  <p className="text-xs text-muted-foreground">View profile</p>
-                </div>
+              <div className="w-9 h-9 bg-[rgb(var(--bg-secondary))] rounded-full flex items-center justify-center cursor-pointer" onClick={() => onTabChange(4)}>
+                <User size={18} className="text-[rgb(var(--text-primary))]" />
               </div>
             )}
           </div>
-        </aside>
-
-        {/* Header */}
-        <header className="fixed top-0 left-16 right-0 z-50 bg-background border-b border-border px-6 py-4 flex items-center justify-between">
-          <button
-            title="Search"
-            onClick={onSearchClick}
-            className="p-3 rounded-xl hover:bg-accent transition-colors flex items-center space-x-2"
-            aria-label="Search XapZap"
-          >
-            <Search size={20} />
-            <span className="hidden lg:inline text-sm font-medium">Search</span>
-          </button>
-          {isGuest ? (
-            <button
-              onClick={() => onTabChange(6)}
-              className="px-6 py-2 bg-xapzap-blue text-white rounded-xl hover:bg-blue-600 transition-colors text-sm font-medium"
-            >
-              Sign In
-            </button>
-          ) : (
-            <div className="flex items-center space-x-3 p-2 hover:bg-accent rounded-xl cursor-pointer" onClick={() => onTabChange(6)}>
-              {userAvatar ? (
-                <img src={userAvatar} alt="Profile" className="w-9 h-9 rounded-full object-cover ring-2 ring-muted" />
-              ) : (
-                <div className="w-9 h-9 bg-muted rounded-full flex items-center justify-center ring-2 ring-muted">
-                  <User size={18} />
-                </div>
-              )}
-              <div className="hidden lg:block">
-                <p className="font-medium text-sm">{user?.name || 'Profile'}</p>
-                <p className="text-xs text-muted-foreground">View profile</p>
-              </div>
-            </div>
-          )}
         </header>
 
-        {/* Main Content */}
-        <main className="ml-16 pt-20 flex-1 overflow-y-auto">
-          <div className="max-w-6xl mx-auto p-6">
+        <div className="flex flex-1 pt-[60px]">
+          {/* Sidebar */}
+          <aside className="fixed left-0 top-[60px] bottom-0 w-[200px] bg-[rgb(var(--bg-primary))] border-r border-[rgb(var(--border-color))] overflow-y-auto">
+            <nav className="py-4">
+              {sidebarItems.map((item) => {
+                const Icon = item.icon
+                const isActive = currentTab === item.index
+                
+                return (
+                  <button
+                    key={item.index}
+                    onClick={() => onTabChange(item.index)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-6 py-3 transition-colors",
+                      isActive ? "text-[#1DA1F2] bg-[#1DA1F2]/10" : "text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-secondary))]"
+                    )}
+                  >
+                    <Icon size={20} />
+                    <span className="text-[15px]">{item.label}</span>
+                  </button>
+                )
+              })}
+            </nav>
+          </aside>
+
+          {/* Main Content */}
+          <main className="ml-[200px] flex-1 overflow-y-auto">
             {children}
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
 
       {/* Mobile Layout */}
       <div className="lg:hidden">
-        {/* Header */}
-        <header className="sticky top-0 z-50 bg-background border-b border-border">
+        <header className="sticky top-0 z-50 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))]">
           <div className="flex items-center justify-between px-4 py-3">
-            <h1 className="text-xl font-bold text-xapzap-blue">XapZap</h1>
-            <div className="flex items-center space-x-2">
-              <button
-                title="Search"
-                onClick={onSearchClick}
-                className="p-2 rounded-full hover:bg-accent transition-colors"
-                aria-label="Search XapZap"
-              >
-                <Search size={20} />
-              </button>
-              {isGuest && (
-                <button
-                  onClick={() => onTabChange(6)}
-                  className="px-3 py-1 bg-xapzap-blue text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
-                >
-                  Sign In
-                </button>
-              )}
-            </div>
+            <h1 className="text-xl font-bold text-[rgb(var(--text-primary))]">XapZap</h1>
+            <button onClick={onSearchClick} className="p-2 text-[rgb(var(--text-primary))]" aria-label="Search">
+              <Search size={20} />
+            </button>
           </div>
         </header>
-
-        {/* Main Content */}
-        <main className="pb-16">
-          {children}
-        </main>
-
-        {/* Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border">
+        <main className="pb-16">{children}</main>
+        <nav className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--bg-primary))] border-t border-[rgb(var(--border-color))]">
           <div className="flex items-center justify-around py-2">
-            {navItems.map((item) => {
+            {[{ icon: Home, index: 0 }, { icon: MessageCircle, index: 1 }, { icon: PlusSquare, index: 2 }, { icon: Bell, index: 3 }, { icon: User, index: 4 }].map((item) => {
               const Icon = item.icon
-              const isActive = currentTab === item.index
-              
               return (
-                <button
-                  key={item.index}
-                  onClick={() => onTabChange(item.index)}
-                  className={cn(
-                    "flex flex-col items-center p-2 transition-colors relative",
-                    isActive 
-                      ? "text-xapzap-blue" 
-                      : "text-muted-foreground"
-                  )}
-                >
+                <button key={item.index} onClick={() => onTabChange(item.index)} className={cn("p-2", currentTab === item.index ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))]")}>
                   <Icon size={28} />
-                  {item.badge && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1 min-w-[16px] h-4 flex items-center justify-center">
-                      {item.badge}
-                    </span>
-                  )}
                 </button>
               )
             })}

@@ -6,48 +6,22 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 42%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 0%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 199 89% 48%;
-    --radius: 0.5rem;
+    --bg-primary: 255 255 255;
+    --bg-secondary: 249 249 249;
+    --text-primary: 0 0 0;
+    --text-secondary: 115 115 115;
+    --border-color: 219 219 219;
+    --accent-blue: 29 161 242;
   }
 
-  .dark {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 12%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 12%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 22%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 22%;
-    --muted-foreground: 0 0% 64%;
-    --accent: 0 0% 22%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 22%;
-    --input: 0 0% 22%;
-    --ring: 199 89% 48%;
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: 26 26 26;
+      --bg-secondary: 42 42 42;
+      --text-primary: 255 255 255;
+      --text-secondary: 163 163 163;
+      --border-color: 42 42 42;
+    }
   }
 }
 
@@ -58,8 +32,8 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: rgb(var(--bg-primary));
+  color: rgb(var(--text-primary));
 }
 
 .scrollbar-hide::-webkit-scrollbar {
