@@ -7,6 +7,8 @@ import Image from 'next/image'
 
 interface PostCardProps {
   post: Post
+  isGuest?: boolean
+  onGuestAction?: () => void
 }
 
 export const PostCard = ({ post }: PostCardProps) => {
