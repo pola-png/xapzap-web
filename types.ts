@@ -10,6 +10,7 @@ export interface Post {
   kind?: 'standard' | 'video' | 'reel' | 'news'
   title?: string
   thumbnailUrl?: string
+  mediaUrls?: string[]
   timestamp: Date
   createdAt: string
   likes: number
