@@ -17,7 +17,7 @@ export function HomeScreen() {
   const loadPosts = async () => {
     try {
       const result = await appwriteService.fetchPosts(20)
-      setPosts(result.documents as Post[])
+      setPosts(result.documents as unknown as Post[])
     } catch (error) {
       console.error('Failed to load posts:', error)
     } finally {
@@ -34,7 +34,7 @@ export function HomeScreen() {
         ) : posts.length === 0 ? (
           <div className="text-center py-8 text-gray-400">No posts yet</div>
         ) : (
-          posts.map((post) => <PostCard key={post.$id} post={post} />)
+          posts.map((post) => <PostCard key={post.id} post={post} />)
         )}
       </div>
     </div>
