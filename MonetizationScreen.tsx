@@ -9,4 +9,5 @@ interface Earnings {
   total: number
   month: number
   boosts: number
-  eligible
+  eligible: boolean
+}
