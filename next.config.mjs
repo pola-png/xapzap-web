@@ -1,4 +1,3 @@
-import { NextConfig } from 'next'
 import withSitemap from 'next-sitemap'
 
 const nextConfig = {
