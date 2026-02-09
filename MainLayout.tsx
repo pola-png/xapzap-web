@@ -14,7 +14,7 @@ interface MainLayoutProps {
   isGuest?: boolean
 }
 
-export function MainLayout({ children, currentTab, onTabChange, onSearchClick, isGuest = false }: MainLayoutProps) {
+export function MainLayout({ children, currentTab, onTabChange, onCreateClick, onSearchClick, isGuest = false }: MainLayoutProps) {
   const [unreadChats, setUnreadChats] = useState(0)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [user, setUser] = useState<any>(null)
@@ -102,7 +102,7 @@ export function MainLayout({ children, currentTab, onTabChange, onSearchClick, i
               <MessageCircle size={24} />
               {unreadChats > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadChats}</span>}
             </button>
-            <button onClick={() => onTabChange(2)} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2] transition-colors" aria-label="Create">
+            <button onClick={onCreateClick} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2] transition-colors" aria-label="Create">
               <PlusSquare size={24} />
             </button>
             <button onClick={() => onTabChange(3)} className={cn("p-2 rounded-lg transition-colors relative", currentTab === 3 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Notifications">
@@ -194,10 +194,16 @@ export function MainLayout({ children, currentTab, onTabChange, onSearchClick, i
         <main className="pb-20">{children}</main>
         <nav className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--bg-primary))] border-t border-[rgb(var(--border-color))]">
           <div className="flex items-center justify-around py-2">
-            {[{ icon: Home, index: 0, label: 'Home' }, { icon: MessageCircle, index: 1, label: 'Chat' }, { icon: PlusSquare, index: 2, label: 'Create' }, { icon: Bell, index: 3, label: 'Notifications' }, { icon: User, index: 4, label: 'Profile' }].map((item) => {
+            {[
+              { icon: Home, index: 0, label: 'Home', onClick: () => onTabChange(0) },
+              { icon: MessageCircle, index: 1, label: 'Chat', onClick: () => onTabChange(1) },
+              { icon: PlusSquare, index: 2, label: 'Create', onClick: onCreateClick },
+              { icon: Bell, index: 3, label: 'Notifications', onClick: () => onTabChange(3) },
+              { icon: User, index: 4, label: 'Profile', onClick: () => onTabChange(4) }
+            ].map((item) => {
               const Icon = item.icon
               return (
-                <button key={item.index} onClick={() => onTabChange(item.index)} className={cn("p-2", currentTab === item.index ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))]")} aria-label={item.label}>
+                <button key={item.index} onClick={item.onClick} className={cn("p-2", currentTab === item.index ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))]")} aria-label={item.label}>
                   <Icon size={28} />
                 </button>
               )

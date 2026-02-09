@@ -27,7 +27,6 @@ export default function Home() {
     switch (currentTab) {
       case 0: return <HomeScreen />
       case 1: return <ChatScreen />
-      case 2: setShowCreate(true); return <div />;
       case 3: return <NotificationsScreen />
       case 4: return <ProfileScreen />
       case 5: return <DashboardScreen />
@@ -43,13 +42,16 @@ export default function Home() {
 
   const handleSearchClick = () => setShowSearch(true)
 
+  const handleCreateClick = () => setShowCreate(true)
+
   const handleTabChange = (tab: number) => setCurrentTab(tab)
 
   return (
     <>
-      <MainLayout 
+      <MainLayout
         currentTab={currentTab}
         onTabChange={handleTabChange}
+        onCreateClick={handleCreateClick}
         onSearchClick={handleSearchClick}
         isGuest={isGuest}
       >
