@@ -167,8 +167,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </button>
       </div>
 
-      {/* Video Container */}
-      <div className="w-full h-full flex items-center justify-center relative">
+      {/* Video Container - Full Width, Reduced Height Mobile */}
+      <div className="w-full h-3/4 flex items-center justify-center relative">
         <video
           ref={videoRef}
           src={post.videoUrl || (post.mediaUrls && post.mediaUrls[0])}
@@ -252,45 +252,45 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       {/* Mobile Native Layout */}
       <div className="lg:hidden">
         {/* Right Side Reactions (Native App Style) */}
-        <div className="absolute right-4 bottom-24 flex flex-col items-center gap-4 z-10">
+        <div className="absolute right-2 bottom-24 flex flex-col items-end gap-3 z-10">
           {/* User Info */}
-          <div className="flex flex-col items-center gap-2 mb-4">
+          <div className="flex flex-col items-center gap-2 mb-2">
             {post.userAvatar ? (
-              <img src={post.userAvatar} alt={post.username} className="w-12 h-12 rounded-full object-cover border-2 border-white" />
+              <img src={post.userAvatar} alt={post.username} className="w-10 h-10 rounded-full object-cover border-2 border-white" />
             ) : (
-              <div className="w-12 h-12 rounded-full bg-gray-600 border-2 border-white flex items-center justify-center text-white font-semibold">
+              <div className="w-10 h-10 rounded-full bg-gray-600 border-2 border-white flex items-center justify-center text-white font-semibold text-sm">
                 {(post.username || 'U')[0].toUpperCase()}
               </div>
             )}
             <button
               onClick={handleLike}
-              className={`flex flex-col items-center gap-1 p-2 rounded-full transition-all ${liked ? 'text-red-500' : 'text-white'}`}
+              className={`flex items-center gap-1 p-1 rounded-full transition-all ${liked ? 'text-red-500' : 'text-white'}`}
               aria-label={liked ? "Unlike video" : "Like video"}
             >
-              <Heart size={32} className={liked ? 'fill-red-500' : ''} />
+              <Heart size={24} className={liked ? 'fill-red-500' : ''} />
               <span className="text-xs font-semibold">{likes || 0}</span>
             </button>
           </div>
 
           {/* Reaction Buttons */}
-          <div className="flex flex-col items-center gap-4">
-            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-blue-400 transition-colors" aria-label="View comments">
-              <MessageCircle size={28} />
+          <div className="flex flex-col items-end gap-3">
+            <button className="flex items-center gap-1 p-1 rounded-full text-white hover:text-blue-400 transition-colors" aria-label="View comments">
+              <MessageCircle size={20} />
               <span className="text-xs font-semibold">{comments || 0}</span>
             </button>
 
-            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-green-400 transition-colors" aria-label="Repost video">
-              <Repeat2 size={28} />
+            <button className="flex flex-col items-center gap-1 p-1 rounded-full text-white hover:text-green-400 transition-colors" aria-label="Repost video">
+              <Repeat2 size={20} />
               <span className="text-xs font-semibold">{reposts || 0}</span>
             </button>
 
-            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-blue-400 transition-colors" aria-label="Share video">
-              <Share size={28} />
+            <button className="flex items-center gap-1 p-1 rounded-full text-white hover:text-blue-400 transition-colors" aria-label="Share video">
+              <Share size={20} />
               <span className="text-xs font-semibold">Share</span>
             </button>
 
-            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-yellow-400 transition-colors" aria-label="Save video">
-              <Bookmark size={28} />
+            <button className="flex items-center gap-1 p-1 rounded-full text-white hover:text-yellow-400 transition-colors" aria-label="Save video">
+              <Bookmark size={20} />
               <span className="text-xs font-semibold">Save</span>
             </button>
           </div>

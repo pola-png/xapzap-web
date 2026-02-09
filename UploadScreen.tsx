@@ -243,7 +243,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           {/* Media Upload Area */}
           <div
             onClick={() => fileInputRef.current?.click()}
-            className={`aspect-square rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
+            className={`aspect-video rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
               isDark
                 ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
                 : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
@@ -653,7 +653,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
             {/* Media Preview */}
             <div
               onClick={() => fileInputRef.current?.click()}
-              className={`aspect-square rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
+              className={`aspect-video rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
                 isDark
                   ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
                   : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
