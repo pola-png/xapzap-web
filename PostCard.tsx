@@ -22,6 +22,23 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
   const [saved, setSaved] = useState(post.isSaved || false)
   const [reposted, setReposted] = useState(post.isReposted || false)
   const [reposts, setReposts] = useState(post.reposts || 0)
+  const [userProfile, setUserProfile] = useState<any>(null)
+
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!post.userId) return
+
+      try {
+        const profile = await appwriteService.getProfileByUserId(post.userId)
+        setUserProfile(profile)
+      } catch (error) {
+        console.error('Failed to fetch user profile:', error)
+      }
+    }
+
+    fetchUserProfile()
+  }, [post.userId])
 
   // Subscribe to realtime updates for this post
   useEffect(() => {
@@ -77,17 +94,23 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
   return (
     <div className="border-b border-gray-200 dark:border-gray-700">
       {/* Header */}
-      <div className="flex items-center justify-between px-2 py-3">
+      <div className="flex items-center justify-between py-3">
         <div className="flex items-center gap-3">
-          {post.userAvatar ? (
-            <img src={post.userAvatar} alt={post.username} className="w-10 h-10 rounded-full object-cover" />
+          {userProfile?.avatarUrl || post.userAvatar ? (
+            <img
+              src={userProfile?.avatarUrl || post.userAvatar}
+              alt={userProfile?.displayName || userProfile?.username || post.username}
+              className="w-10 h-10 rounded-full object-cover"
+            />
           ) : (
             <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-900 dark:text-white font-semibold">
-              {(post.username || 'U')[0].toUpperCase()}
+              {((userProfile?.displayName || userProfile?.username || post.username) || 'U')[0].toUpperCase()}
             </div>
           )}
           <div>
-            <span className="text-gray-900 dark:text-white font-bold text-base">{post.username || 'User'}</span>
+            <span className="text-gray-900 dark:text-white font-bold text-base">
+              {userProfile?.displayName || userProfile?.username || post.username || 'User'}
+            </span>
             <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">{new Date(post.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
@@ -97,7 +120,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
       </div>
 
       {/* Content */}
-      <div className="px-2 pb-2">
+      <div className="pb-2">
         {post.textBgColor ? (
           <div
             className={`text-white text-center leading-relaxed p-4 rounded-xl mb-3 max-w-sm ${
@@ -168,7 +191,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
       </div>
 
       {/* Reactions */}
-      <div className="px-2 pb-3">
+      <div className="pb-3">
         {(feedType as string) === 'reels' ? (
           // Vertical reactions for reels - counts beside icons
           <div className="flex flex-col items-center gap-3">
@@ -194,15 +217,13 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
             </button>
           </div>
         ) : (
-          // Horizontal reactions for other feeds - counts beside icons on mobile
+          // Horizontal reactions for other feeds - icon only on mobile
           <div className="flex items-center justify-between gap-2">
-            <button onClick={handleSave} className={`flex items-center gap-2 hover:text-yellow-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400 ${saved ? 'text-yellow-500' : ''}`} aria-label={`Save post - ${saved ? 'saved' : 'not saved'}`}>
+            <button onClick={handleSave} className={`flex items-center justify-center hover:text-yellow-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400 ${saved ? 'text-yellow-500' : ''}`} aria-label={`Save post - ${saved ? 'saved' : 'not saved'}`}>
               <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
-              <span className="text-sm font-medium">Save</span>
             </button>
-            <button className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label="Share post">
+            <button className={`flex items-center justify-center hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label="Share post">
               <Share size={20} />
-              <span className="text-sm font-medium">Share</span>
             </button>
             <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 rounded-lg ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label={`Repost - ${reposts || 0} reposts`}>
               <Repeat2 size={20} className={reposted ? 'fill-green-500' : ''} />
