@@ -59,7 +59,13 @@ export function FollowingScreen() {
             <p className="text-muted-foreground">No posts from people you follow</p>
           </div>
         ) : (
-          posts.map((post) => <PostCard key={post.id} post={post} />)
+          posts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              feedType="following"
+            />
+          ))
         )}
       </div>
     </div>

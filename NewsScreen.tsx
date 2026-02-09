@@ -53,7 +53,13 @@ export function NewsScreen() {
             <p className="text-muted-foreground">No news yet</p>
           </div>
         ) : (
-          posts.map((post) => <PostCard key={post.id} post={post} />)
+          posts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              feedType="news"
+            />
+          ))
         )}
       </div>
     </div>

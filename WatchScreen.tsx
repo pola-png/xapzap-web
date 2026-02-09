@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { PostCard } from './PostCard'
+import { VideoDetailScreen } from './VideoDetailScreen'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 
 export function WatchScreen() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedVideo, setSelectedVideo] = useState<Post | null>(null)
 
   useEffect(() => {
     loadVideos()
@@ -42,20 +44,36 @@ export function WatchScreen() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="space-y-4 pb-20">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : posts.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No videos yet</p>
-          </div>
-        ) : (
-          posts.map((post) => <PostCard key={post.id} post={post} />)
-        )}
+    <>
+      <div className="max-w-2xl mx-auto">
+        <div className="space-y-4 pb-20">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No videos yet</p>
+            </div>
+          ) : (
+            posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                feedType="watch"
+                onVideoClick={setSelectedVideo}
+              />
+            ))
+          )}
+        </div>
       </div>
-    </div>
+
+      {selectedVideo && (
+        <VideoDetailScreen
+          post={selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+        />
+      )}
+    </>
   )
 }

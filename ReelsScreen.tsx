@@ -53,7 +53,13 @@ export function ReelsScreen() {
             <p className="text-muted-foreground">No reels yet</p>
           </div>
         ) : (
-          posts.map((post) => <PostCard key={post.id} post={post} />)
+          posts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              feedType="reels"
+            />
+          ))
         )}
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { StoryBar } from "./StoryBar"
 import { PostCard } from "./PostCard"
+import { VideoDetailScreen } from "./VideoDetailScreen"
 import { Post } from "./types"
 import appwriteService from "./appwriteService"
 
@@ -10,6 +11,7 @@ export function HomeScreen() {
   const [currentUserId, setCurrentUserId] = useState<string>('')
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedVideo, setSelectedVideo] = useState<Post | null>(null)
 
   useEffect(() => {
     loadPosts()
@@ -56,23 +58,38 @@ export function HomeScreen() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <StoryBar />
-      <div className="space-y-4 pb-20">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : posts.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No posts yet</p>
-          </div>
-        ) : (
-          posts.map((post) => (
-            <PostCard key={post.id} post={post} currentUserId={currentUserId} />
-          ))
-        )}
+    <>
+      <div className="max-w-2xl mx-auto">
+        <StoryBar />
+        <div className="space-y-4 pb-20">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No posts yet</p>
+            </div>
+          ) : (
+            posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                currentUserId={currentUserId}
+                feedType="home"
+                onVideoClick={setSelectedVideo}
+              />
+            ))
+          )}
+        </div>
       </div>
-    </div>
+
+      {selectedVideo && (
+        <VideoDetailScreen
+          post={selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+        />
+      )}
+    </>
   )
 }

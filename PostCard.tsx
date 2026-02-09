@@ -9,9 +9,11 @@ interface PostCardProps {
   isGuest?: boolean
   onGuestAction?: () => void
   currentUserId?: string
+  feedType?: 'home' | 'reels' | 'watch' | 'following' | 'news'
+  onVideoClick?: (post: Post) => void
 }
 
-export const PostCard = ({ post, currentUserId }: PostCardProps) => {
+export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick }: PostCardProps) => {
   const [liked, setLiked] = useState(post.isLiked || false)
   const [likes, setLikes] = useState(post.likes || 0)
 
@@ -46,7 +48,7 @@ export const PostCard = ({ post, currentUserId }: PostCardProps) => {
       <div className="px-3 pb-2">
         {post.textBgColor ? (
           <div
-            className="text-white text-base leading-relaxed p-4 rounded-xl mb-3"
+            className="text-white text-sm leading-relaxed p-3 rounded-lg mb-3 max-w-xs"
             style={{ backgroundColor: `#${post.textBgColor.toString(16).padStart(6, '0')}` }}
           >
             {post.content}
@@ -64,13 +66,35 @@ export const PostCard = ({ post, currentUserId }: PostCardProps) => {
         )}
 
         {(post.videoUrl || (post.kind === 'video' || post.kind === 'reel') || (post.mediaUrls && post.mediaUrls.length > 0 && post.thumbnailUrl)) && (
-          <video
-            src={post.videoUrl || (post.mediaUrls && post.mediaUrls[0])}
-            poster={post.thumbnailUrl}
-            className="w-full rounded-xl mb-3"
-            controls
-            preload="metadata"
-          />
+          feedType === 'reels' ? (
+            <video
+              src={post.videoUrl || (post.mediaUrls && post.mediaUrls[0])}
+              poster={post.thumbnailUrl}
+              className="w-full h-96 rounded-xl mb-3 object-cover"
+              controls
+              preload="metadata"
+              autoPlay={false}
+              muted
+            />
+          ) : (
+            <div
+              className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden"
+              onClick={() => onVideoClick?.(post)}
+            >
+              <img
+                src={post.thumbnailUrl || (post.mediaUrls && post.mediaUrls[0])}
+                alt="Video thumbnail"
+                className="w-full h-48 object-cover"
+              />
+              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-black ml-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8 5v10l8-5-8-5z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          )
         )}
 
         {post.kind === 'news' && post.title && (
