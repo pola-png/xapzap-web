@@ -155,7 +155,7 @@ class AppwriteService {
     }
   }
 
-  // Posts methods
+  // Posts methods with different algorithms
   async fetchPosts(limit = 20, cursor?: string) {
     const queries = [
       Query.orderDesc('$createdAt'),
@@ -168,6 +168,130 @@ class AppwriteService {
       this.collections.posts,
       queries
     )
+  }
+
+  // For You feed - personalized mix
+  async fetchForYouFeed(userId?: string, limit = 20, cursor?: string) {
+    try {
+      // Get posts from last 7 days for freshness
+      const sevenDaysAgo = new Date()
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+      let queries: any[] = [
+        Query.greaterThanEqual('$createdAt', sevenDaysAgo.toISOString()),
+        Query.limit(limit * 2) // Get more to filter/score
+      ]
+      if (cursor) queries.push(Query.cursorAfter(cursor))
+
+      const result = await this.databases.listDocuments(
+        this.databaseId,
+        this.collections.posts,
+        queries
+      )
+
+      // Score posts based on engagement and recency
+      const scoredPosts = result.documents.map(post => {
+        const ageInHours = (Date.now() - new Date(post.$createdAt).getTime()) / (1000 * 60 * 60)
+        const engagement = (post.likes || 0) + (post.comments || 0) * 2 + (post.reposts || 0) * 3 + (post.views || 0) * 0.1
+        const recencyScore = Math.max(0, 24 - ageInHours) // Higher score for newer posts
+        const totalScore = engagement + recencyScore
+
+        return { ...post, score: totalScore }
+      })
+
+      // Sort by score and return top posts
+      scoredPosts.sort((a, b) => b.score - a.score)
+      return {
+        ...result,
+        documents: scoredPosts.slice(0, limit)
+      }
+    } catch (error) {
+      // Fallback to regular fetch
+      return this.fetchPosts(limit, cursor)
+    }
+  }
+
+  // Watch feed - video posts by engagement
+  async fetchWatchFeed(limit = 20, cursor?: string) {
+    try {
+      let queries: any[] = [
+        Query.or([
+          Query.equal('kind', 'video'),
+          Query.equal('postType', 'video')
+        ]),
+        Query.limit(limit * 3) // Get more to sort by engagement
+      ]
+      if (cursor) queries.push(Query.cursorAfter(cursor))
+
+      const result = await this.databases.listDocuments(
+        this.databaseId,
+        this.collections.posts,
+        queries
+      )
+
+      // Sort by engagement score
+      const sortedPosts = result.documents
+        .map(post => ({
+          ...post,
+          engagementScore: (post.views || 0) * 0.5 + (post.likes || 0) + (post.comments || 0) * 2 + (post.reposts || 0) * 3
+        }))
+        .sort((a, b) => b.engagementScore - a.engagementScore)
+        .slice(0, limit)
+
+      return {
+        ...result,
+        documents: sortedPosts
+      }
+    } catch (error) {
+      return this.fetchPostsByKind('video', limit, cursor)
+    }
+  }
+
+  // Reels feed - short videos by engagement
+  async fetchReelsFeed(limit = 20, cursor?: string) {
+    try {
+      let queries: any[] = [
+        Query.equal('kind', 'reel'),
+        Query.limit(limit * 2)
+      ]
+      if (cursor) queries.push(Query.cursorAfter(cursor))
+
+      const result = await this.databases.listDocuments(
+        this.databaseId,
+        this.collections.posts,
+        queries
+      )
+
+      // Sort by engagement
+      const sortedPosts = result.documents
+        .map(post => ({
+          ...post,
+          engagementScore: (post.likes || 0) + (post.comments || 0) * 2 + (post.reposts || 0) * 3 + (post.views || 0) * 0.3
+        }))
+        .sort((a, b) => b.engagementScore - a.engagementScore)
+        .slice(0, limit)
+
+      return {
+        ...result,
+        documents: sortedPosts
+      }
+    } catch (error) {
+      return this.fetchPostsByKind('reel', limit, cursor)
+    }
+  }
+
+  // Following feed - posts from followed users
+  async fetchFollowingFeed(userId: string, limit = 20, cursor?: string) {
+    try {
+      const followingIds = await this.getFollowingUserIds(userId)
+      if (followingIds.length === 0) {
+        return { documents: [], total: 0 }
+      }
+
+      return await this.fetchPostsByUserIds(followingIds, limit, cursor)
+    } catch (error) {
+      return { documents: [], total: 0 }
+    }
   }
 
   async createPost(data: any) {

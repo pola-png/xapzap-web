@@ -16,15 +16,26 @@ export function NewsScreen() {
   const loadNews = async () => {
     setLoading(true)
     try {
-      const result = await appwriteService.fetchPosts()
-      const news = result.documents.filter((d: any) => d.kind === 'news').map((d: any) => ({
+      const result = await appwriteService.fetchNewsArticles()
+      setPosts(result.documents.map((d: any) => ({
         ...d,
         id: d.$id,
         timestamp: new Date(d.$createdAt || d.createdAt),
-      }))
-      setPosts(news as Post[])
+      })) as Post[])
     } catch (error) {
       console.error('Failed to load news:', error)
+      // Fallback to filtering posts
+      try {
+        const result = await appwriteService.fetchPosts()
+        const news = result.documents.filter((d: any) => d.kind === 'news').map((d: any) => ({
+          ...d,
+          id: d.$id,
+          timestamp: new Date(d.$createdAt || d.createdAt),
+        }))
+        setPosts(news as Post[])
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError)
+      }
     } finally {
       setLoading(false)
     }

@@ -21,15 +21,35 @@ export function HomeScreen() {
       const user = await appwriteService.getCurrentUser()
       if (user) {
         setCurrentUserId(user.$id)
+        // Use personalized For You feed for logged-in users
+        const result = await appwriteService.fetchForYouFeed(user.$id)
+        setPosts(result.documents.map((d: any) => ({
+          ...d,
+          id: d.$id,
+          timestamp: new Date(d.$createdAt || d.createdAt),
+        })) as Post[])
+      } else {
+        // Fallback to regular posts for guests
+        const result = await appwriteService.fetchPosts()
+        setPosts(result.documents.map((d: any) => ({
+          ...d,
+          id: d.$id,
+          timestamp: new Date(d.$createdAt || d.createdAt),
+        })) as Post[])
       }
-      const result = await appwriteService.fetchPosts()
-      setPosts(result.documents.map((d: any) => ({
-        ...d,
-        id: d.$id,
-        timestamp: new Date(d.$createdAt || d.createdAt),
-      })) as Post[])
     } catch (error) {
       console.error('Failed to load posts:', error)
+      // Fallback to regular posts
+      try {
+        const result = await appwriteService.fetchPosts()
+        setPosts(result.documents.map((d: any) => ({
+          ...d,
+          id: d.$id,
+          timestamp: new Date(d.$createdAt || d.createdAt),
+        })) as Post[])
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError)
+      }
     } finally {
       setLoading(false)
     }

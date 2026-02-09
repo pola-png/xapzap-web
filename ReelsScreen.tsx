@@ -16,15 +16,26 @@ export function ReelsScreen() {
   const loadReels = async () => {
     setLoading(true)
     try {
-      const result = await appwriteService.fetchPosts()
-      const reels = result.documents.filter((d: any) => d.kind === 'reel').map((d: any) => ({
+      const result = await appwriteService.fetchReelsFeed()
+      setPosts(result.documents.map((d: any) => ({
         ...d,
         id: d.$id,
         timestamp: new Date(d.$createdAt || d.createdAt),
-      }))
-      setPosts(reels as Post[])
+      })) as Post[])
     } catch (error) {
       console.error('Failed to load reels:', error)
+      // Fallback to client-side filtering
+      try {
+        const result = await appwriteService.fetchPosts()
+        const reels = result.documents.filter((d: any) => d.kind === 'reel').map((d: any) => ({
+          ...d,
+          id: d.$id,
+          timestamp: new Date(d.$createdAt || d.createdAt),
+        }))
+        setPosts(reels as Post[])
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError)
+      }
     } finally {
       setLoading(false)
     }

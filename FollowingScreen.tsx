@@ -16,14 +16,32 @@ export function FollowingScreen() {
   const loadFollowingPosts = async () => {
     setLoading(true)
     try {
-      const result = await appwriteService.fetchPosts()
+      const user = await appwriteService.getCurrentUser()
+      if (!user) {
+        setPosts([])
+        return
+      }
+
+      const result = await appwriteService.fetchFollowingFeed(user.$id)
       setPosts(result.documents.map((d: any) => ({
         ...d,
         id: d.$id,
         timestamp: new Date(d.$createdAt || d.createdAt),
       })) as Post[])
     } catch (error) {
-      console.error('Failed to load posts:', error)
+      console.error('Failed to load following posts:', error)
+      // Fallback to all posts if following feed fails
+      try {
+        const result = await appwriteService.fetchPosts()
+        setPosts(result.documents.map((d: any) => ({
+          ...d,
+          id: d.$id,
+          timestamp: new Date(d.$createdAt || d.createdAt),
+        })) as Post[])
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError)
+        setPosts([])
+      }
     } finally {
       setLoading(false)
     }

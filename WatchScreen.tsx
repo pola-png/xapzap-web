@@ -16,15 +16,26 @@ export function WatchScreen() {
   const loadVideos = async () => {
     setLoading(true)
     try {
-      const result = await appwriteService.fetchPosts()
-      const videos = result.documents.filter((d: any) => d.kind === 'video' || d.videoUrl).map((d: any) => ({
+      const result = await appwriteService.fetchWatchFeed()
+      setPosts(result.documents.map((d: any) => ({
         ...d,
         id: d.$id,
         timestamp: new Date(d.$createdAt || d.createdAt),
-      }))
-      setPosts(videos as Post[])
+      })) as Post[])
     } catch (error) {
       console.error('Failed to load videos:', error)
+      // Fallback to client-side filtering
+      try {
+        const result = await appwriteService.fetchPosts()
+        const videos = result.documents.filter((d: any) => d.kind === 'video' || d.videoUrl).map((d: any) => ({
+          ...d,
+          id: d.$id,
+          timestamp: new Date(d.$createdAt || d.createdAt),
+        }))
+        setPosts(videos as Post[])
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError)
+      }
     } finally {
       setLoading(false)
     }
