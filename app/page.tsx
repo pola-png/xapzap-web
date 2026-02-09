@@ -9,6 +9,11 @@ import { ProfileScreen } from '../ProfileScreen'
 import { DashboardScreen } from '../DashboardScreen'
 import { AuthScreen } from '../AuthScreen'
 import { CreatePostModal } from '../CreatePostModal-enhanced'
+import { WatchScreen } from '../WatchScreen'
+import { ReelsScreen } from '../ReelsScreen'
+import { LiveScreen } from '../LiveScreen'
+import { NewsScreen } from '../NewsScreen'
+import { FollowingScreen } from '../FollowingScreen'
 import type { Metadata } from 'next'
 
 
@@ -27,6 +32,11 @@ export default function Home() {
       case 4: return <ProfileScreen />
       case 5: return <DashboardScreen />
       case 6: return <AuthScreen onAuthSuccess={() => { setIsGuest(false); setCurrentTab(0); }} />
+      case 7: return <WatchScreen />
+      case 8: return <ReelsScreen />
+      case 9: return <LiveScreen />
+      case 10: return <NewsScreen />
+      case 11: return <FollowingScreen />
       default: return <HomeScreen />
     }
   }

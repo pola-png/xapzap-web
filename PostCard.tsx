@@ -11,9 +11,9 @@ interface PostCardProps {
   currentUserId?: string
 }
 
-export const PostCard = ({ post }: PostCardProps) => {
-  const [liked, setLiked] = useState(post.isLiked)
-  const [likes, setLikes] = useState(post.likes)
+export const PostCard = ({ post, currentUserId }: PostCardProps) => {
+  const [liked, setLiked] = useState(post.isLiked || false)
+  const [likes, setLikes] = useState(post.likes || 0)
 
   const handleLike = () => {
     setLiked(!liked)

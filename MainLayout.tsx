@@ -9,6 +9,7 @@ interface MainLayoutProps {
   children: ReactNode
   currentTab: number
   onTabChange: (tab: number) => void
+  onCreateClick: () => void
   onSearchClick: () => void
   isGuest?: boolean
 }
