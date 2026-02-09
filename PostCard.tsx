@@ -73,23 +73,23 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
   }
 
   return (
-    <div className="bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))]">
+    <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
       {/* Header */}
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center gap-3">
           {post.userAvatar ? (
             <img src={post.userAvatar} alt={post.username} className="w-10 h-10 rounded-full object-cover" />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-[rgb(var(--bg-secondary))] flex items-center justify-center text-[rgb(var(--text-primary))] font-semibold">
+            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-900 dark:text-white font-semibold">
               {(post.username || 'U')[0].toUpperCase()}
             </div>
           )}
           <div>
-            <span className="text-[rgb(var(--text-primary))] font-bold text-base">{post.username || 'User'}</span>
-            <span className="text-[rgb(var(--text-secondary))] text-sm ml-2">{new Date(post.createdAt).toLocaleDateString()}</span>
+            <span className="text-gray-900 dark:text-white font-bold text-base">{post.username || 'User'}</span>
+            <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">{new Date(post.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
-        <button className="text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] p-1" aria-label="More options">
+        <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white p-1" aria-label="More options">
           <MoreHorizontal size={20} />
         </button>
       </div>
@@ -110,7 +110,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
             {post.content}
           </div>
         ) : post.content ? (
-          <p className="text-[rgb(var(--text-primary))] text-base leading-relaxed mb-3">{post.content}</p>
+          <p className="text-gray-900 dark:text-white text-base leading-relaxed mb-3">{post.content}</p>
         ) : null}
 
         {(post.imageUrl || (post.mediaUrls && post.mediaUrls.length > 0 && !post.videoUrl && (!post.kind || post.kind === 'standard'))) && (
@@ -153,7 +153,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
 
         {post.kind === 'news' && post.title && (
           <div className="border-l-4 border-blue-500 pl-4 mb-3">
-            <h3 className="font-bold text-lg text-[rgb(var(--text-primary))]">{post.title}</h3>
+            <h3 className="font-bold text-lg text-gray-900 dark:text-white">{post.title}</h3>
           </div>
         )}
       </div>
@@ -163,23 +163,23 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
         {feedType === 'reels' ? (
           // Vertical reactions for reels
           <div className="flex flex-col items-center gap-3">
-            <button onClick={handleLike} className={`flex flex-col items-center gap-1 hover:text-red-500 transition-colors p-2 text-[rgb(var(--text-secondary))] ${liked ? 'text-red-500' : ''}`} aria-label="Like">
+            <button onClick={handleLike} className={`flex flex-col items-center gap-1 hover:text-red-500 transition-colors p-2 text-gray-500 dark:text-gray-400 ${liked ? 'text-red-500' : ''}`} aria-label="Like">
               <Heart size={24} className={liked ? 'fill-red-500' : ''} />
               <span className="text-xs font-medium">{likes || 0}</span>
             </button>
-            <button className="flex flex-col items-center gap-1 hover:text-blue-500 transition-colors p-2 text-[rgb(var(--text-secondary))]" aria-label="Comment">
+            <button className="flex flex-col items-center gap-1 hover:text-blue-500 transition-colors p-2 text-gray-500 dark:text-gray-400" aria-label="Comment">
               <MessageCircle size={24} />
               <span className="text-xs font-medium">{post.comments || 0}</span>
             </button>
-            <button onClick={handleRepost} className={`flex flex-col items-center gap-1 hover:text-green-500 transition-colors p-2 ${reposted ? 'text-green-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label="Repost">
+            <button onClick={handleRepost} className={`flex flex-col items-center gap-1 hover:text-green-500 transition-colors p-2 ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label="Repost">
               <Repeat2 size={24} className={reposted ? 'fill-green-500' : ''} />
               <span className="text-xs font-medium">{reposts || 0}</span>
             </button>
-            <button onClick={handleSave} className={`flex flex-col items-center gap-1 hover:text-yellow-500 transition-colors p-2 ${saved ? 'text-yellow-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label="Bookmark">
+            <button onClick={handleSave} className={`flex flex-col items-center gap-1 hover:text-yellow-500 transition-colors p-2 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label="Bookmark">
               <Bookmark size={24} className={saved ? 'fill-yellow-500' : ''} />
               <span className="text-xs font-medium">Save</span>
             </button>
-            <button className="flex flex-col items-center gap-1 hover:text-blue-500 transition-colors p-2 text-[rgb(var(--text-secondary))]" aria-label="Share">
+            <button className="flex flex-col items-center gap-1 hover:text-blue-500 transition-colors p-2 text-gray-500 dark:text-gray-400" aria-label="Share">
               <Share size={24} />
               <span className="text-xs font-medium">Share</span>
             </button>
@@ -187,27 +187,27 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
         ) : (
           // Horizontal reactions for other feeds - counts beside icons
           <div className="flex items-center justify-between gap-4 px-2">
-            <button onClick={handleSave} className={`flex items-center gap-2 hover:text-yellow-500 transition-colors p-2 rounded-lg text-[rgb(var(--text-secondary))] flex-shrink-0 ${saved ? 'text-yellow-500' : ''}`} aria-label={`Save post - ${saved ? 'saved' : 'not saved'}`}>
+            <button onClick={handleSave} className={`flex items-center gap-2 hover:text-yellow-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400 flex-shrink-0 ${saved ? 'text-yellow-500' : ''}`} aria-label={`Save post - ${saved ? 'saved' : 'not saved'}`}>
               <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
               <span className="text-sm font-medium">Save</span>
             </button>
-            <button className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-[rgb(var(--text-secondary))] flex-shrink-0`} aria-label="Share post">
+            <button className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400 flex-shrink-0`} aria-label="Share post">
               <Share size={20} />
               <span className="text-sm font-medium">Share</span>
             </button>
-            <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 rounded-lg flex-shrink-0 ${reposted ? 'text-green-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label={`Repost - ${reposts || 0} reposts`}>
+            <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 rounded-lg flex-shrink-0 ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label={`Repost - ${reposts || 0} reposts`}>
               <Repeat2 size={20} className={reposted ? 'fill-green-500' : ''} />
               <span className="text-sm font-medium">{reposts || 0}</span>
             </button>
-            <button className={`flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 rounded-lg text-[rgb(var(--text-secondary))] flex-shrink-0`} aria-label={`View impressions - ${post.impressions || 0} impressions`}>
+            <button className={`flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400 flex-shrink-0`} aria-label={`View impressions - ${post.impressions || 0} impressions`}>
               <BarChart2 size={20} />
               <span className="text-sm font-medium">{post.impressions || 0}</span>
             </button>
-            <button className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-[rgb(var(--text-secondary))] flex-shrink-0`} aria-label={`View comments - ${post.comments || 0} comments`}>
+            <button className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400 flex-shrink-0`} aria-label={`View comments - ${post.comments || 0} comments`}>
               <MessageCircle size={20} />
               <span className="text-sm font-medium">{post.comments || 0}</span>
             </button>
-            <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 rounded-lg flex-shrink-0 ${liked ? 'text-red-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label={`Like post - ${likes || 0} likes`}>
+            <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 rounded-lg flex-shrink-0 ${liked ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label={`Like post - ${likes || 0} likes`}>
               <Heart size={20} className={liked ? 'fill-red-500' : ''} />
               <span className="text-sm font-medium">{likes || 0}</span>
             </button>
