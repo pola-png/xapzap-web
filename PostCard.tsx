@@ -124,7 +124,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
         )}
 
         {(post.videoUrl || (post.kind === 'video' || post.kind === 'reel') || (post.mediaUrls && post.mediaUrls.length > 0 && post.thumbnailUrl)) && (
-          feedType === 'reels' ? (
+          (feedType as string) === 'reels' ? (
             <video
               src={post.videoUrl || (post.mediaUrls && post.mediaUrls[0])}
               poster={post.thumbnailUrl}
@@ -169,7 +169,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
 
       {/* Reactions */}
       <div className="px-2 pb-3">
-        {feedType === 'reels' ? (
+        {(feedType as string) === 'reels' ? (
           // Vertical reactions for reels - counts beside icons
           <div className="flex flex-col items-center gap-3">
             <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 text-gray-500 dark:text-gray-400 ${liked ? 'text-red-500' : ''}`} aria-label="Like">
