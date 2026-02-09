@@ -138,8 +138,26 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   return (
     <div className="fixed inset-0 bg-black z-50">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-4">
+      {/* Mobile Native Header */}
+      <div className="absolute top-0 left-0 right-0 z-20 p-4 lg:hidden">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={onClose}
+            className="w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+            aria-label="Close video"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <div className="flex items-center gap-2">
+            <button className="w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors" aria-label="More options">
+              <MoreHorizontal size={20} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden lg:block absolute top-0 left-0 right-0 z-20 p-4">
         <button
           onClick={onClose}
           className="w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
@@ -231,8 +249,69 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
       </div>
 
-      {/* Video Info Panel */}
-      <div className="absolute bottom-24 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4 sm:bottom-20">
+      {/* Mobile Native Layout */}
+      <div className="lg:hidden">
+        {/* Right Side Reactions (Native App Style) */}
+        <div className="absolute right-4 bottom-24 flex flex-col items-center gap-4 z-10">
+          {/* User Info */}
+          <div className="flex flex-col items-center gap-2 mb-4">
+            {post.userAvatar ? (
+              <img src={post.userAvatar} alt={post.username} className="w-12 h-12 rounded-full object-cover border-2 border-white" />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-gray-600 border-2 border-white flex items-center justify-center text-white font-semibold">
+                {(post.username || 'U')[0].toUpperCase()}
+              </div>
+            )}
+            <button
+              onClick={handleLike}
+              className={`flex flex-col items-center gap-1 p-2 rounded-full transition-all ${liked ? 'text-red-500' : 'text-white'}`}
+              aria-label={liked ? "Unlike video" : "Like video"}
+            >
+              <Heart size={32} className={liked ? 'fill-red-500' : ''} />
+              <span className="text-xs font-semibold">{likes || 0}</span>
+            </button>
+          </div>
+
+          {/* Reaction Buttons */}
+          <div className="flex flex-col items-center gap-4">
+            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-blue-400 transition-colors" aria-label="View comments">
+              <MessageCircle size={28} />
+              <span className="text-xs font-semibold">{comments || 0}</span>
+            </button>
+
+            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-green-400 transition-colors" aria-label="Repost video">
+              <Repeat2 size={28} />
+              <span className="text-xs font-semibold">{reposts || 0}</span>
+            </button>
+
+            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-blue-400 transition-colors" aria-label="Share video">
+              <Share size={28} />
+              <span className="text-xs font-semibold">Share</span>
+            </button>
+
+            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-yellow-400 transition-colors" aria-label="Save video">
+              <Bookmark size={28} />
+              <span className="text-xs font-semibold">Save</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom Content Overlay */}
+        <div className="absolute bottom-0 left-4 right-20 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
+          <div className="max-w-xs">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-white font-semibold text-sm truncate">{post.username || 'User'}</span>
+              <span className="text-gray-300 text-xs">{new Date(post.createdAt).toLocaleDateString()}</span>
+            </div>
+            {post.content && (
+              <p className="text-white text-sm leading-relaxed line-clamp-2">{post.content}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden lg:block absolute bottom-24 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4 sm:bottom-20">
         <div className="max-w-md mx-auto">
           {/* User Info */}
           <div className="flex items-center gap-3 mb-3">

@@ -162,14 +162,16 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, o
 
       {/* Mobile Layout */}
       <div className="lg:hidden">
-        <header className="sticky top-0 z-50 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))]">
-          <div className="flex items-center justify-between px-4 py-3">
-            <h1 className="text-xl font-bold text-[rgb(var(--text-primary))]">XapZap</h1>
-            <button onClick={onSearchClick} className="p-2 text-[rgb(var(--text-primary))]" aria-label="Search">
-              <Search size={20} />
-            </button>
-          </div>
-        </header>
+        {isHomeTab && (
+          <header className="sticky top-0 z-50 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))]">
+            <div className="flex items-center justify-between px-4 py-3">
+              <h1 className="text-xl font-bold text-[rgb(var(--text-primary))]">XapZap</h1>
+              <button onClick={onSearchClick} className="p-2 text-[rgb(var(--text-primary))]" aria-label="Search">
+                <Search size={20} />
+              </button>
+            </div>
+          </header>
+        )}
         {isHomeTab && (
           <div className="sticky top-14 z-40 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))]">
             <div className="flex overflow-x-auto scrollbar-hide -mb-px">
