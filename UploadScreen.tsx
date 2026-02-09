@@ -391,8 +391,8 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
             />
           </div>
 
-          {/* Text Background Color (for text-only posts) */}
-          {content.trim() && !selectedFile && (
+          {/* Text Background Color (only for text-only posts) */}
+          {content.trim() && !selectedFile && selectedType === null && (
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Text Background (Optional)</label>
               <div className="flex gap-2 flex-wrap">
@@ -424,7 +424,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           )}
 
           {/* Preview for text background */}
-          {content.trim() && textBgColor && !selectedFile && (
+          {content.trim() && textBgColor && !selectedFile && selectedType === null && (
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Preview</label>
               <div
