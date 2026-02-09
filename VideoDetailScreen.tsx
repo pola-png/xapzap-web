@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2 } from 'lucide-react'
 import { Post } from './types'
+import appwriteService from './appwriteService'
 
 interface VideoDetailScreenProps {
   post: Post
@@ -19,9 +20,29 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [showControls, setShowControls] = useState(true)
   const [liked, setLiked] = useState(post.isLiked || false)
   const [likes, setLikes] = useState(post.likes || 0)
+  const [reposts, setReposts] = useState(post.reposts || 0)
+  const [comments, setComments] = useState(post.comments || 0)
+  const [impressions, setImpressions] = useState(post.impressions || 0)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+
+  // Subscribe to realtime updates for this post
+  useEffect(() => {
+    if (!post.id) return
+
+    const unsubscribe = appwriteService.subscribeToDocument('posts', post.id, (payload) => {
+      if (payload.events.includes('databases.*.collections.posts.documents.*.update')) {
+        const updatedPost = payload.payload
+        setLikes(updatedPost.likes || 0)
+        setReposts(updatedPost.reposts || 0)
+        setComments(updatedPost.comments || 0)
+        setImpressions(updatedPost.impressions || 0)
+      }
+    })
+
+    return unsubscribe
+  }, [post.id])
 
   useEffect(() => {
     const video = videoRef.current
@@ -99,9 +120,20 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     return `${minutes}:${seconds.toString().padStart(2, '0')}`
   }
 
-  const handleLike = () => {
-    setLiked(!liked)
-    setLikes(liked ? likes - 1 : likes + 1)
+  const handleLike = async () => {
+    try {
+      if (liked) {
+        await appwriteService.unlikePost(post.id)
+        setLiked(false)
+        setLikes(Math.max(0, likes - 1))
+      } else {
+        await appwriteService.likePost(post.id)
+        setLiked(true)
+        setLikes(likes + 1)
+      }
+    } catch (error) {
+      console.error('Failed to toggle like:', error)
+    }
   }
 
   return (
@@ -243,21 +275,21 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
               aria-label="Repost video"
             >
               <Repeat2 size={20} />
-              <span className="text-sm font-medium hidden sm:inline">{post.reposts || 0}</span>
+              <span className="text-sm font-medium hidden sm:inline">{reposts || 0}</span>
             </button>
             <button
               className="flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 text-gray-300 flex-shrink-0"
               aria-label="View impressions"
             >
               <BarChart2 size={20} />
-              <span className="text-sm font-medium hidden sm:inline">{post.impressions || 0}</span>
+              <span className="text-sm font-medium hidden sm:inline">{impressions || 0}</span>
             </button>
             <button
               className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-gray-300 flex-shrink-0"
               aria-label="View comments"
             >
               <MessageCircle size={20} />
-              <span className="text-sm font-medium hidden sm:inline">{post.comments || 0}</span>
+              <span className="text-sm font-medium hidden sm:inline">{comments || 0}</span>
             </button>
             <button
               onClick={handleLike}

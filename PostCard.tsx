@@ -160,32 +160,59 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
 
       {/* Reactions */}
       <div className="px-3 pb-3">
-        <div className="flex items-center justify-between gap-4 overflow-x-auto">
-          <button onClick={handleSave} className={`flex items-center gap-2 hover:text-yellow-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0 ${saved ? 'text-yellow-500' : ''}`} aria-label="Bookmark">
-            <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
-            <span className="text-sm font-medium hidden sm:inline">Save</span>
-          </button>
-          <button className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Share">
-            <Share size={20} />
-            <span className="text-sm font-medium hidden sm:inline">Share</span>
-          </button>
-          <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 flex-shrink-0 ${reposted ? 'text-green-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label="Repost">
-            <Repeat2 size={20} className={reposted ? 'fill-green-500' : ''} />
-            <span className="text-sm font-medium hidden sm:inline">{reposts || 0}</span>
-          </button>
-          <button className="flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Impressions">
-            <BarChart2 size={20} />
-            <span className="text-sm font-medium hidden sm:inline">{post.impressions || 0}</span>
-          </button>
-          <button className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Comment">
-            <MessageCircle size={20} />
-            <span className="text-sm font-medium hidden sm:inline">{post.comments || 0}</span>
-          </button>
-          <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 flex-shrink-0 ${liked ? 'text-red-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label="Like">
-            <Heart size={20} className={liked ? 'fill-red-500' : ''} />
-            <span className="text-sm font-medium hidden sm:inline">{likes || 0}</span>
-          </button>
-        </div>
+        {feedType === 'reels' ? (
+          // Vertical reactions for reels
+          <div className="flex flex-col items-center gap-3">
+            <button onClick={handleLike} className={`flex flex-col items-center gap-1 hover:text-red-500 transition-colors p-2 text-[rgb(var(--text-secondary))] ${liked ? 'text-red-500' : ''}`} aria-label="Like">
+              <Heart size={24} className={liked ? 'fill-red-500' : ''} />
+              <span className="text-xs font-medium">{likes || 0}</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 hover:text-blue-500 transition-colors p-2 text-[rgb(var(--text-secondary))]" aria-label="Comment">
+              <MessageCircle size={24} />
+              <span className="text-xs font-medium">{post.comments || 0}</span>
+            </button>
+            <button onClick={handleRepost} className={`flex flex-col items-center gap-1 hover:text-green-500 transition-colors p-2 ${reposted ? 'text-green-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label="Repost">
+              <Repeat2 size={24} className={reposted ? 'fill-green-500' : ''} />
+              <span className="text-xs font-medium">{reposts || 0}</span>
+            </button>
+            <button onClick={handleSave} className={`flex flex-col items-center gap-1 hover:text-yellow-500 transition-colors p-2 ${saved ? 'text-yellow-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label="Bookmark">
+              <Bookmark size={24} className={saved ? 'fill-yellow-500' : ''} />
+              <span className="text-xs font-medium">Save</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 hover:text-blue-500 transition-colors p-2 text-[rgb(var(--text-secondary))]" aria-label="Share">
+              <Share size={24} />
+              <span className="text-xs font-medium">Share</span>
+            </button>
+          </div>
+        ) : (
+          // Horizontal reactions for other feeds
+          <div className="flex items-center justify-between gap-4 overflow-x-auto">
+            <button onClick={handleSave} className={`flex items-center gap-2 hover:text-yellow-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0 ${saved ? 'text-yellow-500' : ''}`} aria-label="Bookmark">
+              <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
+              <span className="text-sm font-medium hidden sm:inline">Save</span>
+            </button>
+            <button className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Share">
+              <Share size={20} />
+              <span className="text-sm font-medium hidden sm:inline">Share</span>
+            </button>
+            <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 flex-shrink-0 ${reposted ? 'text-green-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label="Repost">
+              <Repeat2 size={20} className={reposted ? 'fill-green-500' : ''} />
+              <span className="text-sm font-medium hidden sm:inline">{reposts || 0}</span>
+            </button>
+            <button className="flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Impressions">
+              <BarChart2 size={20} />
+              <span className="text-sm font-medium hidden sm:inline">{post.impressions || 0}</span>
+            </button>
+            <button className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Comment">
+              <MessageCircle size={20} />
+              <span className="text-sm font-medium hidden sm:inline">{post.comments || 0}</span>
+            </button>
+            <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 flex-shrink-0 ${liked ? 'text-red-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label="Like">
+              <Heart size={20} className={liked ? 'fill-red-500' : ''} />
+              <span className="text-sm font-medium hidden sm:inline">{likes || 0}</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

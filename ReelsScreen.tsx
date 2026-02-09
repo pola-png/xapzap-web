@@ -50,7 +50,8 @@ export function ReelsScreen() {
           </div>
         ) : posts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No reels yet</p>
+            <p className="text-muted-foreground mb-4">No reels yet</p>
+            <p className="text-sm text-muted-foreground">Upload a vertical video using the "+" button to create your first reel!</p>
           </div>
         ) : (
           posts.map((post) => (

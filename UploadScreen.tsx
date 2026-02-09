@@ -12,12 +12,16 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   const [selectedType, setSelectedType] = useState<'video' | 'reel' | 'image' | 'news' | null>(null)
   const [content, setContent] = useState('')
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [textBgColor, setTextBgColor] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [customThumbnail, setCustomThumbnail] = useState<File | null>(null)
   const [generatedThumbnail, setGeneratedThumbnail] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const thumbnailInputRef = useRef<HTMLInputElement>(null)
 
   // Theme detection
   const [isDark, setIsDark] = useState(false)
@@ -116,14 +120,16 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         const uploadedFile = await appwriteService.uploadFile(selectedFile, fileId)
         mediaUrl = uploadedFile.url
 
-        // For videos, upload the generated thumbnail or use video URL as fallback
+        // For videos, handle thumbnail upload
         if (selectedType === 'video' || selectedType === 'reel') {
-          if (generatedThumbnail) {
+          // Use custom thumbnail if provided, otherwise use generated thumbnail
+          const thumbnailToUpload = customThumbnail || generatedThumbnail
+          if (thumbnailToUpload) {
             const thumbnailId = `${user.$id}_thumb_${Date.now()}.jpg`
-            const uploadedThumbnail = await appwriteService.uploadFile(generatedThumbnail, thumbnailId)
+            const uploadedThumbnail = await appwriteService.uploadFile(thumbnailToUpload, thumbnailId)
             thumbnailUrl = uploadedThumbnail.url
           } else {
-            // Fallback to video URL if thumbnail generation failed
+            // Fallback to video URL if no thumbnail available
             thumbnailUrl = mediaUrl
           }
         }
@@ -133,24 +139,34 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       const postData: any = {
         userId: user.$id,
         username: user.name || 'User',
-        content: content.trim(),
         kind: selectedType,
         createdAt: new Date().toISOString()
       }
 
-      // Add type-specific fields
-      if (selectedType === 'news') {
-        postData.title = title.trim()
+      // Add content/caption (required for all types)
+      if (content.trim()) {
+        postData.content = content.trim()
       }
 
-      if (selectedType === 'image') {
-        postData.imageUrl = mediaUrl
-      } else if (selectedType === 'video' || selectedType === 'reel') {
+      // Add type-specific fields
+      if (selectedType === 'video') {
         postData.videoUrl = mediaUrl
         postData.thumbnailUrl = thumbnailUrl
+        if (title.trim()) postData.title = title.trim()
+        if (description.trim()) postData.description = description.trim()
+      } else if (selectedType === 'reel') {
+        postData.videoUrl = mediaUrl
+        postData.thumbnailUrl = thumbnailUrl
+        // Reels only have caption, no title/description
+      } else if (selectedType === 'image') {
+        postData.imageUrl = mediaUrl
+      } else if (selectedType === 'news') {
+        if (title.trim()) postData.title = title.trim()
+        // News content goes in the content field
       }
 
-      if (textBgColor && content.trim()) {
+      // Add text background color for text-only posts
+      if (textBgColor && content.trim() && !selectedFile) {
         postData.textBgColor = textBgColor
       }
 
@@ -161,9 +177,13 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       setSelectedType(null)
       setContent('')
       setTitle('')
+      setDescription('')
       setTextBgColor('')
       setSelectedFile(null)
+      setCustomThumbnail(null)
+      setGeneratedThumbnail(null)
       setPreviewUrl(null)
+      setThumbnailPreviewUrl(null)
       onClose()
 
     } catch (error) {
@@ -197,6 +217,15 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     </div>
   )
 
+  const handleThumbnailSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setCustomThumbnail(file)
+      const url = URL.createObjectURL(file)
+      setThumbnailPreviewUrl(url)
+    }
+  }
+
   const renderUploadForm = () => {
     const currentType = contentTypes.find(t => t.id === selectedType)
     if (!currentType) return null
@@ -204,179 +233,241 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     const Icon = currentType.icon
 
     return (
-      <div className="space-y-6">
-        {/* Type Header */}
-        <div className={`flex items-center gap-3 p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
-          <Icon size={24} className="text-blue-500" />
-          <div>
-            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{currentType.label}</h3>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{currentType.description}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[600px]">
+        {/* Left Side - Media Preview */}
+        <div className="space-y-4">
+          <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Preview</h2>
+
+          {/* Media Upload Area */}
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className={`aspect-square rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
+              isDark
+                ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
+                : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
+            }`}
+          >
+            {previewUrl ? (
+              <div className="relative w-full h-full">
+                {selectedType === 'image' ? (
+                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                ) : (
+                  <video src={previewUrl} className="w-full h-full object-cover rounded-lg" controls />
+                )}
+                <div className={`absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity`}>
+                  <p className="text-white text-sm font-medium">Click to change</p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center">
+                <Upload size={48} className={`mx-auto mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                <p className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Upload {selectedType}</p>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {selectedType === 'video' && 'MP4, MOV up to 100MB'}
+                  {selectedType === 'reel' && 'MP4, MOV up to 50MB (vertical)'}
+                  {selectedType === 'image' && 'JPG, PNG up to 10MB'}
+                </p>
+              </div>
+            )}
           </div>
+
+          {/* Custom Thumbnail Upload (for videos only) */}
+          {(selectedType === 'video' || selectedType === 'reel') && (
+            <div className="space-y-2">
+              <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                Custom Thumbnail (Optional)
+              </label>
+              <div
+                onClick={() => thumbnailInputRef.current?.click()}
+                className={`aspect-video rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
+                  isDark
+                    ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
+                    : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
+                }`}
+              >
+                {thumbnailPreviewUrl ? (
+                  <div className="relative w-full h-full">
+                    <img src={thumbnailPreviewUrl} alt="Thumbnail" className="w-full h-full object-cover rounded-lg" />
+                    <div className={`absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity`}>
+                      <p className="text-white text-xs">Change thumbnail</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <Image size={24} className={`mx-auto mb-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Add thumbnail</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={
+              selectedType === 'video' || selectedType === 'reel' ? 'video/*' :
+              selectedType === 'image' ? 'image/*' : ''
+            }
+            onChange={handleFileSelect}
+            className="hidden"
+            aria-label={`Upload ${selectedType}`}
+          />
+          <input
+            ref={thumbnailInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleThumbnailSelect}
+            className="hidden"
+            aria-label="Upload thumbnail"
+          />
         </div>
 
-        {/* File Upload */}
-        {(selectedType === 'video' || selectedType === 'reel' || selectedType === 'image') && (
-          <div className="space-y-3">
-            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Media File</label>
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors ${
-                isDark
-                  ? 'border-gray-600 hover:bg-gray-700 text-gray-300'
-                  : 'border-gray-300 hover:bg-blue-50 text-gray-700'
-              }`}
-            >
-              {previewUrl ? (
-                <div className="space-y-3">
-                  {selectedType === 'image' ? (
-                    <img src={previewUrl} alt="Preview" className="max-h-48 mx-auto rounded" />
-                  ) : (
-                    <video src={previewUrl} className="max-h-48 mx-auto rounded" controls />
-                  )}
-                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Click to change file</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <Upload size={48} className={`mx-auto ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-                  <p className={`text-lg font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Click to upload {selectedType}</p>
-                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {selectedType === 'video' && 'MP4, MOV up to 100MB'}
-                    {selectedType === 'reel' && 'MP4, MOV up to 50MB (vertical format)'}
-                    {selectedType === 'image' && 'JPG, PNG up to 10MB'}
-                  </p>
-                </div>
-              )}
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={
-                selectedType === 'video' || selectedType === 'reel' ? 'video/*' :
-                selectedType === 'image' ? 'image/*' : ''
-              }
-              onChange={handleFileSelect}
-              className="hidden"
-              aria-label={`Upload ${selectedType}`}
-            />
+        {/* Right Side - Form Fields */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <Icon size={24} className="text-blue-500" />
+            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Details</h2>
           </div>
-        )}
 
-        {/* Title (for news) */}
-        {selectedType === 'news' && (
+          {/* Title (for videos and news) */}
+          {(selectedType === 'video' || selectedType === 'news') && (
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                {selectedType === 'video' ? 'Title' : 'News Title'}
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={selectedType === 'video' ? 'Add a title to your video' : 'Enter news title'}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  isDark
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                    : 'border-gray-300 text-gray-900'
+                }`}
+              />
+            </div>
+          )}
+
+          {/* Description (for videos only) */}
+          {selectedType === 'video' && (
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Description</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Tell viewers about your video"
+                rows={3}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+                  isDark
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                    : 'border-gray-300 text-gray-900'
+                }`}
+              />
+            </div>
+          )}
+
+          {/* Caption (for all types) */}
           <div>
-            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter news title"
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              {selectedType === 'reel' ? 'Caption' : 'Caption'}
+            </label>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder={
+                selectedType === 'news' ? 'Write your news article...' :
+                selectedType === 'reel' ? 'Add a caption to your reel...' :
+                selectedType === 'video' ? 'Add a caption...' :
+                'Write a caption...'
+              }
+              rows={selectedType === 'reel' ? 2 : 4}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
                 isDark
                   ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                   : 'border-gray-300 text-gray-900'
               }`}
             />
           </div>
-        )}
 
-        {/* Content */}
-        <div>
-          <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            {selectedType === 'news' ? 'Article Content' : 'Caption'}
-          </label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder={
-              selectedType === 'news' ? 'Write your news article...' :
-              selectedType === 'reel' ? 'Add a caption to your reel...' :
-              'Write a caption...'
-            }
-            rows={4}
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
-              isDark
-                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                : 'border-gray-300 text-gray-900'
-            }`}
-          />
-        </div>
-
-        {/* Text Background Color */}
-        {content.trim() && (
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Text Background (Optional)</label>
-            <div className="flex gap-2 flex-wrap">
-              {textColors.map((color, index) => (
-                <button
-                  key={color}
-                  onClick={() => setTextBgColor(color)}
-                  className={`w-8 h-8 rounded-full border-2 ${textBgColor === color ? 'border-gray-800' : 'border-gray-300'}`}
-                  style={{ backgroundColor: color }}
-                  aria-label={`Select background color ${index + 1}`}
-                  title={`Color ${index + 1}`}
-                />
-              ))}
-              {textBgColor && (
-                <button
-                  onClick={() => setTextBgColor('')}
-                  className={`px-3 py-1 text-sm border rounded-full transition-colors ${
-                    isDark
-                      ? 'border-gray-600 hover:bg-gray-700 text-gray-300'
-                      : 'border-gray-300 hover:bg-gray-50 text-gray-700'
-                  }`}
-                  title="Clear background color"
-                >
-                  Clear
-                </button>
-              )}
+          {/* Text Background Color (for text-only posts) */}
+          {content.trim() && !selectedFile && (
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Text Background (Optional)</label>
+              <div className="flex gap-2 flex-wrap">
+                {textColors.map((color, index) => (
+                  <button
+                    key={color}
+                    onClick={() => setTextBgColor(color)}
+                    className={`w-8 h-8 rounded-full border-2 ${textBgColor === color ? 'border-gray-800' : 'border-gray-300'}`}
+                    style={{ backgroundColor: color }}
+                    aria-label={`Select background color ${index + 1}`}
+                    title={`Color ${index + 1}`}
+                  />
+                ))}
+                {textBgColor && (
+                  <button
+                    onClick={() => setTextBgColor('')}
+                    className={`px-3 py-1 text-sm border rounded-full transition-colors ${
+                      isDark
+                        ? 'border-gray-600 hover:bg-gray-700 text-gray-300'
+                        : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+                    }`}
+                    title="Clear background color"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Preview */}
-        {content.trim() && textBgColor && (
-          <div>
-            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Preview</label>
-            <div
-              className="p-4 rounded-xl max-w-sm"
-              style={{ backgroundColor: textBgColor }}
+          {/* Preview for text background */}
+          {content.trim() && textBgColor && !selectedFile && (
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Preview</label>
+              <div
+                className="p-4 rounded-xl max-w-sm"
+                style={{ backgroundColor: textBgColor }}
+              >
+                <p className="text-white text-center font-bold">{content}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-6">
+            <button
+              onClick={() => setSelectedType(null)}
+              className={`flex-1 px-4 py-2 border rounded-lg transition-colors ${
+                isDark
+                  ? 'border-gray-600 hover:bg-gray-700 text-gray-300'
+                  : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+              }`}
+              title="Go back to type selection"
             >
-              <p className="text-white text-center font-bold">{content}</p>
-            </div>
+              Back
+            </button>
+            <button
+              onClick={handleUpload}
+              disabled={uploading || (!content.trim() && !selectedFile)}
+              className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              title={uploading ? "Uploading post..." : "Create and publish post"}
+            >
+              {uploading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Plus size={16} />
+                  Post
+                </>
+              )}
+            </button>
           </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-3 pt-4">
-          <button
-            onClick={() => setSelectedType(null)}
-            className={`flex-1 px-4 py-2 border rounded-lg transition-colors ${
-              isDark
-                ? 'border-gray-600 hover:bg-gray-700 text-gray-300'
-                : 'border-gray-300 hover:bg-gray-50 text-gray-700'
-            }`}
-            title="Go back to type selection"
-          >
-            Back
-          </button>
-          <button
-            onClick={handleUpload}
-            disabled={uploading || (!content.trim() && !selectedFile)}
-            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-            title={uploading ? "Uploading post..." : "Create and publish post"}
-          >
-            {uploading ? (
-              <>
-                <Loader2 size={16} className="animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>
-                <Plus size={16} />
-                Post
-              </>
-            )}
-          </button>
         </div>
       </div>
     )
