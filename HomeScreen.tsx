@@ -59,9 +59,9 @@ export function HomeScreen() {
 
   return (
     <>
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <StoryBar />
-        <div className="space-y-4 pb-20">
+        <div className="space-y-4 pb-20 sm:pb-24">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -69,6 +69,7 @@ export function HomeScreen() {
           ) : posts.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">No posts yet</p>
+              <p className="text-sm text-muted-foreground mt-2">Be the first to share something!</p>
             </div>
           ) : (
             posts.map((post) => (

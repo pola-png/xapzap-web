@@ -260,11 +260,13 @@ export function SearchScreen({ onClose }: SearchScreenProps) {
 
 export function NotificationsScreen() {
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Notifications</h1>
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">No notifications yet</p>
-        <p className="text-sm text-muted-foreground mt-2">We'll notify you when something happens!</p>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="py-6">
+        <h1 className="text-2xl font-bold mb-6">Notifications</h1>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">No notifications yet</p>
+          <p className="text-sm text-muted-foreground mt-2">We'll notify you when something happens!</p>
+        </div>
       </div>
     </div>
   )
