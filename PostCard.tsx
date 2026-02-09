@@ -105,7 +105,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
                 ? 'text-xl font-bold'
                 : 'text-lg font-semibold'
             }`}
-            style={{ backgroundColor: `#${post.textBgColor.toString(16).padStart(6, '0')}` }}
+            style={{ backgroundColor: post.textBgColor ? `#${post.textBgColor.toString(16).padStart(6, '0')}` : undefined }}
           >
             {post.content}
           </div>
@@ -185,31 +185,31 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
             </button>
           </div>
         ) : (
-          // Horizontal reactions for other feeds
-          <div className="flex items-center justify-between gap-4 overflow-x-auto">
-            <button onClick={handleSave} className={`flex items-center gap-2 hover:text-yellow-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0 ${saved ? 'text-yellow-500' : ''}`} aria-label="Bookmark">
+          // Horizontal reactions for other feeds - counts beside icons
+          <div className="flex items-center justify-between gap-4 px-2">
+            <button onClick={handleSave} className={`flex items-center gap-2 hover:text-yellow-500 transition-colors p-2 rounded-lg text-[rgb(var(--text-secondary))] flex-shrink-0 ${saved ? 'text-yellow-500' : ''}`} aria-label={`Save post - ${saved ? 'saved' : 'not saved'}`}>
               <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
-              <span className="text-sm font-medium hidden sm:inline">Save</span>
+              <span className="text-sm font-medium">Save</span>
             </button>
-            <button className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Share">
+            <button className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-[rgb(var(--text-secondary))] flex-shrink-0`} aria-label="Share post">
               <Share size={20} />
-              <span className="text-sm font-medium hidden sm:inline">Share</span>
+              <span className="text-sm font-medium">Share</span>
             </button>
-            <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 flex-shrink-0 ${reposted ? 'text-green-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label="Repost">
+            <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 rounded-lg flex-shrink-0 ${reposted ? 'text-green-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label={`Repost - ${reposts || 0} reposts`}>
               <Repeat2 size={20} className={reposted ? 'fill-green-500' : ''} />
-              <span className="text-sm font-medium hidden sm:inline">{reposts || 0}</span>
+              <span className="text-sm font-medium">{reposts || 0}</span>
             </button>
-            <button className="flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Impressions">
+            <button className={`flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 rounded-lg text-[rgb(var(--text-secondary))] flex-shrink-0`} aria-label={`View impressions - ${post.impressions || 0} impressions`}>
               <BarChart2 size={20} />
-              <span className="text-sm font-medium hidden sm:inline">{post.impressions || 0}</span>
+              <span className="text-sm font-medium">{post.impressions || 0}</span>
             </button>
-            <button className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Comment">
+            <button className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-[rgb(var(--text-secondary))] flex-shrink-0`} aria-label={`View comments - ${post.comments || 0} comments`}>
               <MessageCircle size={20} />
-              <span className="text-sm font-medium hidden sm:inline">{post.comments || 0}</span>
+              <span className="text-sm font-medium">{post.comments || 0}</span>
             </button>
-            <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 flex-shrink-0 ${liked ? 'text-red-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label="Like">
+            <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 rounded-lg flex-shrink-0 ${liked ? 'text-red-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label={`Like post - ${likes || 0} likes`}>
               <Heart size={20} className={liked ? 'fill-red-500' : ''} />
-              <span className="text-sm font-medium hidden sm:inline">{likes || 0}</span>
+              <span className="text-sm font-medium">{likes || 0}</span>
             </button>
           </div>
         )}

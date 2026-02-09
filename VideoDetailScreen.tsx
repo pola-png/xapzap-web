@@ -189,7 +189,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
               >
                 <div
                   className="h-full bg-white rounded-full transition-all duration-100 group-hover:bg-red-500"
-                  style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+                  style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
                 />
               </div>
             </div>

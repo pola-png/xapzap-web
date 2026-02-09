@@ -431,7 +431,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Preview</label>
               <div
                 className="p-4 rounded-xl max-w-sm"
-                style={{ backgroundColor: textBgColor }}
+                style={{ backgroundColor: textBgColor || undefined }}
               >
                 <p className="text-white text-center font-bold">{content}</p>
               </div>
@@ -586,14 +586,15 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           <div className="p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Create Post</h2>
-              <button
-                onClick={onClose}
-                className={`p-2 rounded-full transition-colors ${
-                  isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
-                }`}
-              >
-                <X size={20} />
-              </button>
+          <button
+            onClick={onClose}
+            className={`p-2 rounded-full transition-colors ${
+              isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
+            }`}
+            aria-label="Close upload screen"
+          >
+            <X size={20} />
+          </button>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

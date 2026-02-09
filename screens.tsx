@@ -164,6 +164,7 @@ export function SearchScreen({ onClose }: SearchScreenProps) {
             <button
               onClick={onClose}
               className="p-2 hover:bg-accent rounded-full transition-colors"
+              aria-label="Close search"
             >
               <X size={20} />
             </button>
@@ -198,6 +199,7 @@ export function SearchScreen({ onClose }: SearchScreenProps) {
                       : 'bg-muted text-muted-foreground hover:bg-accent'
                   }`}
                   aria-label={`Search ${tab.label.toLowerCase()}`}
+                  title={`Search ${tab.label.toLowerCase()}`}
                 >
                   {tab.label}
                 </button>
