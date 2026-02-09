@@ -958,10 +958,10 @@ class AppwriteService {
         this.collections.posts,
         postId
       )
-      
+
       const current = post[field] || 0
       const newValue = Math.max(0, current + delta)
-      
+
       await this.databases.updateDocument(
         this.databaseId,
         this.collections.posts,
@@ -971,6 +971,27 @@ class AppwriteService {
     } catch {}
   }
 
+  // Storage methods
+  async uploadFile(file: File, fileId: string) {
+    const uploadedFile = await this.storage.createFile(
+      this.mediaBucketId,
+      fileId,
+      file
+    )
+
+    // Get the file URL
+    const fileUrl = this.storage.getFileView(this.mediaBucketId, uploadedFile.$id)
+
+    return {
+      id: uploadedFile.$id,
+      url: fileUrl as string
+    }
+  }
+
+  async getFileUrl(fileId: string) {
+    const fileUrl = this.storage.getFileView(this.mediaBucketId, fileId)
+    return fileUrl as string
+  }
 
 }
 

@@ -1,323 +1,316 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
-import { Upload, X, Image, Video, FileText, Music, File, Check, AlertCircle } from 'lucide-react'
-import { cn } from './utils'
+import { useState, useRef } from 'react'
+import { Upload, X, Video, Image, Newspaper, Film, Plus, Loader2 } from 'lucide-react'
+import appwriteService from './appwriteService'
 
-interface UploadFile {
-  id: string
-  file: File
-  preview?: string
-  progress: number
-  status: 'pending' | 'uploading' | 'completed' | 'error'
-  error?: string
+interface UploadScreenProps {
+  onClose: () => void
 }
 
-export function UploadScreen() {
-  const [files, setFiles] = useState<UploadFile[]>([])
-  const [isDragging, setIsDragging] = useState(false)
+export function UploadScreen({ onClose }: UploadScreenProps) {
+  const [selectedType, setSelectedType] = useState<'video' | 'reel' | 'image' | 'news' | null>(null)
+  const [content, setContent] = useState('')
+  const [title, setTitle] = useState('')
+  const [textBgColor, setTextBgColor] = useState('')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const getFileIcon = (type: string) => {
-    if (type.startsWith('image/')) return <Image size={24} />
-    if (type.startsWith('video/')) return <Video size={24} />
-    if (type.startsWith('audio/')) return <Music size={24} />
-    if (type.includes('text') || type.includes('document')) return <FileText size={24} />
-    return <File size={24} />
-  }
+  const contentTypes = [
+    { id: 'video', label: 'Video', icon: Video, description: 'Upload a video post' },
+    { id: 'reel', label: 'Reel', icon: Film, description: 'Upload a short vertical video' },
+    { id: 'image', label: 'Image', icon: Image, description: 'Share a photo or image' },
+    { id: 'news', label: 'News', icon: Newspaper, description: 'Publish news article' }
+  ] as const
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-  }
+  const textColors = [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE'
+  ]
 
-  const createUploadFile = (file: File): UploadFile => {
-    const id = Date.now().toString() + Math.random().toString(36).substr(2, 9)
-    let preview: string | undefined
-
-    if (file.type.startsWith('image/')) {
-      preview = URL.createObjectURL(file)
-    }
-
-    return {
-      id,
-      file,
-      preview,
-      progress: 0,
-      status: 'pending'
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+      const url = URL.createObjectURL(file)
+      setPreviewUrl(url)
     }
   }
 
-  const handleFiles = useCallback((newFiles: FileList | File[]) => {
-    const fileArray = Array.from(newFiles)
-    const uploadFiles = fileArray.map(createUploadFile)
-    setFiles(prev => [...prev, ...uploadFiles])
-  }, [])
+  const handleUpload = async () => {
+    if (!selectedType) return
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-    
-    const droppedFiles = e.dataTransfer.files
-    if (droppedFiles.length > 0) {
-      handleFiles(droppedFiles)
-    }
-  }, [handleFiles])
+    setUploading(true)
+    try {
+      const user = await appwriteService.getCurrentUser()
+      if (!user) throw new Error('User not authenticated')
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }, [])
+      let mediaUrl = ''
+      let thumbnailUrl = ''
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }, [])
+      // Upload file if selected
+      if (selectedFile) {
+        const fileId = `${user.$id}_${Date.now()}_${selectedFile.name}`
+        const uploadedFile = await appwriteService.uploadFile(selectedFile, fileId)
+        mediaUrl = uploadedFile.url
 
-  const removeFile = (id: string) => {
-    setFiles(prev => {
-      const file = prev.find(f => f.id === id)
-      if (file?.preview) {
-        URL.revokeObjectURL(file.preview)
+        // For videos, create a thumbnail
+        if (selectedType === 'video' || selectedType === 'reel') {
+          // For now, use the same file as thumbnail (in a real app, you'd generate a proper thumbnail)
+          thumbnailUrl = mediaUrl
+        }
       }
-      return prev.filter(f => f.id !== id)
-    })
+
+      // Prepare post data based on type
+      const postData: any = {
+        userId: user.$id,
+        username: user.name || 'User',
+        content: content.trim(),
+        kind: selectedType,
+        createdAt: new Date().toISOString()
+      }
+
+      // Add type-specific fields
+      if (selectedType === 'news') {
+        postData.title = title.trim()
+      }
+
+      if (selectedType === 'image') {
+        postData.imageUrl = mediaUrl
+      } else if (selectedType === 'video' || selectedType === 'reel') {
+        postData.videoUrl = mediaUrl
+        postData.thumbnailUrl = thumbnailUrl
+      }
+
+      if (textBgColor && content.trim()) {
+        postData.textBgColor = textBgColor
+      }
+
+      // Create the post
+      await appwriteService.createPost(postData)
+
+      // Reset form and close
+      setSelectedType(null)
+      setContent('')
+      setTitle('')
+      setTextBgColor('')
+      setSelectedFile(null)
+      setPreviewUrl(null)
+      onClose()
+
+    } catch (error) {
+      console.error('Upload failed:', error)
+      alert('Upload failed. Please try again.')
+    } finally {
+      setUploading(false)
+    }
   }
 
-  const simulateUpload = (id: string) => {
-    setFiles(prev => prev.map(f => 
-      f.id === id ? { ...f, status: 'uploading' as const } : f
-    ))
-
-    const interval = setInterval(() => {
-      setFiles(prev => {
-        const file = prev.find(f => f.id === id)
-        if (!file || file.status !== 'uploading') {
-          clearInterval(interval)
-          return prev
-        }
-
-        const newProgress = Math.min(file.progress + Math.random() * 20, 100)
-        
-        if (newProgress >= 100) {
-          clearInterval(interval)
-          return prev.map(f => 
-            f.id === id ? { ...f, progress: 100, status: 'completed' as const } : f
-          )
-        }
-
-        return prev.map(f => 
-          f.id === id ? { ...f, progress: newProgress } : f
+  const renderTypeSelection = () => (
+    <div className="grid grid-cols-2 gap-4">
+      {contentTypes.map((type) => {
+        const Icon = type.icon
+        return (
+          <button
+            key={type.id}
+            onClick={() => setSelectedType(type.id)}
+            className="p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-colors text-center"
+          >
+            <Icon size={48} className="mx-auto mb-3 text-gray-600" />
+            <h3 className="font-semibold text-lg mb-1">{type.label}</h3>
+            <p className="text-sm text-gray-500">{type.description}</p>
+          </button>
         )
-      })
-    }, 200)
-  }
+      })}
+    </div>
+  )
 
-  const uploadAll = () => {
-    files.filter(f => f.status === 'pending').forEach(file => {
-      simulateUpload(file.id)
-    })
-  }
+  const renderUploadForm = () => {
+    const currentType = contentTypes.find(t => t.id === selectedType)
+    if (!currentType) return null
 
-  const clearCompleted = () => {
-    setFiles(prev => {
-      prev.filter(f => f.status === 'completed').forEach(f => {
-        if (f.preview) URL.revokeObjectURL(f.preview)
-      })
-      return prev.filter(f => f.status !== 'completed')
-    })
-  }
+    const Icon = currentType.icon
 
-  const pendingFiles = files.filter(f => f.status === 'pending')
-  const uploadingFiles = files.filter(f => f.status === 'uploading')
-  const completedFiles = files.filter(f => f.status === 'completed')
+    return (
+      <div className="space-y-6">
+        {/* Type Header */}
+        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+          <Icon size={24} className="text-blue-500" />
+          <div>
+            <h3 className="font-semibold">{currentType.label}</h3>
+            <p className="text-sm text-gray-600">{currentType.description}</p>
+          </div>
+        </div>
+
+        {/* File Upload */}
+        {(selectedType === 'video' || selectedType === 'reel' || selectedType === 'image') && (
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700">Media File</label>
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
+            >
+              {previewUrl ? (
+                <div className="space-y-3">
+                  {selectedType === 'image' ? (
+                    <img src={previewUrl} alt="Preview" className="max-h-48 mx-auto rounded" />
+                  ) : (
+                    <video src={previewUrl} className="max-h-48 mx-auto rounded" controls />
+                  )}
+                  <p className="text-sm text-gray-600">Click to change file</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <Upload size={48} className="mx-auto text-gray-400" />
+                  <p className="text-lg font-medium">Click to upload {selectedType}</p>
+                  <p className="text-sm text-gray-500">
+                    {selectedType === 'video' && 'MP4, MOV up to 100MB'}
+                    {selectedType === 'reel' && 'MP4, MOV up to 50MB (vertical format)'}
+                    {selectedType === 'image' && 'JPG, PNG up to 10MB'}
+                  </p>
+                </div>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={
+                selectedType === 'video' || selectedType === 'reel' ? 'video/*' :
+                selectedType === 'image' ? 'image/*' : ''
+              }
+              onChange={handleFileSelect}
+              className="hidden"
+              aria-label={`Upload ${selectedType}`}
+            />
+          </div>
+        )}
+
+        {/* Title (for news) */}
+        {selectedType === 'news' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter news title"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        )}
+
+        {/* Content */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {selectedType === 'news' ? 'Article Content' : 'Caption'}
+          </label>
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder={
+              selectedType === 'news' ? 'Write your news article...' :
+              selectedType === 'reel' ? 'Add a caption to your reel...' :
+              'Write a caption...'
+            }
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          />
+        </div>
+
+        {/* Text Background Color */}
+        {content.trim() && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Text Background (Optional)</label>
+            <div className="flex gap-2 flex-wrap">
+              {textColors.map((color, index) => (
+                <button
+                  key={color}
+                  onClick={() => setTextBgColor(color)}
+                  className={`w-8 h-8 rounded-full border-2 ${textBgColor === color ? 'border-gray-800' : 'border-gray-300'}`}
+                  style={{ backgroundColor: color }}
+                  aria-label={`Select background color ${index + 1}`}
+                  title={`Color ${index + 1}`}
+                />
+              ))}
+              {textBgColor && (
+                <button
+                  onClick={() => setTextBgColor('')}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-full hover:bg-gray-50"
+                  title="Clear background color"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Preview */}
+        {content.trim() && textBgColor && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Preview</label>
+            <div
+              className="p-4 rounded-xl max-w-sm"
+              style={{ backgroundColor: textBgColor }}
+            >
+              <p className="text-white text-center font-bold">{content}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-3 pt-4">
+          <button
+            onClick={() => setSelectedType(null)}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            title="Go back to type selection"
+          >
+            Back
+          </button>
+          <button
+            onClick={handleUpload}
+            disabled={uploading || (!content.trim() && !selectedFile)}
+            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            title={uploading ? "Uploading post..." : "Create and publish post"}
+          >
+            {uploading ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Plus size={16} />
+                Post
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold mb-2">Upload Files</h1>
-        <p className="text-muted-foreground">Share your photos, videos, and documents</p>
-      </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold">Create Post</h2>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              title="Close upload screen"
+            >
+              <X size={20} />
+            </button>
+          </div>
 
-      {/* Upload Area */}
-      <div className="hidden md:block">
-        <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          className={cn(
-            "border-2 border-dashed rounded-2xl p-12 text-center transition-colors cursor-pointer",
-            isDragging 
-              ? "border-xapzap-blue bg-blue-50 dark:bg-blue-950/20" 
-              : "border-border hover:border-xapzap-blue"
-          )}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <Upload size={48} className="mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">
-            {isDragging ? 'Drop files here' : 'Choose files or drag and drop'}
-          </h3>
-          <p className="text-muted-foreground mb-4">
-            Support for images, videos, documents, and more
-          </p>
-          <button className="px-6 py-2 bg-xapzap-blue text-white rounded-full hover:bg-blue-600 transition-colors">
-            Browse Files
-          </button>
+          {/* Content */}
+          {!selectedType ? renderTypeSelection() : renderUploadForm()}
         </div>
       </div>
-
-      {/* Mobile Upload Button */}
-      <div className="md:hidden">
-        <div className="text-center">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full p-8 bg-muted rounded-2xl hover:bg-accent transition-colors"
-          >
-            <Upload size={48} className="mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">Choose Files</h3>
-            <p className="text-muted-foreground mb-4">
-              Select photos, videos, and documents
-            </p>
-            <div className="px-6 py-2 bg-xapzap-blue text-white rounded-full inline-block">
-              Browse Files
-            </div>
-          </button>
-        </div>
-      </div>
-      
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        className="hidden"
-        onChange={(e) => e.target.files && handleFiles(e.target.files)}
-      />
-
-      {/* Upload Queue */}
-      {files.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Upload Queue ({files.length})</h2>
-            <div className="flex space-x-2">
-              {pendingFiles.length > 0 && (
-                <button
-                  onClick={uploadAll}
-                  className="px-4 py-2 bg-xapzap-blue text-white rounded-full hover:bg-blue-600 transition-colors"
-                >
-                  Upload All ({pendingFiles.length})
-                </button>
-              )}
-              {completedFiles.length > 0 && (
-                <button
-                  onClick={clearCompleted}
-                  className="px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
-                >
-                  Clear Completed ({completedFiles.length})
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {files.map((uploadFile) => (
-              <div key={uploadFile.id} className="bg-muted rounded-lg p-4">
-                <div className="flex items-center space-x-4">
-                  {/* File Preview/Icon */}
-                  <div className="flex-shrink-0">
-                    {uploadFile.preview ? (
-                      <img
-                        src={uploadFile.preview}
-                        alt={uploadFile.file.name}
-                        className="w-12 h-12 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 bg-background rounded-lg flex items-center justify-center">
-                        {getFileIcon(uploadFile.file.type)}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* File Info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{uploadFile.file.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatFileSize(uploadFile.file.size)} • {uploadFile.file.type}
-                    </p>
-                  </div>
-
-                  {/* Status */}
-                  <div className="flex items-center space-x-3">
-                    {uploadFile.status === 'pending' && (
-                      <button
-                        onClick={() => simulateUpload(uploadFile.id)}
-                        className="px-3 py-1 bg-xapzap-blue text-white rounded-full text-sm hover:bg-blue-600 transition-colors"
-                      >
-                        Upload
-                      </button>
-                    )}
-                    
-                    {uploadFile.status === 'uploading' && (
-                      <div className="flex items-center space-x-2">
-                        <div className="w-24 bg-background rounded-full h-2">
-                          <div
-                            className="bg-xapzap-blue h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${uploadFile.progress}%` }}
-                          />
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          {Math.round(uploadFile.progress)}%
-                        </span>
-                      </div>
-                    )}
-                    
-                    {uploadFile.status === 'completed' && (
-                      <div className="flex items-center space-x-2 text-green-600">
-                        <Check size={20} />
-                        <span className="text-sm">Completed</span>
-                      </div>
-                    )}
-                    
-                    {uploadFile.status === 'error' && (
-                      <div className="flex items-center space-x-2 text-red-600">
-                        <AlertCircle size={20} />
-                        <span className="text-sm">Error</span>
-                      </div>
-                    )}
-
-                    <button
-                      onClick={() => removeFile(uploadFile.id)}
-                      className="p-1 hover:bg-background rounded-full transition-colors"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Upload Stats */}
-      {files.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-muted rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-orange-600">{pendingFiles.length}</div>
-            <div className="text-sm text-muted-foreground">Pending</div>
-          </div>
-          <div className="bg-muted rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-xapzap-blue">{uploadingFiles.length}</div>
-            <div className="text-sm text-muted-foreground">Uploading</div>
-          </div>
-          <div className="bg-muted rounded-lg p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{completedFiles.length}</div>
-            <div className="text-sm text-muted-foreground">Completed</div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

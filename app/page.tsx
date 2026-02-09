@@ -8,7 +8,7 @@ import { NotificationsScreen, SearchScreen } from '../screens'
 import { ProfileScreen } from '../ProfileScreen'
 import { DashboardScreen } from '../DashboardScreen'
 import { AuthScreen } from '../AuthScreen'
-import { CreatePostModal } from '../CreatePostModal-enhanced'
+import { UploadScreen } from '../UploadScreen'
 import { WatchScreen } from '../WatchScreen'
 import { ReelsScreen } from '../ReelsScreen'
 import { LiveScreen } from '../LiveScreen'
@@ -61,7 +61,7 @@ export default function Home() {
         <SearchScreen onClose={() => setShowSearch(false)} />
       )}
       {showCreate && (
-        <CreatePostModal isOpen={showCreate} onClose={() => setShowCreate(false)} />
+        <UploadScreen onClose={() => setShowCreate(false)} />
       )}
     </>
   )
