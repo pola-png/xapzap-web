@@ -20,13 +20,13 @@ import type { Metadata } from 'next'
 export default function Home() {
   const [currentTab, setCurrentTab] = useState(0)
   const [showSearch, setShowSearch] = useState(false)
-  const [showCreate, setShowCreate] = useState(false)
   const [isGuest, setIsGuest] = useState(false) // TODO: from auth
 
   const renderScreen = () => {
     switch (currentTab) {
       case 0: return <HomeScreen />
       case 1: return <ChatScreen />
+      case 2: return <UploadScreen onClose={() => setCurrentTab(0)} />
       case 3: return <NotificationsScreen />
       case 4: return <ProfileScreen />
       case 5: return <DashboardScreen />
@@ -42,7 +42,7 @@ export default function Home() {
 
   const handleSearchClick = () => setShowSearch(true)
 
-  const handleCreateClick = () => setShowCreate(true)
+  const handleCreateClick = () => setCurrentTab(2) // Navigate to upload screen
 
   const handleTabChange = (tab: number) => setCurrentTab(tab)
 
@@ -59,9 +59,6 @@ export default function Home() {
       </MainLayout>
       {showSearch && (
         <SearchScreen onClose={() => setShowSearch(false)} />
-      )}
-      {showCreate && (
-        <UploadScreen onClose={() => setShowCreate(false)} />
       )}
     </>
   )

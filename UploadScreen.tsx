@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Upload, X, Video, Image, Newspaper, Film, Plus, Loader2 } from 'lucide-react'
 import appwriteService from './appwriteService'
 
@@ -14,9 +14,22 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   const [title, setTitle] = useState('')
   const [textBgColor, setTextBgColor] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [generatedThumbnail, setGeneratedThumbnail] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Theme detection
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    // Check for saved theme preference or default to system preference
+    const savedTheme = localStorage.getItem('theme')
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && systemDark)
+    setIsDark(shouldBeDark)
+    document.documentElement.classList.toggle('dark', shouldBeDark)
+  }, [])
 
   const contentTypes = [
     { id: 'video', label: 'Video', icon: Video, description: 'Upload a video post' },
@@ -29,12 +42,60 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE'
   ]
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const generateVideoThumbnail = (videoFile: File): Promise<File | null> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video')
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+
+      video.preload = 'metadata'
+      video.src = URL.createObjectURL(videoFile)
+      video.currentTime = 1 // Seek to 1 second
+
+      video.onloadedmetadata = () => {
+        canvas.width = 320
+        canvas.height = (video.videoHeight / video.videoWidth) * 320
+
+        video.onseeked = () => {
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const thumbnailFile = new File([blob], `thumbnail_${Date.now()}.jpg`, { type: 'image/jpeg' })
+                resolve(thumbnailFile)
+              } else {
+                resolve(null)
+              }
+            }, 'image/jpeg', 0.8)
+          } else {
+            resolve(null)
+          }
+        }
+      }
+
+      video.onerror = () => resolve(null)
+    })
+  }
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       setSelectedFile(file)
       const url = URL.createObjectURL(file)
       setPreviewUrl(url)
+
+      // Generate thumbnail for videos
+      if ((selectedType === 'video' || selectedType === 'reel') && file.type.startsWith('video/')) {
+        try {
+          const thumbnail = await generateVideoThumbnail(file)
+          if (thumbnail) {
+            setGeneratedThumbnail(thumbnail)
+            console.log('Generated thumbnail:', thumbnail.name)
+          }
+        } catch (error) {
+          console.error('Failed to generate thumbnail:', error)
+        }
+      }
     }
   }
 
@@ -55,10 +116,16 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         const uploadedFile = await appwriteService.uploadFile(selectedFile, fileId)
         mediaUrl = uploadedFile.url
 
-        // For videos, create a thumbnail
+        // For videos, upload the generated thumbnail or use video URL as fallback
         if (selectedType === 'video' || selectedType === 'reel') {
-          // For now, use the same file as thumbnail (in a real app, you'd generate a proper thumbnail)
-          thumbnailUrl = mediaUrl
+          if (generatedThumbnail) {
+            const thumbnailId = `${user.$id}_thumb_${Date.now()}.jpg`
+            const uploadedThumbnail = await appwriteService.uploadFile(generatedThumbnail, thumbnailId)
+            thumbnailUrl = uploadedThumbnail.url
+          } else {
+            // Fallback to video URL if thumbnail generation failed
+            thumbnailUrl = mediaUrl
+          }
         }
       }
 
@@ -108,18 +175,22 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   }
 
   const renderTypeSelection = () => (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {contentTypes.map((type) => {
         const Icon = type.icon
         return (
           <button
             key={type.id}
             onClick={() => setSelectedType(type.id)}
-            className="p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-colors text-center"
+            className={`p-6 border-2 border-dashed rounded-xl hover:border-blue-500 transition-colors text-center ${
+              isDark
+                ? 'border-gray-600 hover:bg-gray-800 text-gray-200'
+                : 'border-gray-300 hover:bg-blue-50 text-gray-700'
+            }`}
           >
-            <Icon size={48} className="mx-auto mb-3 text-gray-600" />
-            <h3 className="font-semibold text-lg mb-1">{type.label}</h3>
-            <p className="text-sm text-gray-500">{type.description}</p>
+            <Icon size={48} className={`mx-auto mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+            <h3 className={`font-semibold text-lg mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{type.label}</h3>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{type.description}</p>
           </button>
         )
       })}
@@ -135,21 +206,25 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     return (
       <div className="space-y-6">
         {/* Type Header */}
-        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+        <div className={`flex items-center gap-3 p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
           <Icon size={24} className="text-blue-500" />
           <div>
-            <h3 className="font-semibold">{currentType.label}</h3>
-            <p className="text-sm text-gray-600">{currentType.description}</p>
+            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{currentType.label}</h3>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{currentType.description}</p>
           </div>
         </div>
 
         {/* File Upload */}
         {(selectedType === 'video' || selectedType === 'reel' || selectedType === 'image') && (
           <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">Media File</label>
+            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Media File</label>
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
+              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors ${
+                isDark
+                  ? 'border-gray-600 hover:bg-gray-700 text-gray-300'
+                  : 'border-gray-300 hover:bg-blue-50 text-gray-700'
+              }`}
             >
               {previewUrl ? (
                 <div className="space-y-3">
@@ -158,13 +233,13 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                   ) : (
                     <video src={previewUrl} className="max-h-48 mx-auto rounded" controls />
                   )}
-                  <p className="text-sm text-gray-600">Click to change file</p>
+                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Click to change file</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <Upload size={48} className="mx-auto text-gray-400" />
-                  <p className="text-lg font-medium">Click to upload {selectedType}</p>
-                  <p className="text-sm text-gray-500">
+                  <Upload size={48} className={`mx-auto ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                  <p className={`text-lg font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Click to upload {selectedType}</p>
+                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     {selectedType === 'video' && 'MP4, MOV up to 100MB'}
                     {selectedType === 'reel' && 'MP4, MOV up to 50MB (vertical format)'}
                     {selectedType === 'image' && 'JPG, PNG up to 10MB'}
@@ -189,20 +264,24 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         {/* Title (for news) */}
         {selectedType === 'news' && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Title</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter news title"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                isDark
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                  : 'border-gray-300 text-gray-900'
+              }`}
             />
           </div>
         )}
 
         {/* Content */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
             {selectedType === 'news' ? 'Article Content' : 'Caption'}
           </label>
           <textarea
@@ -214,14 +293,18 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
               'Write a caption...'
             }
             rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+              isDark
+                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                : 'border-gray-300 text-gray-900'
+            }`}
           />
         </div>
 
         {/* Text Background Color */}
         {content.trim() && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Text Background (Optional)</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Text Background (Optional)</label>
             <div className="flex gap-2 flex-wrap">
               {textColors.map((color, index) => (
                 <button
@@ -236,7 +319,11 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
               {textBgColor && (
                 <button
                   onClick={() => setTextBgColor('')}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-full hover:bg-gray-50"
+                  className={`px-3 py-1 text-sm border rounded-full transition-colors ${
+                    isDark
+                      ? 'border-gray-600 hover:bg-gray-700 text-gray-300'
+                      : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+                  }`}
                   title="Clear background color"
                 >
                   Clear
@@ -249,7 +336,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         {/* Preview */}
         {content.trim() && textBgColor && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Preview</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Preview</label>
             <div
               className="p-4 rounded-xl max-w-sm"
               style={{ backgroundColor: textBgColor }}
@@ -263,7 +350,11 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         <div className="flex gap-3 pt-4">
           <button
             onClick={() => setSelectedType(null)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className={`flex-1 px-4 py-2 border rounded-lg transition-colors ${
+              isDark
+                ? 'border-gray-600 hover:bg-gray-700 text-gray-300'
+                : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+            }`}
             title="Go back to type selection"
           >
             Back
@@ -292,22 +383,24 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold">Create Post</h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              title="Close upload screen"
-            >
-              <X size={20} />
-            </button>
-          </div>
+    <div className={`min-h-screen p-4 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Create Post</h1>
+          <button
+            onClick={onClose}
+            className={`p-2 rounded-full transition-colors ${
+              isDark ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-200 text-gray-600'
+            }`}
+            title="Go back"
+          >
+            <X size={24} />
+          </button>
+        </div>
 
-          {/* Content */}
+        {/* Content */}
+        <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
           {!selectedType ? renderTypeSelection() : renderUploadForm()}
         </div>
       </div>

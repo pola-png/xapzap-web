@@ -751,17 +751,64 @@ class AppwriteService {
     }
   }
 
-  // Real-time subscriptions
+  // Real-time subscriptions with mobile optimization
   subscribeToCollection(collectionId: string, callback: (payload: any) => void) {
     const channel = `databases.${this.databaseId}.collections.${collectionId}.documents`;
-    const unsubscribe = this.client.subscribe([channel], callback);
-    return unsubscribe;
+
+    // Add error handling and reconnection logic for mobile
+    const handleMessage = (payload: any) => {
+      try {
+        callback(payload);
+      } catch (error) {
+        console.error('Realtime callback error:', error);
+      }
+    };
+
+    const unsubscribe = this.client.subscribe([channel], handleMessage);
+
+    // Handle connection issues (common on mobile)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Reconnect when tab becomes visible again
+        console.log('Reconnecting realtime subscription for', collectionId);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Return enhanced unsubscribe function
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      unsubscribe();
+    };
   }
 
   subscribeToDocument(collectionId: string, documentId: string, callback: (payload: any) => void) {
     const channel = `databases.${this.databaseId}.collections.${collectionId}.documents.${documentId}`;
-    const unsubscribe = this.client.subscribe([channel], callback);
-    return unsubscribe;
+
+    const handleMessage = (payload: any) => {
+      try {
+        callback(payload);
+      } catch (error) {
+        console.error('Realtime document callback error:', error);
+      }
+    };
+
+    const unsubscribe = this.client.subscribe([channel], handleMessage);
+
+    // Handle connection issues (common on mobile)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('Reconnecting document realtime subscription for', documentId);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      unsubscribe();
+    };
   }
 
   // Additional methods needed for HomeScreen

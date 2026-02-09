@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Play } from 'lucide-react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
@@ -20,6 +20,22 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
   const [saved, setSaved] = useState(post.isSaved || false)
   const [reposted, setReposted] = useState(post.isReposted || false)
   const [reposts, setReposts] = useState(post.reposts || 0)
+
+  // Subscribe to realtime updates for this post
+  useEffect(() => {
+    if (!post.id) return
+
+    const unsubscribe = appwriteService.subscribeToDocument('posts', post.id, (payload) => {
+      if (payload.events.includes('databases.*.collections.posts.documents.*.update')) {
+        const updatedPost = payload.payload
+        setLikes(updatedPost.likes || 0)
+        setReposts(updatedPost.reposts || 0)
+        // Update other fields as needed
+      }
+    })
+
+    return unsubscribe
+  }, [post.id])
 
   const handleLike = async () => {
     try {
