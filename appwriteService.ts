@@ -1048,6 +1048,69 @@ class AppwriteService {
     return fileUrl as string
   }
 
+  // Search methods
+  async searchUsers(query: string, limit = 10) {
+    try {
+      const result = await this.databases.listDocuments(
+        this.databaseId,
+        this.collections.profiles,
+        [
+          Query.or([
+            Query.search('username', query),
+            Query.search('displayName', query)
+          ]),
+          Query.limit(limit)
+        ]
+      )
+      return result.documents
+    } catch (error) {
+      console.error('User search error:', error)
+      return []
+    }
+  }
+
+  async searchHashtags(query: string, limit = 10) {
+    try {
+      // For now, extract hashtags from recent posts
+      // In a real implementation, you'd have a dedicated hashtags collection
+      const postsResult = await this.databases.listDocuments(
+        this.databaseId,
+        this.collections.posts,
+        [
+          Query.limit(100), // Search through recent posts
+          Query.orderDesc('$createdAt')
+        ]
+      )
+
+      const hashtagMap = new Map<string, number>()
+
+      // Extract hashtags from post content
+      postsResult.documents.forEach((post: any) => {
+        const content = post.content || ''
+        const hashtags = content.match(/#\w+/g) || []
+        hashtags.forEach((tag: string) => {
+          const lowerTag = tag.toLowerCase()
+          hashtagMap.set(lowerTag, (hashtagMap.get(lowerTag) || 0) + 1)
+        })
+      })
+
+      // Filter and sort hashtags
+      const filteredHashtags = Array.from(hashtagMap.entries())
+        .filter(([tag, count]: [string, number]) => tag.toLowerCase().includes(query.toLowerCase()))
+        .sort((a: [string, number], b: [string, number]) => b[1] - a[1]) // Sort by frequency
+        .slice(0, limit)
+        .map(([tag, count]: [string, number]) => ({
+          tag,
+          count
+        }))
+
+      return filteredHashtags
+    } catch (error) {
+      console.error('Hashtag search error:', error)
+      return []
+    }
+  }
+
 }
 
 export const appwriteService = AppwriteService.getInstance()

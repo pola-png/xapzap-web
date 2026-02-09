@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode, useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Home, MessageCircle, PlusSquare, Bell, User, Search, Video, Film, Radio, Newspaper, Users } from 'lucide-react'
 import { cn } from './utils'
 import appwriteService from './appwriteService'
@@ -10,11 +11,11 @@ interface MainLayoutProps {
   currentTab: number
   onTabChange: (tab: number) => void
   onCreateClick: () => void
-  onSearchClick: () => void
   isGuest?: boolean
 }
 
-export function MainLayout({ children, currentTab, onTabChange, onCreateClick, onSearchClick, isGuest = false }: MainLayoutProps) {
+export function MainLayout({ children, currentTab, onTabChange, onCreateClick, isGuest = false }: MainLayoutProps) {
+  const router = useRouter()
   const [unreadChats, setUnreadChats] = useState(0)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [user, setUser] = useState<any>(null)
@@ -115,7 +116,7 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, o
           </div>
 
           <div className="flex items-center gap-4">
-            <button onClick={onSearchClick} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2] transition-colors" aria-label="Search">
+            <button onClick={() => router.push('/search')} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2] transition-colors" aria-label="Search">
               <Search size={24} />
             </button>
             {userAvatar ? (
@@ -166,7 +167,7 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, o
           <header className="sticky top-0 z-50 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))]">
             <div className="flex items-center justify-between px-4 py-3">
               <h1 className="text-xl font-bold text-[rgb(var(--text-primary))]">XapZap</h1>
-              <button onClick={onSearchClick} className="p-2 text-[rgb(var(--text-primary))]" aria-label="Search">
+              <button onClick={() => router.push('/search')} className="p-2 text-[rgb(var(--text-primary))]" aria-label="Search">
                 <Search size={20} />
               </button>
             </div>

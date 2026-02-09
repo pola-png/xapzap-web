@@ -19,7 +19,6 @@ import type { Metadata } from 'next'
 
 export default function Home() {
   const [currentTab, setCurrentTab] = useState(0)
-  const [showSearch, setShowSearch] = useState(false)
   const [isGuest, setIsGuest] = useState(false) // TODO: from auth
 
   const renderScreen = () => {
@@ -40,26 +39,18 @@ export default function Home() {
     }
   }
 
-  const handleSearchClick = () => setShowSearch(true)
-
   const handleCreateClick = () => setCurrentTab(2) // Navigate to upload screen
 
   const handleTabChange = (tab: number) => setCurrentTab(tab)
 
   return (
-    <>
-      <MainLayout
-        currentTab={currentTab}
-        onTabChange={handleTabChange}
-        onCreateClick={handleCreateClick}
-        onSearchClick={handleSearchClick}
-        isGuest={isGuest}
-      >
-        {renderScreen()}
-      </MainLayout>
-      {showSearch && (
-        <SearchScreen onClose={() => setShowSearch(false)} />
-      )}
-    </>
+    <MainLayout
+      currentTab={currentTab}
+      onTabChange={handleTabChange}
+      onCreateClick={handleCreateClick}
+      isGuest={isGuest}
+    >
+      {renderScreen()}
+    </MainLayout>
   )
 }

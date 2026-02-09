@@ -277,6 +277,7 @@ export default function ProfilePage() {
               <button
                 onClick={handleShare}
                 className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
+                aria-label="Share profile"
               >
                 <Share className="w-5 h-5" />
               </button>
