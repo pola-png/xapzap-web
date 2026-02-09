@@ -172,14 +172,14 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, o
         </header>
         {isHomeTab && (
           <div className="sticky top-14 z-40 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))]">
-            <div className="flex overflow-x-auto -mb-px px-4">
-              <div className="flex gap-6 min-w-max">
+            <div className="flex overflow-x-auto scrollbar-hide -mb-px">
+              <div className="flex gap-4 px-4 min-w-max sm:gap-6">
                 {sidebarItems.map((item) => (
                   <button
                     key={item.index}
                     onClick={() => onTabChange(item.index)}
                     className={cn(
-                      "px-2 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors flex-shrink-0",
+                      "px-3 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors flex-shrink-0",
                       currentTab === item.index
                         ? "border-[#1DA1F2] text-[#1DA1F2]"
                         : "border-transparent text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--text-primary))]/50 hover:text-[rgb(var(--text-primary))]"
@@ -194,8 +194,8 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, o
           </div>
         )}
         <main className="pb-20">{children}</main>
-        <nav className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--bg-primary))] border-t border-[rgb(var(--border-color))]">
-          <div className="flex items-center justify-around py-2">
+        <nav className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--bg-primary))] border-t border-[rgb(var(--border-color))] safe-area-inset-bottom">
+          <div className="flex items-center justify-around py-2 px-2">
             {[
               { icon: Home, index: 0, label: 'Home', onClick: () => onTabChange(0) },
               { icon: MessageCircle, index: 1, label: 'Chat', onClick: () => onTabChange(1) },
@@ -205,8 +205,16 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, o
             ].map((item) => {
               const Icon = item.icon
               return (
-                <button key={item.index} onClick={item.onClick} className={cn("p-2", currentTab === item.index ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))]")} aria-label={item.label}>
-                  <Icon size={28} />
+                <button
+                  key={item.index}
+                  onClick={item.onClick}
+                  className={cn(
+                    "p-3 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-lg transition-colors",
+                    currentTab === item.index ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-secondary))]"
+                  )}
+                  aria-label={item.label}
+                >
+                  <Icon size={24} />
                 </button>
               )
             })}

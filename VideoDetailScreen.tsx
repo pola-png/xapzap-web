@@ -122,7 +122,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <video
           ref={videoRef}
           src={post.videoUrl || (post.mediaUrls && post.mediaUrls[0])}
-          poster={post.thumbnailUrl || post.imageUrl}
           className="w-full h-full object-contain"
           onClick={handleVideoClick}
           muted={isMuted}
@@ -201,54 +200,56 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       </div>
 
       {/* Video Info Panel */}
-      <div className="absolute bottom-20 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-        <div className="max-w-md">
+      <div className="absolute bottom-24 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4 sm:bottom-20">
+        <div className="max-w-md mx-auto">
           {/* User Info */}
           <div className="flex items-center gap-3 mb-3">
             {post.userAvatar ? (
-              <img src={post.userAvatar} alt={post.username} className="w-10 h-10 rounded-full" />
+              <img src={post.userAvatar} alt={post.username} className="w-10 h-10 rounded-full object-cover" />
             ) : (
               <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold">
                 {(post.username || 'U')[0].toUpperCase()}
               </div>
             )}
-            <div>
-              <span className="text-white font-semibold text-base">{post.username || 'User'}</span>
-              <span className="text-gray-300 text-sm ml-2">{new Date(post.createdAt).toLocaleDateString()}</span>
+            <div className="min-w-0 flex-1">
+              <span className="text-white font-semibold text-base block truncate">{post.username || 'User'}</span>
+              <span className="text-gray-300 text-sm">{new Date(post.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
 
           {/* Content */}
           {post.content && (
-            <p className="text-white text-sm leading-relaxed mb-3">{post.content}</p>
+            <p className="text-white text-sm leading-relaxed mb-3 line-clamp-3">{post.content}</p>
           )}
 
           {/* Reactions */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center justify-between sm:gap-6">
+            <div className="flex items-center gap-4 sm:gap-6">
+              <button
+                onClick={handleLike}
+                className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-white/10 ${liked ? 'text-red-500' : 'text-gray-300'}`}
+                aria-label={liked ? "Unlike video" : "Like video"}
+              >
+                <Heart size={20} className={liked ? 'fill-red-500' : ''} />
+                <span className="text-sm font-medium hidden sm:inline">{likes || 0}</span>
+              </button>
+              <button
+                className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg hover:bg-white/10 text-gray-300"
+                aria-label="View comments"
+              >
+                <MessageCircle size={20} />
+                <span className="text-sm font-medium hidden sm:inline">{post.comments || 0}</span>
+              </button>
+              <button
+                className="flex items-center gap-2 hover:text-green-500 transition-colors p-2 rounded-lg hover:bg-white/10 text-gray-300"
+                aria-label="Repost video"
+              >
+                <Repeat2 size={20} />
+                <span className="text-sm font-medium hidden sm:inline">{post.reposts || 0}</span>
+              </button>
+            </div>
             <button
-              onClick={handleLike}
-              className={`flex items-center gap-2 hover:text-red-500 transition-colors ${liked ? 'text-red-500' : 'text-gray-300'}`}
-              aria-label={liked ? "Unlike video" : "Like video"}
-            >
-              <Heart size={20} className={liked ? 'fill-red-500' : ''} />
-              <span className="text-sm font-medium">{likes || 0}</span>
-            </button>
-            <button
-              className="flex items-center gap-2 hover:text-blue-500 transition-colors text-gray-300"
-              aria-label="View comments"
-            >
-              <MessageCircle size={20} />
-              <span className="text-sm font-medium">{post.comments || 0}</span>
-            </button>
-            <button
-              className="flex items-center gap-2 hover:text-green-500 transition-colors text-gray-300"
-              aria-label="Repost video"
-            >
-              <Repeat2 size={20} />
-              <span className="text-sm font-medium">{post.reposts || 0}</span>
-            </button>
-            <button
-              className="hover:text-blue-500 transition-colors text-gray-300"
+              className="hover:text-blue-500 transition-colors p-2 rounded-lg hover:bg-white/10 text-gray-300"
               aria-label="Share video"
             >
               <Share size={20} />
