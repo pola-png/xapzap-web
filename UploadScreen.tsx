@@ -20,6 +20,8 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   const [uploading, setUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string | null>(null)
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false)
+  const [showThumbnailModal, setShowThumbnailModal] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const thumbnailInputRef = useRef<HTMLInputElement>(null)
 
@@ -473,27 +475,331 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     )
   }
 
+  // Description Modal
+  if (showDescriptionModal) {
+    return (
+      <div className={`fixed inset-0 z-50 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className="h-full flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <button
+              onClick={() => setShowDescriptionModal(false)}
+              className="p-2 hover:bg-accent rounded-full"
+              aria-label="Close description editor"
+            >
+              <X size={20} />
+            </button>
+            <h1 className="text-lg font-semibold">Description</h1>
+            <button
+              onClick={() => setShowDescriptionModal(false)}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg"
+              aria-label="Save description"
+            >
+              Done
+            </button>
+          </div>
+          <div className="flex-1 p-4">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Tell viewers about your video..."
+              className={`w-full h-full resize-none border-0 bg-transparent text-lg ${
+                isDark ? 'text-white placeholder-gray-400' : 'text-gray-900'
+              }`}
+              autoFocus
+            />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Thumbnail Modal
+  if (showThumbnailModal) {
+    return (
+      <div className={`fixed inset-0 z-50 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className="h-full flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <button
+              onClick={() => setShowThumbnailModal(false)}
+              className="p-2 hover:bg-accent rounded-full"
+              aria-label="Close thumbnail editor"
+            >
+              <X size={20} />
+            </button>
+            <h1 className="text-lg font-semibold">Thumbnail</h1>
+            <button
+              onClick={() => setShowThumbnailModal(false)}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg"
+              aria-label="Save thumbnail"
+            >
+              Done
+            </button>
+          </div>
+          <div className="flex-1 p-4">
+            <div className="space-y-4">
+              <div
+                onClick={() => thumbnailInputRef.current?.click()}
+                className={`aspect-video rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
+                  isDark
+                    ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
+                    : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
+                }`}
+              >
+                {thumbnailPreviewUrl ? (
+                  <div className="relative w-full h-full">
+                    <img src={thumbnailPreviewUrl} alt="Thumbnail" className="w-full h-full object-cover rounded-lg" />
+                    <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                      <p className="text-white text-sm">Change thumbnail</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <Image size={48} className={`mx-auto mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                    <p className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Add thumbnail</p>
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>JPG, PNG up to 5MB</p>
+                  </div>
+                )}
+              </div>
+              {thumbnailPreviewUrl && (
+                <button
+                  onClick={() => {
+                    setCustomThumbnail(null)
+                    setThumbnailPreviewUrl(null)
+                  }}
+                  className="w-full px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50"
+                >
+                  Remove thumbnail
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Initial type selection modal
+  if (!selectedType) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-end justify-center p-4">
+        <div className={`w-full max-w-sm rounded-2xl ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-2xl animate-in slide-in-from-bottom duration-300`}>
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Create Post</h2>
+              <button
+                onClick={onClose}
+                className={`p-2 rounded-full transition-colors ${
+                  isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
+                }`}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {contentTypes.map((type) => {
+                const Icon = type.icon
+                return (
+                  <button
+                    key={type.id}
+                    onClick={() => setSelectedType(type.id)}
+                    className={`p-4 rounded-xl border transition-colors text-center ${
+                      isDark
+                        ? 'border-gray-600 hover:bg-gray-700 text-gray-200'
+                        : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                    }`}
+                  >
+                    <Icon size={32} className={`mx-auto mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+                    <span className="text-sm font-medium">{type.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Main upload screen (native app style)
   return (
-    <div className={`min-h-screen p-4 ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
-      <div className="max-w-2xl mx-auto">
+    <div className={`h-screen ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
+      <div className="h-full flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Create Post</h1>
+        <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+              <button
+                onClick={() => setSelectedType(null)}
+                className={`p-2 rounded-full transition-colors ${
+                  isDark ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
+                }`}
+                aria-label="Go back to type selection"
+              >
+                <X size={20} />
+              </button>
+          <h1 className="text-lg font-semibold">New Post</h1>
           <button
-            onClick={onClose}
-            className={`p-2 rounded-full transition-colors ${
-              isDark ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-200 text-gray-600'
-            }`}
-            title="Go back"
+            onClick={handleUpload}
+            disabled={uploading || (!content.trim() && !selectedFile)}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <X size={24} />
+            {uploading ? 'Posting...' : 'Post'}
           </button>
         </div>
 
         {/* Content */}
-        <div className={`rounded-2xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
-          {!selectedType ? renderTypeSelection() : renderUploadForm()}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 space-y-6">
+            {/* Media Preview */}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className={`aspect-square rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
+                isDark
+                  ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
+                  : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
+              }`}
+            >
+              {previewUrl ? (
+                <div className="relative w-full h-full">
+                  {selectedType === 'image' ? (
+                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                  ) : (
+                    <video src={previewUrl} className="w-full h-full object-cover rounded-lg" controls />
+                  )}
+                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <p className="text-white text-sm font-medium">Tap to change</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <Upload size={48} className={`mx-auto mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                  <p className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Tap to select {selectedType}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Form Fields */}
+            <div className="space-y-4">
+              {/* Title (for videos and news) */}
+              {(selectedType === 'video' || selectedType === 'news') && (
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={selectedType === 'video' ? 'Add a title...' : 'News title...'}
+                  className={`w-full px-3 py-3 border-b focus:outline-none text-lg ${
+                    isDark
+                      ? 'bg-gray-900 border-gray-700 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                />
+              )}
+
+              {/* Description (for videos only) */}
+              {selectedType === 'video' && (
+                <div
+                  onClick={() => setShowDescriptionModal(true)}
+                  className={`p-3 border-b cursor-pointer ${
+                    isDark ? 'border-gray-700' : 'border-gray-300'
+                  }`}
+                >
+                  <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Description</p>
+                  <p className={`text-base ${description.trim() ? (isDark ? 'text-white' : 'text-gray-900') : (isDark ? 'text-gray-500' : 'text-gray-400')}`}>
+                    {description.trim() || 'Add a description...'}
+                  </p>
+                </div>
+              )}
+
+              {/* Caption (for reels, images, news) */}
+              {(selectedType === 'reel' || selectedType === 'image' || selectedType === 'news') && (
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Write a caption..."
+                  rows={3}
+                  className={`w-full px-3 py-3 border-b focus:outline-none resize-none text-lg ${
+                    isDark
+                      ? 'bg-gray-900 border-gray-700 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                />
+              )}
+
+              {/* Thumbnail (for videos/reels) */}
+              {(selectedType === 'video' || selectedType === 'reel') && (
+                <div
+                  onClick={() => setShowThumbnailModal(true)}
+                  className={`p-3 border-b cursor-pointer ${
+                    isDark ? 'border-gray-700' : 'border-gray-300'
+                  }`}
+                >
+                  <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Thumbnail</p>
+                  <div className="flex items-center gap-3">
+                    {thumbnailPreviewUrl ? (
+                      <img src={thumbnailPreviewUrl} alt="Thumbnail" className="w-12 h-12 rounded object-cover" />
+                    ) : (
+                      <div className={`w-12 h-12 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-200'} flex items-center justify-center`}>
+                        <Image size={20} className={isDark ? 'text-gray-400' : 'text-gray-500'} />
+                      </div>
+                    )}
+                    <p className={`text-base ${thumbnailPreviewUrl ? (isDark ? 'text-white' : 'text-gray-900') : (isDark ? 'text-gray-500' : 'text-gray-400')}`}>
+                      {thumbnailPreviewUrl ? 'Change thumbnail' : 'Add thumbnail'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Text Background Color (only for text-only posts) */}
+              {content.trim() && !selectedFile && (
+                <div className={`p-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-300'}`}>
+                  <p className={`text-sm mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Background Color</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {textColors.map((color, index) => (
+                      <button
+                        key={color}
+                        onClick={() => setTextBgColor(color)}
+                        className={`w-8 h-8 rounded-full border-2 ${textBgColor === color ? 'border-gray-800' : 'border-gray-300'}`}
+                        style={{ backgroundColor: color }}
+                        aria-label={`Select background color ${index + 1}`}
+                      />
+                    ))}
+                    {textBgColor && (
+                      <button
+                        onClick={() => setTextBgColor('')}
+                        className={`px-3 py-1 text-sm border rounded-full ${
+                          isDark
+                            ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={
+            selectedType === 'video' || selectedType === 'reel' ? 'video/*' :
+            selectedType === 'image' ? 'image/*' : ''
+          }
+          onChange={handleFileSelect}
+          className="hidden"
+          aria-label={`Upload ${selectedType}`}
+        />
+        <input
+          ref={thumbnailInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleThumbnailSelect}
+          className="hidden"
+          aria-label="Upload thumbnail"
+        />
       </div>
     </div>
   )
