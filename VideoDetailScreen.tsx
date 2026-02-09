@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal } from 'lucide-react'
+import { ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2 } from 'lucide-react'
 import { Post } from './types'
 
 interface VideoDetailScreenProps {
@@ -223,36 +223,49 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           )}
 
           {/* Reactions */}
-          <div className="flex items-center justify-between sm:gap-6">
-            <div className="flex items-center gap-4 sm:gap-6">
-              <button
-                onClick={handleLike}
-                className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-white/10 ${liked ? 'text-red-500' : 'text-gray-300'}`}
-                aria-label={liked ? "Unlike video" : "Like video"}
-              >
-                <Heart size={20} className={liked ? 'fill-red-500' : ''} />
-                <span className="text-sm font-medium hidden sm:inline">{likes || 0}</span>
-              </button>
-              <button
-                className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg hover:bg-white/10 text-gray-300"
-                aria-label="View comments"
-              >
-                <MessageCircle size={20} />
-                <span className="text-sm font-medium hidden sm:inline">{post.comments || 0}</span>
-              </button>
-              <button
-                className="flex items-center gap-2 hover:text-green-500 transition-colors p-2 rounded-lg hover:bg-white/10 text-gray-300"
-                aria-label="Repost video"
-              >
-                <Repeat2 size={20} />
-                <span className="text-sm font-medium hidden sm:inline">{post.reposts || 0}</span>
-              </button>
-            </div>
+          <div className="flex items-center gap-4 overflow-x-auto">
             <button
-              className="hover:text-blue-500 transition-colors p-2 rounded-lg hover:bg-white/10 text-gray-300"
+              className="flex items-center gap-2 hover:text-yellow-500 transition-colors p-2 text-gray-300 flex-shrink-0"
+              aria-label="Save video"
+            >
+              <Bookmark size={20} />
+              <span className="text-sm font-medium hidden sm:inline">Save</span>
+            </button>
+            <button
+              className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-gray-300 flex-shrink-0"
               aria-label="Share video"
             >
               <Share size={20} />
+              <span className="text-sm font-medium hidden sm:inline">Share</span>
+            </button>
+            <button
+              className="flex items-center gap-2 hover:text-green-500 transition-colors p-2 text-gray-300 flex-shrink-0"
+              aria-label="Repost video"
+            >
+              <Repeat2 size={20} />
+              <span className="text-sm font-medium hidden sm:inline">{post.reposts || 0}</span>
+            </button>
+            <button
+              className="flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 text-gray-300 flex-shrink-0"
+              aria-label="View impressions"
+            >
+              <BarChart2 size={20} />
+              <span className="text-sm font-medium hidden sm:inline">{post.impressions || 0}</span>
+            </button>
+            <button
+              className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-gray-300 flex-shrink-0"
+              aria-label="View comments"
+            >
+              <MessageCircle size={20} />
+              <span className="text-sm font-medium hidden sm:inline">{post.comments || 0}</span>
+            </button>
+            <button
+              onClick={handleLike}
+              className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 flex-shrink-0 ${liked ? 'text-red-500' : 'text-gray-300'}`}
+              aria-label={liked ? "Unlike video" : "Like video"}
+            >
+              <Heart size={20} className={liked ? 'fill-red-500' : ''} />
+              <span className="text-sm font-medium hidden sm:inline">{likes || 0}</span>
             </button>
           </div>
         </div>

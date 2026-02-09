@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Play } from 'lucide-react'
 import { Post } from './types'
+import appwriteService from './appwriteService'
 
 interface PostCardProps {
   post: Post
@@ -16,10 +17,43 @@ interface PostCardProps {
 export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick }: PostCardProps) => {
   const [liked, setLiked] = useState(post.isLiked || false)
   const [likes, setLikes] = useState(post.likes || 0)
+  const [saved, setSaved] = useState(post.isSaved || false)
+  const [reposted, setReposted] = useState(post.isReposted || false)
+  const [reposts, setReposts] = useState(post.reposts || 0)
 
-  const handleLike = () => {
-    setLiked(!liked)
-    setLikes(liked ? likes - 1 : likes + 1)
+  const handleLike = async () => {
+    try {
+      if (liked) {
+        await appwriteService.unlikePost(post.id)
+        setLiked(false)
+        setLikes(Math.max(0, likes - 1))
+      } else {
+        await appwriteService.likePost(post.id)
+        setLiked(true)
+        setLikes(likes + 1)
+      }
+    } catch (error) {
+      console.error('Failed to toggle like:', error)
+    }
+  }
+
+  const handleSave = async () => {
+    try {
+      await appwriteService.savePost(post.id)
+      setSaved(!saved)
+    } catch (error) {
+      console.error('Failed to toggle save:', error)
+    }
+  }
+
+  const handleRepost = async () => {
+    try {
+      await appwriteService.repostPost(post.id)
+      setReposted(!reposted)
+      setReposts(reposted ? Math.max(0, reposts - 1) : reposts + 1)
+    } catch (error) {
+      console.error('Failed to toggle repost:', error)
+    }
   }
 
   return (
@@ -48,7 +82,13 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
       <div className="px-3 pb-2">
         {post.textBgColor ? (
           <div
-            className="text-white text-base leading-relaxed p-4 rounded-xl mb-3 max-w-sm"
+            className={`text-white text-center leading-relaxed p-4 rounded-xl mb-3 max-w-sm ${
+              (post.content?.length || 0) < 50
+                ? 'text-2xl font-extrabold'
+                : (post.content?.length || 0) < 100
+                ? 'text-xl font-bold'
+                : 'text-lg font-semibold'
+            }`}
             style={{ backgroundColor: `#${post.textBgColor.toString(16).padStart(6, '0')}` }}
           >
             {post.content}
@@ -105,27 +145,27 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
       {/* Reactions */}
       <div className="px-3 pb-3">
         <div className="flex items-center justify-between gap-4 overflow-x-auto">
-          <button className="flex items-center gap-2 hover:text-yellow-500 transition-colors p-2 rounded-lg hover:bg-yellow-500/10 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Bookmark">
-            <Bookmark size={20} />
+          <button onClick={handleSave} className={`flex items-center gap-2 hover:text-yellow-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0 ${saved ? 'text-yellow-500' : ''}`} aria-label="Bookmark">
+            <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
             <span className="text-sm font-medium hidden sm:inline">Save</span>
           </button>
-          <button className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg hover:bg-blue-500/10 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Share">
+          <button className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Share">
             <Share size={20} />
             <span className="text-sm font-medium hidden sm:inline">Share</span>
           </button>
-          <button className="flex items-center gap-2 hover:text-green-500 transition-colors p-2 rounded-lg hover:bg-green-500/10 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Repost">
-            <Repeat2 size={20} />
-            <span className="text-sm font-medium hidden sm:inline">{post.reposts || 0}</span>
+          <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 flex-shrink-0 ${reposted ? 'text-green-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label="Repost">
+            <Repeat2 size={20} className={reposted ? 'fill-green-500' : ''} />
+            <span className="text-sm font-medium hidden sm:inline">{reposts || 0}</span>
           </button>
-          <button className="flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 rounded-lg hover:bg-indigo-500/10 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Impressions">
+          <button className="flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Impressions">
             <BarChart2 size={20} />
             <span className="text-sm font-medium hidden sm:inline">{post.impressions || 0}</span>
           </button>
-          <button className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg hover:bg-blue-500/10 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Comment">
+          <button className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-[rgb(var(--text-secondary))] flex-shrink-0" aria-label="Comment">
             <MessageCircle size={20} />
             <span className="text-sm font-medium hidden sm:inline">{post.comments || 0}</span>
           </button>
-          <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-500/10 flex-shrink-0 ${liked ? 'text-red-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label="Like">
+          <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 flex-shrink-0 ${liked ? 'text-red-500' : 'text-[rgb(var(--text-secondary))]'}`} aria-label="Like">
             <Heart size={20} className={liked ? 'fill-red-500' : ''} />
             <span className="text-sm font-medium hidden sm:inline">{likes || 0}</span>
           </button>

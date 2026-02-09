@@ -211,12 +211,15 @@ class AppwriteService {
     }
   }
 
-  // Watch feed - video posts by engagement
+  // Watch feed - normal resolution video posts by engagement
   async fetchWatchFeed(limit = 20, cursor?: string) {
     try {
-      // Get posts that might have video content
       let queries: any[] = [
-        Query.limit(limit * 4) // Get more to filter and sort by engagement
+        Query.or([
+          Query.equal('kind', 'video'),
+          Query.equal('postType', 'video')
+        ]),
+        Query.limit(limit * 3) // Get more to sort by engagement
       ]
       if (cursor) queries.push(Query.cursorAfter(cursor))
 
@@ -226,13 +229,10 @@ class AppwriteService {
         queries
       )
 
-      // Filter for posts that actually have video content
+      // Filter for posts that have video content (excluding reels)
       const videoPosts = result.documents.filter(post =>
-        post.videoUrl ||
-        (post.mediaUrls && post.mediaUrls.length > 0) ||
-        post.kind === 'video' ||
-        post.postType === 'video' ||
-        post.thumbnailUrl
+        (post.videoUrl || (post.mediaUrls && post.mediaUrls.length > 0) || post.thumbnailUrl) &&
+        post.kind !== 'reel' // Exclude reels from watch feed
       )
 
       // Sort by engagement score
@@ -250,14 +250,13 @@ class AppwriteService {
       }
     } catch (error) {
       console.error('Watch feed error:', error)
-      // Fallback: get recent posts and filter client-side
+      // Fallback: get posts and filter for videos (not reels)
       try {
         const result = await this.fetchPosts(limit * 2)
         const videoPosts = result.documents.filter(post =>
-          post.videoUrl ||
-          (post.mediaUrls && post.mediaUrls.length > 0) ||
-          post.kind === 'video' ||
-          post.postType === 'video'
+          (post.videoUrl || (post.mediaUrls && post.mediaUrls.length > 0)) &&
+          post.kind !== 'reel' &&
+          (post.kind === 'video' || post.postType === 'video')
         ).slice(0, limit)
 
         return {
