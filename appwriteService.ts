@@ -214,12 +214,9 @@ class AppwriteService {
   // Watch feed - video posts by engagement
   async fetchWatchFeed(limit = 20, cursor?: string) {
     try {
+      // Get posts that might have video content
       let queries: any[] = [
-        Query.or([
-          Query.equal('kind', 'video'),
-          Query.equal('postType', 'video')
-        ]),
-        Query.limit(limit * 3) // Get more to sort by engagement
+        Query.limit(limit * 4) // Get more to filter and sort by engagement
       ]
       if (cursor) queries.push(Query.cursorAfter(cursor))
 
@@ -229,8 +226,17 @@ class AppwriteService {
         queries
       )
 
+      // Filter for posts that actually have video content
+      const videoPosts = result.documents.filter(post =>
+        post.videoUrl ||
+        (post.mediaUrls && post.mediaUrls.length > 0) ||
+        post.kind === 'video' ||
+        post.postType === 'video' ||
+        post.thumbnailUrl
+      )
+
       // Sort by engagement score
-      const sortedPosts = result.documents
+      const sortedPosts = videoPosts
         .map(post => ({
           ...post,
           engagementScore: (post.views || 0) * 0.5 + (post.likes || 0) + (post.comments || 0) * 2 + (post.reposts || 0) * 3
@@ -243,7 +249,25 @@ class AppwriteService {
         documents: sortedPosts
       }
     } catch (error) {
-      return this.fetchPostsByKind('video', limit, cursor)
+      console.error('Watch feed error:', error)
+      // Fallback: get recent posts and filter client-side
+      try {
+        const result = await this.fetchPosts(limit * 2)
+        const videoPosts = result.documents.filter(post =>
+          post.videoUrl ||
+          (post.mediaUrls && post.mediaUrls.length > 0) ||
+          post.kind === 'video' ||
+          post.postType === 'video'
+        ).slice(0, limit)
+
+        return {
+          ...result,
+          documents: videoPosts
+        }
+      } catch (fallbackError) {
+        console.error('Watch feed fallback error:', fallbackError)
+        return { documents: [], total: 0 }
+      }
     }
   }
 

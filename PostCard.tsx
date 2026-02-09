@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2 } from 'lucide-react'
+import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Play } from 'lucide-react'
 import { Post } from './types'
 
 interface PostCardProps {
@@ -87,10 +87,8 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
                 className="w-full h-48 object-cover"
               />
               <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-black ml-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8 5v10l8-5-8-5z"/>
-                  </svg>
+                <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
+                  <Play className="w-8 h-8 text-black ml-1" fill="currentColor" />
                 </div>
               </div>
             </div>
