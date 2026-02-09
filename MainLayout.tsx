@@ -171,23 +171,25 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, o
           </div>
         </header>
         {isHomeTab && (
-          <div className="sticky top-14 z-40 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))] px-4 pb-0">
-            <div className="flex overflow-x-auto -mb-px">
-              {sidebarItems.map((item) => (
-                <button
-                  key={item.index}
-                  onClick={() => onTabChange(item.index)}
-                  className={cn(
-                    "-mb-px px-1 py-4 text-sm font-semibold whitespace-nowrap flex-shrink-0 border-b-2 transition-colors",
-                    currentTab === item.index
-                      ? "border-[#1DA1F2] text-[#1DA1F2]"
-                      : "border-transparent text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--text-primary))]/50 hover:text-[rgb(var(--text-primary))]"
-                  )}
-                  aria-label={item.label}
-                >
-                  {item.label}
-                </button>
-              ))}
+          <div className="sticky top-14 z-40 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))]">
+            <div className="flex overflow-x-auto -mb-px px-4">
+              <div className="flex gap-6 min-w-max">
+                {sidebarItems.map((item) => (
+                  <button
+                    key={item.index}
+                    onClick={() => onTabChange(item.index)}
+                    className={cn(
+                      "px-2 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors flex-shrink-0",
+                      currentTab === item.index
+                        ? "border-[#1DA1F2] text-[#1DA1F2]"
+                        : "border-transparent text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--text-primary))]/50 hover:text-[rgb(var(--text-primary))]"
+                    )}
+                    aria-label={item.label}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}

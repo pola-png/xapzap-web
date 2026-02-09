@@ -40,12 +40,39 @@ export const PostCard = ({ post, currentUserId }: PostCardProps) => {
               <MoreHorizontal size={20} />
             </button>
           </div>
-          <p className="text-[rgb(var(--text-primary))] text-base mb-2 leading-relaxed">{post.content}</p>
-          {post.imageUrl && (
-            <img src={post.imageUrl} alt="Post" className="w-full rounded-xl mb-2" />
+          {post.textBgColor ? (
+            <div
+              className="text-white text-base mb-2 leading-relaxed p-3 rounded-lg"
+              style={{ backgroundColor: `#${post.textBgColor.toString(16).padStart(6, '0')}` }}
+            >
+              {post.content}
+            </div>
+          ) : (
+            <p className="text-[rgb(var(--text-primary))] text-base mb-2 leading-relaxed">{post.content}</p>
           )}
-          {post.videoUrl && (
-            <video src={post.videoUrl} className="w-full rounded-2xl mb-3" controls />
+
+          {(post.imageUrl || (post.mediaUrls && post.mediaUrls.length > 0 && !post.videoUrl && (!post.kind || post.kind === 'standard'))) && (
+            <img
+              src={post.imageUrl || (post.mediaUrls && post.mediaUrls[0])}
+              alt="Post"
+              className="w-full rounded-xl mb-2"
+            />
+          )}
+
+          {(post.videoUrl || (post.kind === 'video' || post.kind === 'reel') || (post.mediaUrls && post.mediaUrls.length > 0 && post.thumbnailUrl)) && (
+            <video
+              src={post.videoUrl || (post.mediaUrls && post.mediaUrls[0])}
+              poster={post.thumbnailUrl}
+              className="w-full rounded-2xl mb-3"
+              controls
+              preload="metadata"
+            />
+          )}
+
+          {post.kind === 'news' && post.title && (
+            <div className="border-l-4 border-blue-500 pl-4 mb-2">
+              <h3 className="font-bold text-lg text-[rgb(var(--text-primary))]">{post.title}</h3>
+            </div>
           )}
           <div className="flex items-center gap-3 md:gap-6 text-[rgb(var(--text-secondary))]">
             <button onClick={handleLike} className={`flex items-center gap-1 hover:text-red-500 ${liked ? 'text-red-500' : ''}`} aria-label="Like">
