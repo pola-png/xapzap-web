@@ -317,14 +317,22 @@ class AppwriteService {
     }
   }
 
+  async getPost(postId: string) {
+    return await this.databases.getDocument(
+      this.databaseId,
+      this.collections.posts,
+      postId
+    )
+  }
+
   async createPost(data: any) {
     const postId = ID.unique()
     return await this.databases.createDocument(
       this.databaseId,
       this.collections.posts,
       postId,
-      { 
-        ...data, 
+      {
+        ...data,
         postId,
         createdAt: new Date().toISOString(),
         likes: 0,

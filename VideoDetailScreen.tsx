@@ -12,6 +12,7 @@ interface VideoDetailScreenProps {
   onGuestAction?: () => void
 }
 
+// Horizontal video detail screen (for Watch videos)
 export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestAction }: VideoDetailScreenProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
@@ -378,6 +379,262 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
               <Heart size={20} className={liked ? 'fill-red-500' : ''} />
               <span className="text-sm font-medium hidden sm:inline">{likes || 0}</span>
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Vertical video detail screen (for Reels)
+export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestAction }: VideoDetailScreenProps) {
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [isMuted, setIsMuted] = useState(true) // Reels are typically muted by default
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [showControls, setShowControls] = useState(false)
+  const [liked, setLiked] = useState(post.isLiked || false)
+  const [likes, setLikes] = useState(post.likes || 0)
+  const [reposts, setReposts] = useState(post.reposts || 0)
+  const [reposted, setReposted] = useState(post.isReposted || false)
+  const [comments, setComments] = useState(post.comments || 0)
+  const [saved, setSaved] = useState(post.isSaved || false)
+
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+
+  // Subscribe to realtime updates for this post
+  useEffect(() => {
+    if (!post.id) return
+
+    const unsubscribe = appwriteService.subscribeToDocument('posts', post.id, (payload) => {
+      if (payload.events.includes('databases.*.collections.posts.documents.*.update')) {
+        const updatedPost = payload.payload
+        setLikes(updatedPost.likes || 0)
+        setReposts(updatedPost.reposts || 0)
+        setComments(updatedPost.comments || 0)
+      }
+    })
+
+    return unsubscribe
+  }, [post.id])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const handleLoadedMetadata = () => setDuration(video.duration)
+    const handleTimeUpdate = () => setCurrentTime(video.currentTime)
+    const handlePlay = () => setIsPlaying(true)
+    const handlePause = () => setIsPlaying(false)
+    const handleEnded = () => {
+      // Auto-advance to next reel (for now, just pause)
+      setIsPlaying(false)
+    }
+
+    video.addEventListener('loadedmetadata', handleLoadedMetadata)
+    video.addEventListener('timeupdate', handleTimeUpdate)
+    video.addEventListener('play', handlePlay)
+    video.addEventListener('pause', handlePause)
+    video.addEventListener('ended', handleEnded)
+
+    // Auto-play when component mounts
+    video.play().catch(() => {
+      // Handle autoplay failure silently
+    })
+
+    return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      video.removeEventListener('timeupdate', handleTimeUpdate)
+      video.removeEventListener('play', handlePlay)
+      video.removeEventListener('pause', handlePause)
+      video.removeEventListener('ended', handleEnded)
+    }
+  }, [])
+
+  const togglePlay = () => {
+    const video = videoRef.current
+    if (!video) return
+
+    if (isPlaying) {
+      video.pause()
+    } else {
+      video.play()
+    }
+  }
+
+  const toggleMute = () => {
+    const video = videoRef.current
+    if (!video) return
+
+    video.muted = !video.muted
+    setIsMuted(video.muted)
+  }
+
+  const handleVideoClick = () => {
+    togglePlay()
+    setShowControls(true)
+
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current)
+    }
+
+    controlsTimeoutRef.current = setTimeout(() => {
+      setShowControls(false)
+    }, 2000)
+  }
+
+  const handleLike = async () => {
+    try {
+      if (liked) {
+        await appwriteService.unlikePost(post.id)
+        setLiked(false)
+        setLikes(Math.max(0, likes - 1))
+      } else {
+        await appwriteService.likePost(post.id)
+        setLiked(true)
+        setLikes(likes + 1)
+      }
+    } catch (error) {
+      console.error('Failed to toggle like:', error)
+    }
+  }
+
+  const handleSave = async () => {
+    try {
+      await appwriteService.savePost(post.id)
+      setSaved(!saved)
+    } catch (error) {
+      console.error('Failed to toggle save:', error)
+    }
+  }
+
+  const handleRepost = async () => {
+    try {
+      await appwriteService.repostPost(post.id)
+      setReposted(!reposted)
+      setReposts(reposted ? Math.max(0, reposts - 1) : reposts + 1)
+    } catch (error) {
+      console.error('Failed to toggle repost:', error)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black z-50">
+      {/* Full screen vertical video */}
+      <div className="relative w-full h-full">
+        <video
+          ref={videoRef}
+          src={post.videoUrl || (post.mediaUrls && post.mediaUrls[0])}
+          className="w-full h-full object-cover"
+          onClick={handleVideoClick}
+          muted={isMuted}
+          playsInline
+          loop
+        />
+
+        {/* Top Controls */}
+        <div className="absolute top-0 left-0 right-0 z-20 p-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={onClose}
+              className="w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+              aria-label="Close reel"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <button
+              onClick={toggleMute}
+              className="w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+              aria-label={isMuted ? "Unmute reel" : "Mute reel"}
+            >
+              {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Center Play Button */}
+        {!isPlaying && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <button
+              onClick={togglePlay}
+              className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110"
+              aria-label="Play reel"
+            >
+              <Play size={32} fill="white" />
+            </button>
+          </div>
+        )}
+
+        {/* Right Side Reactions */}
+        <div className="absolute right-4 bottom-32 flex flex-col items-center gap-4 z-20">
+          {/* User Info */}
+          <div className="flex flex-col items-center gap-2">
+            {post.userAvatar ? (
+              <img src={post.userAvatar} alt={post.username} className="w-12 h-12 rounded-full object-cover border-2 border-white" />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-gray-600 border-2 border-white flex items-center justify-center text-white font-semibold">
+                {(post.username || 'U')[0].toUpperCase()}
+              </div>
+            )}
+            <button
+              onClick={handleLike}
+              className={`flex flex-col items-center gap-1 p-2 rounded-full transition-all ${liked ? 'text-red-500' : 'text-white'}`}
+              aria-label={liked ? "Unlike reel" : "Like reel"}
+            >
+              <Heart size={32} className={liked ? 'fill-red-500' : ''} />
+              <span className="text-xs font-semibold">{likes || 0}</span>
+            </button>
+          </div>
+
+          {/* Reaction Buttons */}
+          <div className="flex flex-col items-center gap-4">
+            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-blue-400 transition-colors" aria-label="View comments">
+              <MessageCircle size={28} />
+              <span className="text-xs font-semibold">{comments || 0}</span>
+            </button>
+
+            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-green-400 transition-colors" aria-label="Repost reel">
+              <Repeat2 size={28} />
+              <span className="text-xs font-semibold">{reposts || 0}</span>
+            </button>
+
+            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-blue-400 transition-colors" aria-label="Share reel">
+              <Share size={28} />
+              <span className="text-xs font-semibold">Share</span>
+            </button>
+
+            <button
+              onClick={handleSave}
+              className={`flex flex-col items-center gap-1 p-2 rounded-full transition-all ${saved ? 'text-yellow-500' : 'text-white hover:text-yellow-400'}`}
+              aria-label="Save reel"
+            >
+              <Bookmark size={28} className={saved ? 'fill-yellow-500' : ''} />
+              <span className="text-xs font-semibold">Save</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom Content Overlay */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 z-20">
+          <div className="max-w-xs">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-white font-semibold text-sm truncate">{post.username || 'User'}</span>
+              <span className="text-gray-300 text-xs">• {new Date(post.createdAt).toLocaleDateString()}</span>
+            </div>
+            {post.content && (
+              <p className="text-white text-sm leading-relaxed line-clamp-3">{post.content}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="absolute bottom-16 left-4 right-4 z-20">
+          <div className="w-full h-0.5 bg-white/30 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-white rounded-full transition-all duration-100"
+              style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
+            />
           </div>
         </div>
       </div>

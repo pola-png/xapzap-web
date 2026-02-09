@@ -275,5 +275,5 @@ export function NotificationsScreen() {
 // Export detail screens
 export { CommentScreen } from './CommentScreen'
 export { PostDetailScreen } from './PostDetailScreen'
-export { VideoDetailScreen } from './VideoDetailScreen'
+export { VideoDetailScreen, ReelsDetailScreen } from './VideoDetailScreen'
 export { ImageDetailScreen } from './ImageDetailScreen'

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Play } from 'lucide-react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
@@ -10,11 +11,12 @@ interface PostCardProps {
   isGuest?: boolean
   onGuestAction?: () => void
   currentUserId?: string
-  feedType?: 'home' | 'reels' | 'watch' | 'following' | 'news'
+  feedType?: 'home' | 'watch' | 'following' | 'news' | 'reels'
   onVideoClick?: (post: Post) => void
 }
 
 export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick }: PostCardProps) => {
+  const router = useRouter()
   const [liked, setLiked] = useState(post.isLiked || false)
   const [likes, setLikes] = useState(post.likes || 0)
   const [saved, setSaved] = useState(post.isSaved || false)
@@ -135,7 +137,14 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
           ) : (
             <div
               className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden"
-              onClick={() => onVideoClick?.(post)}
+              onClick={() => {
+                // Navigate to appropriate detail page based on video type
+                if (post.kind === 'reel' || feedType === 'reels') {
+                  router.push(`/reels/${post.id}`)
+                } else {
+                  router.push(`/watch/${post.id}`)
+                }
+              }}
             >
               <img
                 src={post.thumbnailUrl || (post.mediaUrls && post.mediaUrls[0])}
