@@ -5,7 +5,7 @@ import { Eye, EyeOff, Mail, Lock, User, AtSign } from 'lucide-react'
 import appwriteService from './appwriteService'
 import { cn } from './utils'
 
-type AuthMode = 'signin' | 'signup'
+type AuthMode = 'signin' | 'signup' | 'forgotPassword'
 
 interface AuthScreenProps {
   onAuthSuccess: () => void
@@ -22,7 +22,8 @@ export function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
     email: '',
     password: '',
     confirmPassword: '',
-    username: ''
+    username: '',
+    displayName: ''
   })
 
   const handleInputChange = (field: string, value: string) => {
@@ -35,23 +36,28 @@ export function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
       setError('Please enter a valid email')
       return false
     }
-    
-    if (formData.password.length < 8) {
+
+    if (mode !== 'forgotPassword' && formData.password.length < 8) {
       setError('Password must be at least 8 characters')
       return false
     }
 
     if (mode === 'signup') {
+      if (!formData.displayName || formData.displayName.trim().length < 2) {
+        setError('Display name must be at least 2 characters')
+        return false
+      }
+
       if (!formData.username || formData.username.length < 3) {
         setError('Username must be at least 3 characters')
         return false
       }
-      
+
       if (!/^[a-zA-Z0-9_]+$/.test(formData.username.replace(/^@/, ''))) {
         setError('Username can only contain letters, numbers, and underscores')
         return false
       }
-      
+
       if (formData.password !== formData.confirmPassword) {
         setError('Passwords do not match')
         return false
@@ -71,13 +77,17 @@ export function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
     try {
       if (mode === 'signin') {
         await appwriteService.signIn(formData.email, formData.password)
+        onAuthSuccess()
+      } else if (mode === 'forgotPassword') {
+        await appwriteService.forgotPassword(formData.email)
+        setError('Password reset link sent to your email!')
       } else {
-        const username = formData.username.startsWith('@') 
-          ? formData.username.substring(1) 
+        const username = formData.username.startsWith('@')
+          ? formData.username.substring(1)
           : formData.username
-        await appwriteService.signUp(formData.email, formData.password, username)
+        await appwriteService.signUp(formData.email, formData.password, username, formData.displayName)
+        onAuthSuccess()
       }
-      onAuthSuccess()
     } catch (err: any) {
       setError(err.message || 'Authentication failed')
     } finally {
@@ -92,11 +102,13 @@ export function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              {mode === 'signin' ? 'Welcome Back!' : 'Create Account'}
+              {mode === 'signin' ? 'Welcome Back!' : mode === 'forgotPassword' ? 'Reset Password' : 'Create Account'}
             </h1>
             <p className="text-muted-foreground">
-              {mode === 'signin' 
-                ? 'Enter your credentials to access your account' 
+              {mode === 'signin'
+                ? 'Enter your credentials to access your account'
+                : mode === 'forgotPassword'
+                ? 'Enter your email to receive a reset link'
                 : 'Enter your details to create your account'}
             </p>
           </div>
@@ -104,22 +116,41 @@ export function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {mode === 'signup' && (
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Username
-                </label>
-                <div className="relative">
-                  <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-                  <input
-                    type="text"
-                    value={formData.username}
-                    onChange={(e) => handleInputChange('username', e.target.value)}
-                    placeholder="yourusername"
-                    className="w-full pl-10 pr-4 py-3 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-xapzap-blue focus:border-transparent"
-                    disabled={isLoading}
-                  />
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Display Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+                    <input
+                      type="text"
+                      value={formData.displayName}
+                      onChange={(e) => handleInputChange('displayName', e.target.value)}
+                      placeholder="Your full name"
+                      className="w-full pl-10 pr-4 py-3 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-xapzap-blue focus:border-transparent"
+                      disabled={isLoading}
+                    />
+                  </div>
                 </div>
-              </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Username
+                  </label>
+                  <div className="relative">
+                    <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+                    <input
+                      type="text"
+                      value={formData.username}
+                      onChange={(e) => handleInputChange('username', e.target.value)}
+                      placeholder="yourusername"
+                      className="w-full pl-10 pr-4 py-3 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-xapzap-blue focus:border-transparent"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <div>
@@ -139,30 +170,32 @@ export function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
-                  placeholder="Enter your password"
-                  className="w-full pl-10 pr-12 py-3 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-xapzap-blue focus:border-transparent"
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  disabled={isLoading}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
+            {mode !== 'forgotPassword' && (
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    placeholder="Enter your password"
+                    className="w-full pl-10 pr-12 py-3 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-xapzap-blue focus:border-transparent"
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    disabled={isLoading}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {mode === 'signup' && (
               <div>
@@ -209,30 +242,60 @@ export function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
               {isLoading ? (
                 <div className="flex items-center justify-center">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  {mode === 'signin' ? 'Signing In...' : 'Creating Account...'}
+                  {mode === 'signin' ? 'Signing In...' : mode === 'forgotPassword' ? 'Sending Reset Link...' : 'Creating Account...'}
                 </div>
               ) : (
-                mode === 'signin' ? 'Sign In' : 'Create Account'
+                mode === 'signin' ? 'Sign In' : mode === 'forgotPassword' ? 'Send Reset Link' : 'Create Account'
               )}
             </button>
           </form>
 
           {/* Footer */}
-          <div className="mt-6 text-center">
-            <p className="text-muted-foreground">
-              {mode === 'signin' ? "Don't have an account? " : "Already have an account? "}
+          <div className="mt-6 text-center space-y-2">
+            {mode === 'signin' && (
               <button
                 onClick={() => {
-                  setMode(mode === 'signin' ? 'signup' : 'signin')
+                  setMode('forgotPassword')
                   setError('')
-                  setFormData({ email: '', password: '', confirmPassword: '', username: '' })
+                  setFormData({ email: '', password: '', confirmPassword: '', username: '', displayName: '' })
                 }}
-                className="text-xapzap-blue hover:underline font-medium"
+                className="text-sm text-muted-foreground hover:text-xapzap-blue hover:underline"
                 disabled={isLoading}
               >
-                {mode === 'signin' ? 'Sign Up' : 'Sign In'}
+                Forgot your password?
               </button>
-            </p>
+            )}
+
+            {mode === 'forgotPassword' && (
+              <button
+                onClick={() => {
+                  setMode('signin')
+                  setError('')
+                  setFormData({ email: '', password: '', confirmPassword: '', username: '', displayName: '' })
+                }}
+                className="text-sm text-muted-foreground hover:text-xapzap-blue hover:underline"
+                disabled={isLoading}
+              >
+                Back to Sign In
+              </button>
+            )}
+
+            {mode !== 'forgotPassword' && (
+              <p className="text-muted-foreground">
+                {mode === 'signin' ? "Don't have an account? " : "Already have an account? "}
+                <button
+                  onClick={() => {
+                    setMode(mode === 'signin' ? 'signup' : 'signin')
+                    setError('')
+                    setFormData({ email: '', password: '', confirmPassword: '', username: '', displayName: '' })
+                  }}
+                  className="text-xapzap-blue hover:underline font-medium"
+                  disabled={isLoading}
+                >
+                  {mode === 'signin' ? 'Sign Up' : 'Sign In'}
+                </button>
+              </p>
+            )}
           </div>
         </div>
       </div>

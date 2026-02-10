@@ -62,7 +62,7 @@ class AppwriteService {
     }
   }
 
-  async signUp(email: string, password: string, username: string) {
+  async signUp(email: string, password: string, username: string, displayName?: string) {
     try {
       // Create account
       await this.account.create(
@@ -71,14 +71,14 @@ class AppwriteService {
         password,
         username
       )
-      
+
       // Sign in immediately
       await this.signIn(email, password)
-      
+
       // Get the created user
       const user = await this.getCurrentUser()
       if (!user) throw new Error('Failed to get user after signup')
-      
+
       // Create user record in users collection
       await this.databases.createDocument(
         this.databaseId,
@@ -90,7 +90,7 @@ class AppwriteService {
           email
         }
       )
-      
+
       // Create profile record
       await this.databases.createDocument(
         this.databaseId,
@@ -99,7 +99,7 @@ class AppwriteService {
         {
           userId: user.$id,
           username,
-          displayName: username,
+          displayName: displayName || username,
           bio: '',
           avatarUrl: '',
           coverUrl: '',
@@ -107,7 +107,7 @@ class AppwriteService {
           isBanned: false
         }
       )
-      
+
       return user
     } catch (error: any) {
       throw new Error(error.message || 'Sign up failed')
@@ -127,6 +127,14 @@ class AppwriteService {
       await this.account.deleteSession('current')
     } catch (error: any) {
       throw new Error(error.message || 'Sign out failed')
+    }
+  }
+
+  async forgotPassword(email: string) {
+    try {
+      await this.account.createRecovery(email, 'http://localhost:3000/auth/reset-password')
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to send password reset email')
     }
   }
 
