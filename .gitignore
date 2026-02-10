@@ -85,3 +85,15 @@ jspm_packages/
 # OS
 .DS_Store
 Thumbs.db
+
+# Appwrite
+.appwrite
+
+# Environment variables (all variants)
+.env.production
+
+# TypeScript build cache
+tsconfig.tsbuildinfo
+
+# Next.js generated types (optional - can be committed)
+next-env.d.ts

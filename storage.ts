@@ -1,10 +1,26 @@
-import { ID } from 'appwrite'
-import appwriteService from './appwriteService'
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 class StorageService {
   private static instance: StorageService
+  private s3Client: S3Client
 
-  private constructor() {}
+  // Wasabi configuration
+  private readonly wasabiConfig = {
+    region: process.env.WASABI_REGION || 'us-east-1',
+    endpoint: process.env.WASABI_ENDPOINT || 'https://s3.wasabisys.com',
+    credentials: {
+      accessKeyId: process.env.WASABI_ACCESS_KEY || '',
+      secretAccessKey: process.env.WASABI_SECRET_KEY || ''
+    }
+  }
+
+  private readonly bucketName = process.env.WASABI_BUCKET || 'xapzap-media'
+  private readonly cdnBaseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://www.xapzap.com'
+
+  private constructor() {
+    this.s3Client = new S3Client(this.wasabiConfig)
+  }
 
   static getInstance(): StorageService {
     if (!StorageService.instance) {
@@ -15,55 +31,63 @@ class StorageService {
 
   async uploadFile(file: File, path?: string): Promise<string> {
     try {
-      // Convert file to base64
-      const base64 = await this.fileToBase64(file)
       const fileName = path || `${Date.now()}_${file.name}`
-      
-      // Call Appwrite function that handles Bunny CDN upload
-      const response = await fetch('/v1/functions/bunny-upload/executions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Appwrite-Project': '690641ad0029b51eefe0'
-        },
-        body: JSON.stringify({
-          path: fileName,
-          fileBase64: base64
-        })
-      })
 
-      const result = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Upload failed')
+      // Convert file to buffer
+      const buffer = await file.arrayBuffer()
+      const uint8Array = new Uint8Array(buffer)
+
+      const uploadParams = {
+        Bucket: this.bucketName,
+        Key: `public/${fileName}`, // Store in public folder
+        Body: uint8Array,
+        ContentType: file.type,
+        ACL: 'public-read' // Make files publicly readable
       }
 
-      return result.url
+      const command = new PutObjectCommand(uploadParams)
+      await this.s3Client.send(command)
+
+      // Return CDN URL with /media/ prefix for routing
+      return `${this.cdnBaseUrl}/media/${fileName}`
     } catch (error) {
       console.error('Upload error:', error)
       throw error
     }
   }
 
-  private fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => {
-        const base64 = (reader.result as string).split(',')[1]
-        resolve(base64)
-      }
-      reader.onerror = reject
-    })
-  }
-
   async deleteFile(fileName: string): Promise<void> {
-    // Implement delete via Appwrite function if needed
+    // Implement delete if needed
     console.log('Delete not implemented yet:', fileName)
   }
 
   getFileUrl(fileName: string): string {
-    return `https://xapzapolami.b-cdn.net/${fileName}`
+    // Return permanent CDN URL with /media/ prefix
+    return `${this.cdnBaseUrl}/media/${fileName}`
+  }
+
+  // Generate pre-signed URL for Fastly to use internally
+  async generatePresignedUrl(fileName: string, expiresIn: number = 3600): Promise<string> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: fileName
+      })
+
+      const signedUrl = await getSignedUrl(this.s3Client, command, {
+        expiresIn // Default 1 hour
+      })
+
+      return signedUrl
+    } catch (error) {
+      console.error('Pre-signed URL generation error:', error)
+      throw error
+    }
+  }
+
+  // Utility method to extract filename from CDN URL
+  extractFileName(cdnUrl: string): string {
+    return cdnUrl.replace(`${this.cdnBaseUrl}/media/`, '')
   }
 }
 
