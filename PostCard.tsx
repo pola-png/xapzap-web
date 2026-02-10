@@ -57,37 +57,78 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
   }, [post.id])
 
   const handleLike = async () => {
+    // Check if user is authenticated
+    const currentUser = await appwriteService.getCurrentUser()
+    if (!currentUser) {
+      console.error('User must be signed in to like posts')
+      return
+    }
+
+    const wasLiked = liked
+    const prevLikes = likes
+
+    // Optimistic update
+    setLiked(!wasLiked)
+    setLikes(wasLiked ? Math.max(0, likes - 1) : likes + 1)
+
     try {
-      if (liked) {
+      if (wasLiked) {
         await appwriteService.unlikePost(post.id)
-        setLiked(false)
-        setLikes(Math.max(0, likes - 1))
       } else {
         await appwriteService.likePost(post.id)
-        setLiked(true)
-        setLikes(likes + 1)
       }
     } catch (error) {
       console.error('Failed to toggle like:', error)
+      // Revert on error
+      setLiked(wasLiked)
+      setLikes(prevLikes)
     }
   }
 
   const handleSave = async () => {
+    // Check if user is authenticated
+    const currentUser = await appwriteService.getCurrentUser()
+    if (!currentUser) {
+      console.error('User must be signed in to save posts')
+      return
+    }
+
+    const wasSaved = saved
+
+    // Optimistic update
+    setSaved(!wasSaved)
+
     try {
       await appwriteService.savePost(post.id)
-      setSaved(!saved)
     } catch (error) {
       console.error('Failed to toggle save:', error)
+      // Revert on error
+      setSaved(wasSaved)
     }
   }
 
   const handleRepost = async () => {
+    // Check if user is authenticated
+    const currentUser = await appwriteService.getCurrentUser()
+    if (!currentUser) {
+      console.error('User must be signed in to repost')
+      return
+    }
+
+    const wasReposted = reposted
+    const prevReposts = reposts
+
+    // Optimistic update
+    setReposted(!wasReposted)
+    setReposts(wasReposted ? Math.max(0, reposts - 1) : reposts + 1)
+
     try {
       await appwriteService.repostPost(post.id)
-      setReposted(!reposted)
-      setReposts(reposted ? Math.max(0, reposts - 1) : reposts + 1)
     } catch (error) {
       console.error('Failed to toggle repost:', error)
+      // Revert on error
+      setReposted(wasReposted)
+      setReposts(prevReposts)
     }
   }
 
