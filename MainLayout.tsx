@@ -76,6 +76,24 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
     }
   }
 
+  // Protected tabs that require authentication
+  const protectedTabs = [1, 2, 3, 4, 5] // Chat, Upload, Notifications, Profile, Dashboard
+
+  const handleTabChange = async (tab: number) => {
+    // Check if tab requires authentication
+    if (protectedTabs.includes(tab)) {
+      const currentUser = await appwriteService.getCurrentUser()
+      if (!currentUser) {
+        // Redirect to auth screen
+        onTabChange(6) // Auth screen index
+        return
+      }
+    }
+
+    // Allow tab change
+    onTabChange(tab)
+  }
+
   const sidebarItems = [
     { icon: Home, label: 'For You', index: 0 },
     { icon: Video, label: 'Watch', index: 7 },
@@ -96,21 +114,21 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
           <h1 className="text-xl font-bold text-[rgb(var(--text-primary))]">XapZap</h1>
           
           <div className="flex items-center gap-8">
-            <button onClick={() => onTabChange(0)} className={cn("p-2 rounded-lg transition-colors", currentTab === 0 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Home">
+            <button onClick={() => handleTabChange(0)} className={cn("p-2 rounded-lg transition-colors", currentTab === 0 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Home">
               <Home size={24} />
             </button>
-            <button onClick={() => onTabChange(1)} className={cn("p-2 rounded-lg transition-colors relative", currentTab === 1 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Chat">
+            <button onClick={() => handleTabChange(1)} className={cn("p-2 rounded-lg transition-colors relative", currentTab === 1 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Chat">
               <MessageCircle size={24} />
               {unreadChats > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadChats}</span>}
             </button>
             <button onClick={onCreateClick} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2] transition-colors" aria-label="Create">
               <PlusSquare size={24} />
             </button>
-            <button onClick={() => onTabChange(3)} className={cn("p-2 rounded-lg transition-colors relative", currentTab === 3 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Notifications">
+            <button onClick={() => handleTabChange(3)} className={cn("p-2 rounded-lg transition-colors relative", currentTab === 3 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Notifications">
               <Bell size={24} />
               {unreadNotifications > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadNotifications}</span>}
             </button>
-            <button onClick={() => onTabChange(4)} className={cn("p-2 rounded-lg transition-colors", currentTab === 4 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Profile">
+            <button onClick={() => handleTabChange(4)} className={cn("p-2 rounded-lg transition-colors", currentTab === 4 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Profile">
               <User size={24} />
             </button>
           </div>
@@ -120,9 +138,9 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
               <Search size={24} />
             </button>
             {userAvatar ? (
-              <img src={userAvatar} alt="Profile" className="w-9 h-9 rounded-full object-cover cursor-pointer" onClick={() => onTabChange(4)} />
+              <img src={userAvatar} alt="Profile" className="w-9 h-9 rounded-full object-cover cursor-pointer" onClick={() => handleTabChange(4)} />
             ) : (
-              <div className="w-9 h-9 bg-[rgb(var(--bg-secondary))] rounded-full flex items-center justify-center cursor-pointer" onClick={() => onTabChange(4)}>
+              <div className="w-9 h-9 bg-[rgb(var(--bg-secondary))] rounded-full flex items-center justify-center cursor-pointer" onClick={() => handleTabChange(4)}>
                 <User size={18} className="text-[rgb(var(--text-primary))]" />
               </div>
             )}
@@ -136,11 +154,11 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
               {sidebarItems.map((item) => {
                 const Icon = item.icon
                 const isActive = currentTab === item.index
-                
+
                 return (
                   <button
                     key={item.index}
-                    onClick={() => onTabChange(item.index)}
+                    onClick={() => handleTabChange(item.index)}
                     className={cn(
                       "w-full flex items-center gap-3 px-6 py-3 transition-colors",
                       isActive ? "text-[#1DA1F2] bg-[#1DA1F2]/10" : "text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-secondary))]"
@@ -180,7 +198,7 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
                 {sidebarItems.map((item) => (
                   <button
                     key={item.index}
-                    onClick={() => onTabChange(item.index)}
+                    onClick={() => handleTabChange(item.index)}
                     className={cn(
                       "px-3 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors flex-shrink-0",
                       currentTab === item.index
@@ -200,11 +218,11 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
         <nav className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--bg-primary))] border-t border-[rgb(var(--border-color))] safe-area-inset-bottom">
           <div className="flex items-center justify-around py-2 px-2">
             {[
-              { icon: Home, index: 0, label: 'Home', onClick: () => onTabChange(0) },
-              { icon: MessageCircle, index: 1, label: 'Chat', onClick: () => onTabChange(1) },
+              { icon: Home, index: 0, label: 'Home', onClick: () => handleTabChange(0) },
+              { icon: MessageCircle, index: 1, label: 'Chat', onClick: () => handleTabChange(1) },
               { icon: PlusSquare, index: 2, label: 'Create', onClick: onCreateClick },
-              { icon: Bell, index: 3, label: 'Notifications', onClick: () => onTabChange(3) },
-              { icon: User, index: 4, label: 'Profile', onClick: () => onTabChange(4) }
+              { icon: Bell, index: 3, label: 'Notifications', onClick: () => handleTabChange(3) },
+              { icon: User, index: 4, label: 'Profile', onClick: () => handleTabChange(4) }
             ].map((item) => {
               const Icon = item.icon
               return (
