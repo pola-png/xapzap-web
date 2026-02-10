@@ -1,5 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 
 class StorageService {
   private static instance: StorageService
@@ -41,8 +40,8 @@ class StorageService {
         Bucket: this.bucketName,
         Key: `public/${fileName}`, // Store in public folder
         Body: uint8Array,
-        ContentType: file.type,
-        ACL: 'public-read' // Make files publicly readable
+        ContentType: file.type
+        // ACL removed - using bucket policy for public access
       }
 
       const command = new PutObjectCommand(uploadParams)
@@ -66,24 +65,7 @@ class StorageService {
     return `${this.cdnBaseUrl}/media/${fileName}`
   }
 
-  // Generate pre-signed URL for Fastly to use internally
-  async generatePresignedUrl(fileName: string, expiresIn: number = 3600): Promise<string> {
-    try {
-      const command = new GetObjectCommand({
-        Bucket: this.bucketName,
-        Key: fileName
-      })
 
-      const signedUrl = await getSignedUrl(this.s3Client, command, {
-        expiresIn // Default 1 hour
-      })
-
-      return signedUrl
-    } catch (error) {
-      console.error('Pre-signed URL generation error:', error)
-      throw error
-    }
-  }
 
   // Utility method to extract filename from CDN URL
   extractFileName(cdnUrl: string): string {

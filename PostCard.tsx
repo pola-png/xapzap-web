@@ -96,21 +96,31 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
       {/* Header */}
       <div className="flex items-center justify-between py-3">
         <div className="flex items-center gap-3">
-          {userProfile?.avatarUrl || post.userAvatar ? (
-            <img
-              src={userProfile?.avatarUrl || post.userAvatar}
-              alt={userProfile?.displayName || userProfile?.username || post.username}
-              className="w-10 h-10 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-900 dark:text-white font-semibold">
-              {((userProfile?.displayName || userProfile?.username || post.username) || 'U')[0].toUpperCase()}
-            </div>
-          )}
+          <button
+            onClick={() => router.push(`/profile/${post.userId}`)}
+            className="hover:opacity-80 transition-opacity"
+            aria-label={`View ${userProfile?.displayName || userProfile?.username || post.username}'s profile`}
+          >
+            {userProfile?.avatarUrl || post.userAvatar ? (
+              <img
+                src={userProfile?.avatarUrl || post.userAvatar}
+                alt={userProfile?.displayName || userProfile?.username || post.username}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-900 dark:text-white font-semibold">
+                {((userProfile?.displayName || userProfile?.username || post.username) || 'U')[0].toUpperCase()}
+              </div>
+            )}
+          </button>
           <div>
-            <span className="text-gray-900 dark:text-white font-bold text-base">
+            <button
+              onClick={() => router.push(`/profile/${post.userId}`)}
+              className="text-gray-900 dark:text-white font-bold text-base hover:underline transition-all text-left"
+              aria-label={`View ${userProfile?.displayName || userProfile?.username || post.username}'s profile`}
+            >
               {userProfile?.displayName || userProfile?.username || post.username || 'User'}
-            </span>
+            </button>
             <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">{new Date(post.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
