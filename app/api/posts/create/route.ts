@@ -18,20 +18,38 @@ const mediaBucketId = '6915baaa00381391d7b2'
 // Helper function to get current user from session
 async function getCurrentUser(request: NextRequest) {
   try {
-    // Get session token from Authorization header or cookie
+    // Try multiple ways to get the session
     const authHeader = request.headers.get('authorization')
-    const sessionToken = authHeader?.replace('Bearer ', '') ||
-                        request.cookies.get('a_session_690641ad0029b51eefe0')?.value
+    const sessionToken = authHeader?.replace('Bearer ', '')
 
-    if (!sessionToken) {
+    // Try different cookie names
+    const cookieNames = [
+      'a_session_690641ad0029b51eefe0',
+      'a_session_690641ad0029b51eefe0_legacy',
+      'session'
+    ]
+
+    let cookieValue = null
+    for (const cookieName of cookieNames) {
+      cookieValue = request.cookies.get(cookieName)?.value
+      if (cookieValue) break
+    }
+
+    const finalToken = sessionToken || cookieValue
+
+    if (!finalToken) {
+      console.log('No session token found in headers or cookies')
       return null
     }
 
+    console.log('Using session token:', finalToken.substring(0, 20) + '...')
+
     // Create account instance with session
     const account = new Account(client)
-    // Set the session token
-    client.setJWT(sessionToken)
-    return await account.get()
+    client.setJWT(finalToken)
+    const user = await account.get()
+    console.log('Authenticated user:', user.$id)
+    return user
   } catch (error) {
     console.error('Auth error:', error)
     return null

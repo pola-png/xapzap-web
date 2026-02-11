@@ -108,6 +108,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   const handleUpload = async () => {
     if (!selectedType) return
 
+    console.log('Starting upload process...')
     setUploading(true)
     try {
       // Prepare FormData for the API request
@@ -141,10 +142,29 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         }
       }
 
-      // Make API request - cookies should be sent automatically
+      // Get session token first
+      console.log('Getting session token...')
+      const sessionResponse = await fetch('/api/auth/session', {
+        method: 'GET',
+        credentials: 'include',
+      })
+
+      let sessionToken = null
+      if (sessionResponse.ok) {
+        const sessionData = await sessionResponse.json()
+        sessionToken = sessionData.token
+        console.log('Got session token:', sessionToken.substring(0, 20) + '...')
+      } else {
+        console.log('No session token found')
+      }
+
+      // Make API request with session token
       const response = await fetch('/api/posts/create', {
         method: 'POST',
-        credentials: 'include', // Ensure cookies are sent
+        headers: sessionToken ? {
+          'Authorization': `Bearer ${sessionToken}`,
+        } : {},
+        credentials: 'include', // Fallback to cookies
         body: formData,
       })
 
@@ -235,7 +255,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           {/* Media Upload Area */}
           <div
             onClick={() => fileInputRef.current?.click()}
-            className={`aspect-video rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
+            className={`aspect-video max-w-sm max-h-48 mx-auto rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
               isDark
                 ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
                 : 'border-gray-300 hover:bg-gray-50 bg-gray-100'

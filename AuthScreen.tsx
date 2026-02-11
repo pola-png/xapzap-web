@@ -76,7 +76,14 @@ export function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
 
     try {
       if (mode === 'signin') {
-        await appwriteService.signIn(formData.email, formData.password)
+        console.log('Attempting sign in...')
+        const result = await appwriteService.signIn(formData.email, formData.password)
+        console.log('Sign in result:', result)
+
+        // Verify session was created
+        const user = await appwriteService.getCurrentUser()
+        console.log('User after sign in:', user)
+
         onAuthSuccess()
       } else if (mode === 'forgotPassword') {
         await appwriteService.forgotPassword(formData.email)
@@ -85,10 +92,18 @@ export function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
         const username = formData.username.startsWith('@')
           ? formData.username.substring(1)
           : formData.username
-        await appwriteService.signUp(formData.email, formData.password, username, formData.displayName)
+        console.log('Attempting sign up...')
+        const result = await appwriteService.signUp(formData.email, formData.password, username, formData.displayName)
+        console.log('Sign up result:', result)
+
+        // Verify session was created
+        const user = await appwriteService.getCurrentUser()
+        console.log('User after sign up:', user)
+
         onAuthSuccess()
       }
     } catch (err: any) {
+      console.error('Authentication error:', err)
       setError(err.message || 'Authentication failed')
     } finally {
       setIsLoading(false)

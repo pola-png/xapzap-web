@@ -30,8 +30,10 @@ export default function Home() {
   const checkAuthState = async () => {
     try {
       const user = await appwriteService.getCurrentUser()
+      console.log('Auth check - User:', user)
       setIsGuest(!user) // If user exists, not a guest
     } catch (error) {
+      console.log('Auth check - No user:', error)
       setIsGuest(true) // No user, is guest
     }
   }
