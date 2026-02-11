@@ -44,10 +44,14 @@ async function getCurrentUser(request: NextRequest) {
 
     console.log('Using session token:', finalToken.substring(0, 20) + '...')
 
-    // Create account instance with session
-    const account = new Account(client)
-    client.setJWT(finalToken)
-    const user = await account.get()
+    // Create client with session
+    const sessionClient = new Client()
+      .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+      .setProject('690641ad0029b51eefe0')
+      .setSession(finalToken)
+    
+    const sessionAccount = new Account(sessionClient)
+    const user = await sessionAccount.get()
     console.log('Authenticated user:', user.$id)
     return user
   } catch (error) {
