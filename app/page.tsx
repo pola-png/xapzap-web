@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MainLayout } from '../MainLayout'
 import { HomeScreen } from '../HomeScreen'
 import { ChatScreen } from '../ChatScreen'
@@ -14,12 +14,33 @@ import { ReelsScreen } from '../ReelsScreen'
 import { LiveScreen } from '../LiveScreen'
 import { NewsScreen } from '../NewsScreen'
 import { FollowingScreen } from '../FollowingScreen'
+import appwriteService from '../appwriteService'
 import type { Metadata } from 'next'
 
 
 export default function Home() {
   const [currentTab, setCurrentTab] = useState(0)
-  const [isGuest, setIsGuest] = useState(false) // TODO: from auth
+  const [isGuest, setIsGuest] = useState(true) // Start as guest, check auth on mount
+  const [authRefreshTrigger, setAuthRefreshTrigger] = useState(0)
+
+  useEffect(() => {
+    checkAuthState()
+  }, [])
+
+  const checkAuthState = async () => {
+    try {
+      const user = await appwriteService.getCurrentUser()
+      setIsGuest(!user) // If user exists, not a guest
+    } catch (error) {
+      setIsGuest(true) // No user, is guest
+    }
+  }
+
+  const handleAuthSuccess = () => {
+    setIsGuest(false)
+    setCurrentTab(0)
+    setAuthRefreshTrigger(prev => prev + 1) // Trigger refresh in MainLayout
+  }
 
   const renderScreen = () => {
     switch (currentTab) {
@@ -29,7 +50,7 @@ export default function Home() {
       case 3: return <NotificationsScreen />
       case 4: return <ProfileScreen />
       case 5: return <DashboardScreen />
-      case 6: return <AuthScreen onAuthSuccess={() => { setIsGuest(false); setCurrentTab(0); }} />
+      case 6: return <AuthScreen onAuthSuccess={handleAuthSuccess} />
       case 7: return <WatchScreen />
       case 8: return <ReelsScreen />
       case 9: return <LiveScreen />
@@ -49,6 +70,7 @@ export default function Home() {
       onTabChange={handleTabChange}
       onCreateClick={handleCreateClick}
       isGuest={isGuest}
+      authRefreshTrigger={authRefreshTrigger}
     >
       {renderScreen()}
     </MainLayout>

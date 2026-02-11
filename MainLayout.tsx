@@ -12,9 +12,11 @@ interface MainLayoutProps {
   onTabChange: (tab: number) => void
   onCreateClick: () => void
   isGuest?: boolean
+  onUserStateChange?: (user: any) => void
+  authRefreshTrigger?: number
 }
 
-export function MainLayout({ children, currentTab, onTabChange, onCreateClick, isGuest = false }: MainLayoutProps) {
+export function MainLayout({ children, currentTab, onTabChange, onCreateClick, isGuest = false, onUserStateChange, authRefreshTrigger = 0 }: MainLayoutProps) {
   const router = useRouter()
   const [unreadChats, setUnreadChats] = useState(0)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
@@ -27,7 +29,29 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
       loadBadges()
       setupRealtimeSubscriptions()
     }
-  }, [isGuest])
+  }, [isGuest, authRefreshTrigger])
+
+  // Force refresh user data when authentication state might have changed
+  useEffect(() => {
+    const checkAuthState = async () => {
+      try {
+        const currentUser = await appwriteService.getCurrentUser()
+        if (!currentUser && user) {
+          // User logged out, clear data
+          setUser(null)
+          setUserAvatar('')
+        }
+      } catch (error) {
+        // User not authenticated
+        setUser(null)
+        setUserAvatar('')
+      }
+    }
+
+    // Check auth state periodically
+    const interval = setInterval(checkAuthState, 1000)
+    return () => clearInterval(interval)
+  }, [user])
 
   const loadUserData = async () => {
     try {
