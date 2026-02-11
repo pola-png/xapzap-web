@@ -271,7 +271,12 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                 Custom Thumbnail (Optional)
               </label>
               <div
-                onClick={() => thumbnailInputRef.current?.click()}
+                onClick={() => {
+                  const input = thumbnailInputRef.current;
+                  if (input) {
+                    input.click();
+                  }
+                }}
                 className={`aspect-video rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
                   isDark
                     ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
@@ -529,7 +534,12 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           <div className="flex-1 p-4">
             <div className="space-y-4">
               <div
-                onClick={() => thumbnailInputRef.current?.click()}
+                onClick={() => {
+                  const input = thumbnailInputRef.current;
+                  if (input) {
+                    input.click();
+                  }
+                }}
                 className={`aspect-video rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
                   isDark
                     ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'

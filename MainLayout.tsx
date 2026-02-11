@@ -94,6 +94,19 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
     onTabChange(tab)
   }
 
+  const handleCreateClick = async () => {
+    // Check authentication before opening upload modal
+    const currentUser = await appwriteService.getCurrentUser()
+    if (!currentUser) {
+      // Redirect to auth screen
+      onTabChange(6) // Auth screen index
+      return
+    }
+
+    // Proceed with upload
+    onCreateClick()
+  }
+
   const sidebarItems = [
     { icon: Home, label: 'For You', index: 0 },
     { icon: Video, label: 'Watch', index: 7 },
@@ -121,7 +134,7 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
               <MessageCircle size={24} />
               {unreadChats > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadChats}</span>}
             </button>
-            <button onClick={onCreateClick} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2] transition-colors" aria-label="Create">
+            <button onClick={handleCreateClick} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2] transition-colors" aria-label="Create">
               <PlusSquare size={24} />
             </button>
             <button onClick={() => handleTabChange(3)} className={cn("p-2 rounded-lg transition-colors relative", currentTab === 3 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Notifications">
@@ -220,7 +233,7 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
             {[
               { icon: Home, index: 0, label: 'Home', onClick: () => handleTabChange(0) },
               { icon: MessageCircle, index: 1, label: 'Chat', onClick: () => handleTabChange(1) },
-              { icon: PlusSquare, index: 2, label: 'Create', onClick: onCreateClick },
+              { icon: PlusSquare, index: 2, label: 'Create', onClick: handleCreateClick },
               { icon: Bell, index: 3, label: 'Notifications', onClick: () => handleTabChange(3) },
               { icon: User, index: 4, label: 'Profile', onClick: () => handleTabChange(4) }
             ].map((item) => {
