@@ -17,10 +17,23 @@ const collections = {
 }
 
 // Helper function to get current user from session
-async function getCurrentUser() {
+async function getCurrentUser(request: NextRequest) {
   try {
+    // Get session token from Authorization header or cookie
+    const authHeader = request.headers.get('authorization')
+    const sessionToken = authHeader?.replace('Bearer ', '') ||
+                        request.cookies.get('a_session_690641ad0029b51eefe0')?.value
+
+    if (!sessionToken) {
+      return null
+    }
+
+    // Create account instance with session
+    const account = new Account(client)
+    client.setJWT(sessionToken)
     return await account.get()
-  } catch {
+  } catch (error) {
+    console.error('Auth error:', error)
     return null
   }
 }
@@ -63,7 +76,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const user = await getCurrentUser()
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -140,7 +153,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     // Check authentication
-    const user = await getCurrentUser()
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },

@@ -141,7 +141,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         }
       }
 
-      // Make API request
+      // Make API request - cookies should be sent automatically
       const response = await fetch('/api/posts/create', {
         method: 'POST',
         body: formData,
@@ -271,12 +271,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                 Custom Thumbnail (Optional)
               </label>
               <div
-                onClick={() => {
-                  const input = thumbnailInputRef.current;
-                  if (input) {
-                    input.click();
-                  }
-                }}
+                onClick={() => thumbnailInputRef.current?.click()}
                 className={`aspect-video rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
                   isDark
                     ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
@@ -532,12 +527,25 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
             </button>
           </div>
           <div className="flex-1 p-4">
+            <input
+              ref={thumbnailInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleThumbnailSelect}
+              className="hidden"
+              aria-label="Upload thumbnail"
+            />
             <div className="space-y-4">
               <div
                 onClick={() => {
+                  console.log('Thumbnail button clicked in modal');
                   const input = thumbnailInputRef.current;
+                  console.log('Input element:', input);
                   if (input) {
+                    console.log('Triggering click on input');
                     input.click();
+                  } else {
+                    console.log('Input element not found in modal');
                   }
                 }}
                 className={`aspect-video rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
