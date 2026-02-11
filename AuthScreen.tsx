@@ -76,66 +76,16 @@ export function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
 
     try {
       if (mode === 'signin') {
-        const response = await fetch('/api/auth/signin', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-          }),
-        })
-
-        const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Sign in failed')
-        }
-
+        await appwriteService.signIn(formData.email, formData.password)
         onAuthSuccess()
       } else if (mode === 'forgotPassword') {
-        const response = await fetch('/api/auth/forgot-password', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: formData.email,
-          }),
-        })
-
-        const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to send reset email')
-        }
-
+        await appwriteService.forgotPassword(formData.email)
         setError('Password reset link sent to your email!')
       } else {
         const username = formData.username.startsWith('@')
           ? formData.username.substring(1)
           : formData.username
-
-        const response = await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-            username,
-            displayName: formData.displayName,
-          }),
-        })
-
-        const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Sign up failed')
-        }
-
+        await appwriteService.signUp(formData.email, formData.password, username, formData.displayName)
         onAuthSuccess()
       }
     } catch (err: any) {
