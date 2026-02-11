@@ -144,6 +144,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       // Make API request - cookies should be sent automatically
       const response = await fetch('/api/posts/create', {
         method: 'POST',
+        credentials: 'include', // Ensure cookies are sent
         body: formData,
       })
 
