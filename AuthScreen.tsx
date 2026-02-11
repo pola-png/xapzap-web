@@ -76,16 +76,66 @@ export function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
 
     try {
       if (mode === 'signin') {
-        await appwriteService.signIn(formData.email, formData.password)
+        const response = await fetch('/api/auth/signin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Sign in failed')
+        }
+
         onAuthSuccess()
       } else if (mode === 'forgotPassword') {
-        await appwriteService.forgotPassword(formData.email)
+        const response = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to send reset email')
+        }
+
         setError('Password reset link sent to your email!')
       } else {
         const username = formData.username.startsWith('@')
           ? formData.username.substring(1)
           : formData.username
-        await appwriteService.signUp(formData.email, formData.password, username, formData.displayName)
+
+        const response = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            username,
+            displayName: formData.displayName,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Sign up failed')
+        }
+
         onAuthSuccess()
       }
     } catch (err: any) {

@@ -846,7 +846,24 @@ class AppwriteService {
 
   async fetchPostsByUserIds(userIds: string[], limit = 20, cursor?: string) {
     if (userIds.length === 0) return { documents: [], total: 0 }
-    
+
+    // If only one user ID, use simple equal query
+    if (userIds.length === 1) {
+      const queries = [
+        Query.equal('userId', userIds[0]),
+        Query.orderDesc('$createdAt'),
+        Query.limit(limit)
+      ]
+      if (cursor) queries.push(Query.cursorAfter(cursor))
+
+      return await this.databases.listDocuments(
+        this.databaseId,
+        this.collections.posts,
+        queries
+      )
+    }
+
+    // For multiple user IDs, use OR query
     const orQueries = userIds.map(id => Query.equal('userId', id))
     const queries = [
       Query.or(orQueries),
@@ -1035,7 +1052,10 @@ class AppwriteService {
   }
 
   // Storage methods
-  async uploadFile(file: File, fileId: string) {
+  async uploadFile(file: File, customFileId?: string) {
+    // Generate a valid fileId (max 36 chars, only a-zA-Z0-9._-)
+    const fileId = customFileId || ID.unique()
+
     const uploadedFile = await this.storage.createFile(
       this.mediaBucketId,
       fileId,

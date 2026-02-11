@@ -110,70 +110,48 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
 
     setUploading(true)
     try {
-      const user = await appwriteService.getCurrentUser()
-      if (!user) throw new Error('User not authenticated')
+      // Prepare FormData for the API request
+      const formData = new FormData()
 
-      let mediaUrl = ''
-      let thumbnailUrl = ''
+      // Add basic post data
+      formData.append('kind', selectedType)
+      if (content.trim()) {
+        formData.append('content', content.trim())
+      }
+      if (title.trim()) {
+        formData.append('title', title.trim())
+      }
+      if (description.trim()) {
+        formData.append('description', description.trim())
+      }
+      if (textBgColor && content.trim() && !selectedFile) {
+        formData.append('textBgColor', textBgColor)
+      }
 
-      // Upload file if selected
+      // Add files
       if (selectedFile) {
-        const fileId = `${user.$id}_${Date.now()}_${selectedFile.name}`
-        const uploadedFile = await appwriteService.uploadFile(selectedFile, fileId)
-        mediaUrl = uploadedFile.url
+        formData.append('file', selectedFile)
+      }
 
-        // For videos, handle thumbnail upload
-        if (selectedType === 'video' || selectedType === 'reel') {
-          // Use custom thumbnail if provided, otherwise use generated thumbnail
-          const thumbnailToUpload = customThumbnail || generatedThumbnail
-          if (thumbnailToUpload) {
-            const thumbnailId = `${user.$id}_thumb_${Date.now()}.jpg`
-            const uploadedThumbnail = await appwriteService.uploadFile(thumbnailToUpload, thumbnailId)
-            thumbnailUrl = uploadedThumbnail.url
-          } else {
-            // Fallback to video URL if no thumbnail available
-            thumbnailUrl = mediaUrl
-          }
+      // Add thumbnail for videos/reels
+      if ((selectedType === 'video' || selectedType === 'reel')) {
+        const thumbnailToUpload = customThumbnail || generatedThumbnail
+        if (thumbnailToUpload) {
+          formData.append('thumbnail', thumbnailToUpload)
         }
       }
 
-      // Prepare post data based on type
-      const postData: any = {
-        userId: user.$id,
-        username: user.name || 'User',
-        kind: selectedType,
-        createdAt: new Date().toISOString()
-      }
+      // Make API request
+      const response = await fetch('/api/posts/create', {
+        method: 'POST',
+        body: formData,
+      })
 
-      // Add content/caption (required for all types)
-      if (content.trim()) {
-        postData.content = content.trim()
-      }
+      const data = await response.json()
 
-      // Add type-specific fields
-      if (selectedType === 'video') {
-        postData.videoUrl = mediaUrl
-        postData.thumbnailUrl = thumbnailUrl
-        if (title.trim()) postData.title = title.trim()
-        if (description.trim()) postData.description = description.trim()
-      } else if (selectedType === 'reel') {
-        postData.videoUrl = mediaUrl
-        postData.thumbnailUrl = thumbnailUrl
-        // Reels only have caption, no title/description
-      } else if (selectedType === 'image') {
-        postData.imageUrl = mediaUrl
-      } else if (selectedType === 'news') {
-        if (title.trim()) postData.title = title.trim()
-        // News content goes in the content field
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create post')
       }
-
-      // Add text background color for text-only posts
-      if (textBgColor && content.trim() && !selectedFile) {
-        postData.textBgColor = textBgColor
-      }
-
-      // Create the post
-      await appwriteService.createPost(postData)
 
       // Reset form and close
       setSelectedType(null)
@@ -188,9 +166,9 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       setThumbnailPreviewUrl(null)
       onClose()
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload failed:', error)
-      alert('Upload failed. Please try again.')
+      alert(error.message || 'Upload failed. Please try again.')
     } finally {
       setUploading(false)
     }
@@ -222,6 +200,19 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   const handleThumbnailSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file (JPG, PNG)')
+        return
+      }
+
+      // Validate file size (11MB limit)
+      const maxSize = 11 * 1024 * 1024 // 11MB in bytes
+      if (file.size > maxSize) {
+        alert('Thumbnail file size must be less than 11MB')
+        return
+      }
+
       setCustomThumbnail(file)
       const url = URL.createObjectURL(file)
       setThumbnailPreviewUrl(url)
@@ -235,7 +226,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     const Icon = currentType.icon
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
         {/* Left Side - Media Preview */}
         <div className="space-y-4">
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Preview</h2>
@@ -556,7 +547,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                   <div className="text-center">
                     <Image size={48} className={`mx-auto mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
                     <p className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Add thumbnail</p>
-                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>JPG, PNG up to 5MB</p>
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>JPG, PNG up to 11MB</p>
                   </div>
                 )}
               </div>
