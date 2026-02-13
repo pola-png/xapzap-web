@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useCallback } from 'react'
 import Image from 'next/image'
 import { normalizeWasabiImage } from '../lib/wasabi'
 
@@ -33,70 +32,12 @@ export function OptimizedImage({
   placeholder = 'empty',
   blurDataURL
 }: OptimizedImageProps) {
-  const [imageSrc, setImageSrc] = useState(() => normalizeWasabiImage(src) || src)
-  const [retryCount, setRetryCount] = useState(0)
-  const [hasError, setHasError] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-
-  const maxRetries = 3
-
-  const handleError = useCallback(() => {
-    if (retryCount < maxRetries) {
-      // Retry with original URL if proxy fails
-      setRetryCount(prev => prev + 1)
-      setImageSrc(src) // Try original URL
-      setHasError(false)
-    } else {
-      setHasError(true)
-      onError?.()
-    }
-  }, [retryCount, maxRetries, src, onError])
-
-  const handleLoad = useCallback(() => {
-    setIsLoading(false)
-    onLoad?.()
-  }, [onLoad])
-
-  // Show error state
-  if (hasError) {
-    return (
-      <div
-        className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 ${
-          fill ? 'absolute inset-0' : ''
-        } ${className || ''}`}
-        style={fill ? { width, height } : {}}
-      >
-        <div className="text-center">
-          <div className="text-2xl mb-2">📷</div>
-          <div className="text-sm">Image failed to load</div>
-          <button
-            onClick={() => {
-              setRetryCount(0)
-              setHasError(false)
-              setImageSrc(normalizeWasabiImage(src) || src)
-            }}
-            className="text-xs text-blue-500 hover:text-blue-400 mt-1 underline"
-          >
-            Try again
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // Show loading state
-  if (isLoading && !fill) {
-    return (
-      <div
-        className={`animate-pulse bg-gray-200 dark:bg-gray-700 ${className || ''}`}
-        style={{ width, height }}
-      />
-    )
-  }
+  // Convert to proxy URL
+  const proxySrc = normalizeWasabiImage(src) || src
 
   return (
     <Image
-      src={imageSrc}
+      src={proxySrc}
       alt={alt}
       width={fill ? undefined : width}
       height={fill ? undefined : height}
@@ -106,8 +47,8 @@ export function OptimizedImage({
       priority={priority}
       placeholder={placeholder}
       blurDataURL={blurDataURL}
-      onError={handleError}
-      onLoad={handleLoad}
+      onError={onError}
+      onLoad={onLoad}
       unoptimized // Since we're proxying, let the proxy handle optimization
     />
   )
