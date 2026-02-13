@@ -160,6 +160,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
         </div>
       )
     } else if (post.postType === 'video') {
+      const thumbnailSrc = normalizeWasabiImage(post.thumbnailUrl) || post.thumbnailUrl
       return (
         <>
           {/* Video display - 4:3 aspect ratio (standard video format) */}
@@ -168,16 +169,14 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
             style={{ aspectRatio: '4/3' }}
             onClick={() => router.push(`/watch/${post.id}`)}
           >
-                {post.thumbnailUrl && (
-                  <OptimizedImage
-                    src={normalizeWasabiImage(post.thumbnailUrl) || post.thumbnailUrl}
-                    alt="Video thumbnail"
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover"
-                    priority
-                  />
-                )}
+            {post.thumbnailUrl && (
+              <img
+                src={thumbnailSrc}
+                alt="Video thumbnail"
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            )}
             {/* Video overlay - always visible */}
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
               <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
