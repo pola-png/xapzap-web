@@ -41,8 +41,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Image not found' }, { status: 404 })
     }
 
-    // Get content type from metadata or default to jpeg
-    const contentType = response.ContentType || 'image/jpeg'
+    // Get content type from metadata or detect from extension
+    let contentType = response.ContentType
+    if (!contentType) {
+      const ext = key.split('.').pop()?.toLowerCase()
+      if (ext === 'jpg' || ext === 'jpeg') contentType = 'image/jpeg'
+      else if (ext === 'png') contentType = 'image/png'
+      else if (ext === 'gif') contentType = 'image/gif'
+      else if (ext === 'webp') contentType = 'image/webp'
+      else if (ext === 'mp4') contentType = 'video/mp4'
+      else if (ext === 'webm') contentType = 'video/webm'
+      else contentType = 'image/jpeg'
+    }
 
     // Return image with caching headers - pass the stream directly
     return new NextResponse(response.Body as any, {

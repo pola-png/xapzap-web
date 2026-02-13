@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2 } from 'lucide-react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
+import { normalizeWasabiImage } from './lib/wasabi'
 
 interface VideoDetailScreenProps {
   post: Post
@@ -172,7 +173,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       <div className="w-full h-3/4 flex items-center justify-center relative">
         <video
           ref={videoRef}
-          src={post.mediaUrls && post.mediaUrls[0]}
+          src={normalizeWasabiImage(post.mediaUrls && post.mediaUrls[0]) || (post.mediaUrls && post.mediaUrls[0])}
+          poster={normalizeWasabiImage(post.thumbnailUrl) || post.thumbnailUrl}
           className="w-full h-full object-contain"
           onClick={handleVideoClick}
           muted={isMuted}
