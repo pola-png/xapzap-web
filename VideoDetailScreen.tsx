@@ -172,7 +172,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       <div className="w-full h-3/4 flex items-center justify-center relative">
         <video
           ref={videoRef}
-          src={post.videoUrl || (post.mediaUrls && post.mediaUrls[0])}
+          src={post.mediaUrls && post.mediaUrls[0]}
           className="w-full h-full object-contain"
           onClick={handleVideoClick}
           muted={isMuted}
@@ -525,7 +525,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
       <div className="relative w-full h-full">
         <video
           ref={videoRef}
-          src={post.videoUrl || (post.mediaUrls && post.mediaUrls[0])}
+          src={post.mediaUrls && post.mediaUrls[0]}
           className="w-full h-full object-cover"
           onClick={handleVideoClick}
           muted={isMuted}
