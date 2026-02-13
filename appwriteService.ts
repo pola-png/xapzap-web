@@ -342,11 +342,25 @@ class AppwriteService {
   }
 
   async getPost(postId: string) {
-    return await this.databases.getDocument(
-      this.databaseId,
-      this.collections.posts,
-      postId
-    )
+    try {
+      // Try direct get first (faster for authenticated users)
+      return await this.databases.getDocument(
+        this.databaseId,
+        this.collections.posts,
+        postId
+      )
+    } catch (error) {
+      // Fallback to listDocuments for public access (guests)
+      const result = await this.databases.listDocuments(
+        this.databaseId,
+        this.collections.posts,
+        [
+          Query.equal('$id', postId),
+          Query.limit(1)
+        ]
+      )
+      return result.documents[0] || null
+    }
   }
 
   async createPost(data: any) {

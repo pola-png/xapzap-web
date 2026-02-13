@@ -19,12 +19,15 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const path = searchParams.get('path')
 
+    console.log('Proxy request - path:', path)
+
     if (!path) {
       return NextResponse.json({ error: 'Path parameter required' }, { status: 400 })
     }
 
     // Construct the S3 key - use path directly (private files)
     const key = path.startsWith('/') ? path.substring(1) : path
+    console.log('Proxy request - key:', key)
 
     // Fetch image from Wasabi
     const command = new GetObjectCommand({

@@ -67,7 +67,7 @@ export default function WatchDetailPage() {
         } as Post)
       } catch (err) {
         console.error('Failed to load post:', err)
-        setError('Failed to load video')
+        setError('Video not found or access denied. Try viewing from home feed.')
       } finally {
         setLoading(false)
       }
