@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Play } from 'lucide-react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
+import { OptimizedImage } from './components/OptimizedImage'
+import { normalizeWasabiImageArray, normalizeWasabiImage } from './lib/wasabi'
 
 interface PostCardProps {
   post: Post
@@ -132,6 +134,121 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
     }
   }
 
+  // Render media content
+  const renderMedia = () => {
+    if (!post.mediaUrls || post.mediaUrls.length === 0) return null
+
+    // Normalize media URLs to proxy URLs
+    const normalizedUrls = normalizeWasabiImageArray(post.mediaUrls)
+    const mainImageUrl = normalizedUrls.length > 0 ? normalizedUrls[0] : null
+
+    if (post.postType === 'image') {
+      // Image display - 1:1 on feeds, full on details
+      return (
+        <div className={`w-full rounded-xl mb-3 overflow-hidden ${
+          feedType === 'watch' ? 'max-h-[70vh]' : 'aspect-square'
+        }`}>
+          <OptimizedImage
+            src={mainImageUrl || ''}
+            alt="Post"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className={`${
+              feedType === 'watch' ? 'object-contain' : 'object-cover'
+            }`}
+          />
+        </div>
+      )
+    } else if (post.postType === 'video') {
+      return (
+        <>
+          {/* Video display - 4:3 aspect ratio (standard video format) */}
+          <div
+            className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden"
+            style={{ aspectRatio: '4/3' }}
+            onClick={() => router.push(`/watch/${post.id}`)}
+          >
+            {post.thumbnailUrl && (
+              <OptimizedImage
+                src={normalizeWasabiImage(post.thumbnailUrl) || post.thumbnailUrl}
+                alt="Video thumbnail"
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-cover"
+              />
+            )}
+            {/* Video overlay - always visible */}
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
+                <Play className="w-8 h-8 text-black ml-1" fill="currentColor" />
+              </div>
+            </div>
+          </div>
+
+          {/* Title between video and reactions */}
+          {post.title && (
+            <div className="mb-3 px-2">
+              <h3 className="text-gray-900 dark:text-white font-semibold text-lg line-clamp-2">{post.title}</h3>
+            </div>
+          )}
+        </>
+      )
+    } else if (post.postType === 'reel') {
+      // Reel display - 1:1 on feeds, 9:16 on reels/details
+      if ((feedType as string) === 'reels') {
+        // Reels page - 9:16 vertical
+        return (
+          <div className="relative">
+            <video
+              src={post.mediaUrls[0]}
+              poster={post.thumbnailUrl}
+              className="w-full rounded-xl mb-3 object-cover"
+              style={{ aspectRatio: '9/16' }}
+              controls
+              preload="metadata"
+              autoPlay={false}
+              muted
+            />
+            {/* Title overlay on reels */}
+            {post.title && (
+              <div className="absolute top-4 left-4 right-4 bg-black/60 rounded-lg p-3">
+                <h3 className="text-white font-semibold text-sm line-clamp-2">{post.title}</h3>
+              </div>
+            )}
+          </div>
+        )
+      } else {
+        // Other feeds - 1:1 square
+        return (
+          <div
+            className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden aspect-square"
+            onClick={() => router.push(`/reels/${post.id}`)}
+          >
+            <img
+              src={post.thumbnailUrl || post.mediaUrls[0]}
+              alt="Reel thumbnail"
+              className="w-full h-full object-cover"
+            />
+            {/* Reel overlay */}
+            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+              <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
+                <Play className="w-6 h-6 text-black ml-0.5" fill="currentColor" />
+              </div>
+            </div>
+            {/* Title below reel */}
+            {post.title && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                <h3 className="text-white font-semibold text-sm line-clamp-1">{post.title}</h3>
+              </div>
+            )}
+          </div>
+        )
+      }
+    }
+
+    return null
+  }
+
   return (
     <div className="border-b border-gray-200 dark:border-gray-700">
       {/* Header */}
@@ -190,93 +307,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
         ) : null}
 
         {/* Display media from mediaUrls array */}
-        {post.mediaUrls && post.mediaUrls.length > 0 && (
-          (post.postType === 'image') ? (
-            // Image display - 1:1 on feeds, full on details
-            <img
-              src={post.mediaUrls[0]}
-              alt="Post"
-              className={`w-full rounded-xl mb-3 ${
-                feedType === 'watch' ? 'max-h-[70vh] object-contain' : 'aspect-square object-cover'
-              }`}
-            />
-          ) : (post.postType === 'video') ? (
-            <>
-              {/* Video display - 4:3 aspect ratio (standard video format) */}
-              <div
-                className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden"
-                style={{ aspectRatio: '4/3' }}
-                onClick={() => router.push(`/watch/${post.id}`)}
-              >
-                <img
-                  src={post.thumbnailUrl || (post.mediaUrls && post.mediaUrls[0])}
-                  alt="Video thumbnail"
-                  className="w-full h-full object-cover"
-                />
-                {/* Video overlay - always visible */}
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
-                    <Play className="w-8 h-8 text-black ml-1" fill="currentColor" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Title between video and reactions */}
-              {post.title && (
-                <div className="mb-3 px-2">
-                  <h3 className="text-gray-900 dark:text-white font-semibold text-lg line-clamp-2">{post.title}</h3>
-                </div>
-              )}
-            </>
-          ) : (post.postType === 'reel') ? (
-            // Reel display - 1:1 on feeds, 9:16 on reels/details
-            (feedType as string) === 'reels' ? (
-              // Reels page - 9:16 vertical
-              <div className="relative">
-                <video
-                  src={post.mediaUrls[0]}
-                  poster={post.thumbnailUrl}
-                  className="w-full rounded-xl mb-3 object-cover"
-                  style={{ aspectRatio: '9/16' }}
-                  controls
-                  preload="metadata"
-                  autoPlay={false}
-                  muted
-                />
-                {/* Title overlay on reels */}
-                {post.title && (
-                  <div className="absolute top-4 left-4 right-4 bg-black/60 rounded-lg p-3">
-                    <h3 className="text-white font-semibold text-sm line-clamp-2">{post.title}</h3>
-                  </div>
-                )}
-              </div>
-            ) : (
-              // Other feeds - 1:1 square
-              <div
-                className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden aspect-square"
-                onClick={() => router.push(`/reels/${post.id}`)}
-              >
-                <img
-                  src={post.thumbnailUrl || post.mediaUrls[0]}
-                  alt="Reel thumbnail"
-                  className="w-full h-full object-cover"
-                />
-                {/* Reel overlay */}
-                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                  <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
-                    <Play className="w-6 h-6 text-black ml-0.5" fill="currentColor" />
-                  </div>
-                </div>
-                {/* Title below reel */}
-                {post.title && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-                    <h3 className="text-white font-semibold text-sm line-clamp-1">{post.title}</h3>
-                  </div>
-                )}
-              </div>
-            )
-          ) : null
-        )}
+        {renderMedia()}
 
         {post.postType === 'news' && post.title && (
           <div className="border-l-4 border-blue-500 pl-4 mb-3">
