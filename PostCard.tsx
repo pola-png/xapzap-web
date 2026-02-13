@@ -160,22 +160,34 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
         </div>
       )
     } else if (post.postType === 'video') {
-      const thumbnailSrc = normalizeWasabiImage(post.thumbnailUrl) || post.thumbnailUrl
+      // Get thumbnail URL with multiple fallbacks
+      const thumbnailSrc = post.thumbnailUrl 
+        ? (normalizeWasabiImage(post.thumbnailUrl) || post.thumbnailUrl)
+        : (post.mediaUrls && post.mediaUrls[0]) // Fallback to video URL
+      
       return (
         <>
           {/* Video display - 4:3 aspect ratio (standard video format) */}
           <div
-            className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden"
+            className="relative w-full rounded-xl mb-3 bg-gray-900 cursor-pointer overflow-hidden"
             style={{ aspectRatio: '4/3' }}
             onClick={() => router.push(`/watch/${post.id}`)}
           >
-            {post.thumbnailUrl && (
+            {thumbnailSrc ? (
               <img
                 src={thumbnailSrc}
                 alt="Video thumbnail"
                 className="w-full h-full object-cover"
                 loading="lazy"
+                onError={(e) => {
+                  console.log('Thumbnail failed to load:', thumbnailSrc)
+                  e.currentTarget.style.display = 'none'
+                }}
               />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white">
+                <Play className="w-16 h-16" />
+              </div>
             )}
             {/* Video overlay - always visible */}
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
