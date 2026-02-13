@@ -22,22 +22,32 @@ export default function WatchDetailPage() {
         setPost({
           ...postData,
           id: postData.$id,
-          postId: postData.$id,
+          postId: postData.postId || postData.$id,
           userId: postData.userId || '',
           username: postData.username || 'User',
           userAvatar: postData.userAvatar || '',
           content: postData.content || '',
+          postType: postData.postType || 'video',
+          title: postData.title || '',
+          thumbnailUrl: postData.thumbnailUrl || '',
+          mediaUrls: postData.mediaUrls || (postData.videoUrl ? [postData.videoUrl] : []),
           timestamp: new Date(postData.$createdAt || postData.createdAt),
           createdAt: postData.$createdAt || postData.createdAt,
           likes: postData.likes || 0,
           comments: postData.comments || 0,
           reposts: postData.reposts || 0,
+          shares: postData.shares || 0,
           impressions: postData.impressions || 0,
           views: postData.views || 0,
           isLiked: false,
           isReposted: false,
           isSaved: false,
-          isBoosted: false
+          sourcePostId: postData.sourcePostId,
+          sourceUserId: postData.sourceUserId,
+          sourceUsername: postData.sourceUsername,
+          textBgColor: postData.textBgColor,
+          isBoosted: postData.isBoosted || false,
+          activeBoostId: postData.activeBoostId || ''
         } as Post)
       } catch (err) {
         console.error('Failed to load post:', err)
