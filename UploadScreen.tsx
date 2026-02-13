@@ -142,29 +142,11 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         }
       }
 
-      // Get session token first
-      console.log('Getting session token...')
-      const sessionResponse = await fetch('/api/auth/session', {
-        method: 'GET',
-        credentials: 'include',
-      })
-
-      let sessionToken = null
-      if (sessionResponse.ok) {
-        const sessionData = await sessionResponse.json()
-        sessionToken = sessionData.token
-        console.log('Got session token:', sessionToken.substring(0, 20) + '...')
-      } else {
-        console.log('No session token found')
-      }
-
-      // Make API request with session token
+      // Make API request - cookies should be sent automatically
+      console.log('Making upload request with cookies...')
       const response = await fetch('/api/posts/create', {
         method: 'POST',
-        headers: sessionToken ? {
-          'Authorization': `Bearer ${sessionToken}`,
-        } : {},
-        credentials: 'include', // Fallback to cookies
+        credentials: 'include', // Send cookies with request
         body: formData,
       })
 

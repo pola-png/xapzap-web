@@ -18,9 +18,21 @@ const mediaBucketId = '6915baaa00381391d7b2'
 // Helper function to get current user from session
 async function getCurrentUser(request: NextRequest) {
   try {
+    console.log('=== AUTH DEBUG START ===')
+
+    // Log all headers
+    console.log('All headers:', Object.fromEntries(request.headers.entries()))
+
+    // Log all cookies
+    const allCookies = request.cookies.getAll()
+    console.log('All cookies:', allCookies.map(c => ({ name: c.name, value: c.value.substring(0, 20) + '...' })))
+
     // Try multiple ways to get the session
     const authHeader = request.headers.get('authorization')
     const sessionToken = authHeader?.replace('Bearer ', '')
+
+    console.log('Auth header:', authHeader ? 'present' : 'missing')
+    console.log('Session token from header:', sessionToken ? 'present' : 'missing')
 
     // Try different cookie names
     const cookieNames = [
@@ -30,32 +42,41 @@ async function getCurrentUser(request: NextRequest) {
     ]
 
     let cookieValue = null
+    let foundCookieName = null
     for (const cookieName of cookieNames) {
-      cookieValue = request.cookies.get(cookieName)?.value
-      if (cookieValue) break
+      const cookie = request.cookies.get(cookieName)
+      if (cookie?.value) {
+        cookieValue = cookie.value
+        foundCookieName = cookieName
+        console.log(`Found cookie: ${cookieName}`)
+        break
+      }
     }
 
     const finalToken = sessionToken || cookieValue
 
     if (!finalToken) {
-      console.log('No session token found in headers or cookies')
+      console.log('❌ No session token found in headers or cookies')
+      console.log('=== AUTH DEBUG END ===')
       return null
     }
 
-    console.log('Using session token:', finalToken.substring(0, 20) + '...')
+    console.log(`✅ Using session token from ${sessionToken ? 'header' : `cookie ${foundCookieName}`}:`, finalToken.substring(0, 20) + '...')
 
     // Create client with session
     const sessionClient = new Client()
       .setEndpoint('https://nyc.cloud.appwrite.io/v1')
       .setProject('690641ad0029b51eefe0')
       .setSession(finalToken)
-    
+
     const sessionAccount = new Account(sessionClient)
     const user = await sessionAccount.get()
-    console.log('Authenticated user:', user.$id)
+    console.log('✅ Authenticated user:', user.$id)
+    console.log('=== AUTH DEBUG END ===')
     return user
   } catch (error) {
-    console.error('Auth error:', error)
+    console.error('❌ Auth error:', error)
+    console.log('=== AUTH DEBUG END ===')
     return null
   }
 }
