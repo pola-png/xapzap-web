@@ -212,14 +212,6 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
                   src={post.thumbnailUrl || (post.mediaUrls && post.mediaUrls[0])}
                   alt="Video thumbnail"
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    console.log('Thumbnail failed to load:', post.thumbnailUrl);
-                    // For videos, don't try to load video URL as image
-                    // Just hide the broken image - the play button will still show
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                  onLoad={() => console.log('Thumbnail loaded successfully:', post.thumbnailUrl || post.mediaUrls?.[0])}
                 />
                 {/* Video overlay - always visible */}
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
