@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Client, Account, Databases, Storage, ID } from 'appwrite'
+import { Client, Account, Databases, ID } from 'appwrite'
+import storageService from '../../../../storage'
 
 const client = new Client()
   .setEndpoint('https://nyc.cloud.appwrite.io/v1')
@@ -7,79 +8,13 @@ const client = new Client()
 
 const account = new Account(client)
 const databases = new Databases(client)
-const storage = new Storage(client)
 
 const databaseId = 'xapzap_db'
 const collections = {
   posts: 'posts'
 }
-const mediaBucketId = '6915baaa00381391d7b2'
 
-// Helper function to get current user from session
-async function getCurrentUser(request: NextRequest) {
-  try {
-    console.log('=== AUTH DEBUG START ===')
 
-    // Log all headers
-    console.log('All headers:', Object.fromEntries(request.headers.entries()))
-
-    // Log all cookies
-    const allCookies = request.cookies.getAll()
-    console.log('All cookies:', allCookies.map(c => ({ name: c.name, value: c.value.substring(0, 20) + '...' })))
-
-    // Try multiple ways to get the session
-    const authHeader = request.headers.get('authorization')
-    const sessionToken = authHeader?.replace('Bearer ', '')
-
-    console.log('Auth header:', authHeader ? 'present' : 'missing')
-    console.log('Session token from header:', sessionToken ? 'present' : 'missing')
-
-    // Try different cookie names
-    const cookieNames = [
-      'a_session_690641ad0029b51eefe0',
-      'a_session_690641ad0029b51eefe0_legacy',
-      'session'
-    ]
-
-    let cookieValue = null
-    let foundCookieName = null
-    for (const cookieName of cookieNames) {
-      const cookie = request.cookies.get(cookieName)
-      if (cookie?.value) {
-        cookieValue = cookie.value
-        foundCookieName = cookieName
-        console.log(`Found cookie: ${cookieName}`)
-        break
-      }
-    }
-
-    const finalToken = sessionToken || cookieValue
-
-    if (!finalToken) {
-      console.log('❌ No session token found in headers or cookies')
-      console.log('=== AUTH DEBUG END ===')
-      return null
-    }
-
-    console.log(`✅ Using session token from ${sessionToken ? 'header' : `cookie ${foundCookieName}`}:`, finalToken.substring(0, 20) + '...')
-
-    // Create client with JWT (session token is actually a JWT)
-    const sessionClient = new Client()
-      .setEndpoint('https://nyc.cloud.appwrite.io/v1')
-      .setProject('690641ad0029b51eefe0')
-      .setJWT(finalToken)
-
-    const sessionAccount = new Account(sessionClient)
-    const user = await sessionAccount.get()
-    console.log('✅ Authenticated user:', user.$id)
-    console.log('=== AUTH DEBUG END ===')
-    return user
-  } catch (error) {
-    console.error('❌ Auth error:', error)
-    console.log('=== AUTH DEBUG END ===')
-    return null
-  }
-}
 
 // Helper function to get authenticated services
 async function getAuthenticatedServices(request: NextRequest) {
@@ -91,7 +26,7 @@ async function getAuthenticatedServices(request: NextRequest) {
     return null
   }
 
-  // Create authenticated client
+  // Create authenticated client for database operations
   const authClient = new Client()
     .setEndpoint('https://nyc.cloud.appwrite.io/v1')
     .setProject('690641ad0029b51eefe0')
@@ -99,15 +34,13 @@ async function getAuthenticatedServices(request: NextRequest) {
 
   const authAccount = new Account(authClient)
   const authDatabases = new Databases(authClient)
-  const authStorage = new Storage(authClient)
 
   // Verify user
   const user = await authAccount.get()
 
   return {
     user,
-    databases: authDatabases,
-    storage: authStorage
+    databases: authDatabases
   }
 }
 
@@ -122,7 +55,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { user, databases, storage } = auth
+    const { user, databases } = auth
 
     const formData = await request.formData()
     const postData: any = {}
@@ -136,20 +69,13 @@ export async function POST(request: NextRequest) {
     postData.description = formData.get('description') || ''
     postData.textBgColor = formData.get('textBgColor') || ''
 
-    // Handle file uploads
+    // Handle file uploads to Wasabi
     const file = formData.get('file') as File
     const thumbnail = formData.get('thumbnail') as File
 
     if (file) {
-      // Upload main file
-      const fileId = ID.unique()
-      const uploadedFile = await storage.createFile(
-        mediaBucketId,
-        fileId,
-        file
-      )
-
-      const fileUrl = storage.getFileView(mediaBucketId, uploadedFile.$id)
+      // Upload main file to Wasabi - returns CDN URL directly
+      const fileUrl = await storageService.uploadFile(file)
 
       // Set appropriate URL based on post type
       if (postData.kind === 'video' || postData.kind === 'reel') {
@@ -159,16 +85,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Handle thumbnail upload
+    // Handle thumbnail upload to Wasabi
     if (thumbnail && (postData.kind === 'video' || postData.kind === 'reel')) {
-      const thumbnailId = ID.unique()
-      const uploadedThumbnail = await storage.createFile(
-        mediaBucketId,
-        thumbnailId,
-        thumbnail
-      )
-
-      const thumbnailUrl = storage.getFileView(mediaBucketId, uploadedThumbnail.$id)
+      // Upload thumbnail to Wasabi - returns CDN URL directly
+      const thumbnailUrl = await storageService.uploadFile(thumbnail)
       postData.thumbnailUrl = thumbnailUrl
     }
 

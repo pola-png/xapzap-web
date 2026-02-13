@@ -142,23 +142,15 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         }
       }
 
-      // Try to get session token using Appwrite SDK
-      console.log('Getting session token...')
-      let sessionToken = null
-
-      // ONLY USE JWT - Session ID doesn't work for server auth
-      console.log('Creating JWT token for server auth...')
+      // Get JWT token for server authentication
       const appwriteService = (await import('./appwriteService')).default
       const jwt = await appwriteService.createJWT()
-      console.log('JWT response:', jwt)
 
-      if (jwt && jwt.jwt) {
-        sessionToken = jwt.jwt
-        console.log('✅ Using JWT token:', sessionToken.substring(0, 20) + '...')
-      } else {
-        console.log('❌ JWT creation failed - no jwt property in response')
+      if (!jwt?.jwt) {
         throw new Error('Failed to create authentication token')
       }
+
+      const sessionToken = jwt.jwt
 
       // Make API request with session token
       console.log('Making upload request...')
