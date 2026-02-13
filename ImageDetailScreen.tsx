@@ -34,12 +34,13 @@ export function ImageDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <button
           onClick={() => setShowFullImage(false)}
           className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors z-10"
+          aria-label="Close full size image"
         >
           <X size={24} />
         </button>
         
         <img
-          src={post.imageUrl}
+          src={post.mediaUrls?.[0]}
           alt="Full size image"
           className="max-w-full max-h-full object-contain"
           onClick={() => setShowFullImage(false)}
@@ -55,6 +56,7 @@ export function ImageDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <button
           onClick={onClose}
           className="p-2 hover:bg-accent rounded-full transition-colors"
+          aria-label="Go back"
         >
           <ArrowLeft size={20} />
         </button>
@@ -62,6 +64,7 @@ export function ImageDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <button
           onClick={() => setShowComments(true)}
           className="p-2 hover:bg-accent rounded-full transition-colors"
+          aria-label="View comments"
         >
           <MessageCircle size={20} />
         </button>
@@ -71,21 +74,21 @@ export function ImageDetailScreen({ post, onClose, isGuest = false, onGuestActio
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           {/* Image */}
-          {post.imageUrl && (
+          {post.mediaUrls && post.mediaUrls.length > 0 && (
             <div className="relative">
               <img
-                src={post.imageUrl}
+                src={post.mediaUrls[0]}
                 alt="Post image"
                 className="w-full max-h-[70vh] object-contain cursor-zoom-in"
                 onClick={() => setShowFullImage(true)}
               />
             </div>
           )}
-          
+
           {/* Post Info */}
           <div className="border-t border-border">
             <PostCard
-              post={{ ...post, imageUrl: undefined }}
+              post={post}
               isGuest={isGuest}
               onGuestAction={onGuestAction}
             />
