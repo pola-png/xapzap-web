@@ -351,15 +351,23 @@ class AppwriteService {
       )
     } catch (error) {
       // Fallback to listDocuments for public access (guests)
-      const result = await this.databases.listDocuments(
-        this.databaseId,
-        this.collections.posts,
-        [
-          Query.equal('$id', postId),
-          Query.limit(1)
-        ]
-      )
-      return result.documents[0] || null
+      try {
+        const result = await this.databases.listDocuments(
+          this.databaseId,
+          this.collections.posts,
+          [
+            Query.equal('$id', postId),
+            Query.limit(1)
+          ]
+        )
+        if (result.documents.length > 0) {
+          return result.documents[0]
+        }
+        throw new Error('Post not found')
+      } catch (fallbackError) {
+        console.error('Failed to fetch post:', fallbackError)
+        throw new Error('Post not found')
+      }
     }
   }
 
