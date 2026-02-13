@@ -62,7 +62,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
     // Check if user is authenticated
     const currentUser = await appwriteService.getCurrentUser()
     if (!currentUser) {
-      console.error('User must be signed in to like posts')
+      // Guest users can't like - silently ignore or show message
       return
     }
 
@@ -91,7 +91,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
     // Check if user is authenticated
     const currentUser = await appwriteService.getCurrentUser()
     if (!currentUser) {
-      console.error('User must be signed in to save posts')
+      // Guest users can't save - silently ignore
       return
     }
 
@@ -113,7 +113,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
     // Check if user is authenticated
     const currentUser = await appwriteService.getCurrentUser()
     if (!currentUser) {
-      console.error('User must be signed in to repost')
+      // Guest users can't repost - silently ignore
       return
     }
 
