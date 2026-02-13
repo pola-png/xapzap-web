@@ -189,52 +189,55 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
           <p className="text-gray-900 dark:text-white text-base leading-relaxed mb-3">{post.content}</p>
         ) : null}
 
-        {(post.imageUrl || (post.mediaUrls && post.mediaUrls.length > 0 && !post.videoUrl && (!post.kind || post.kind === 'standard'))) && (
-          <img
-            src={post.imageUrl || (post.mediaUrls && post.mediaUrls[0])}
-            alt="Post"
-            className="w-full rounded-xl mb-3"
-          />
-        )}
-
-        {(post.videoUrl || (post.kind === 'video' || post.kind === 'reel') || (post.mediaUrls && post.mediaUrls.length > 0 && post.thumbnailUrl)) && (
-          (feedType as string) === 'reels' ? (
-            <video
-              src={post.videoUrl || (post.mediaUrls && post.mediaUrls[0])}
-              poster={post.thumbnailUrl}
-              className="w-full h-96 rounded-xl mb-3 object-cover"
-              controls
-              preload="metadata"
-              autoPlay={false}
-              muted
+        {/* Display media from mediaUrls array */}
+        {post.mediaUrls && post.mediaUrls.length > 0 && (
+          (post.postType === 'image') ? (
+            // Image display
+            <img
+              src={post.mediaUrls[0]}
+              alt="Post"
+              className="w-full rounded-xl mb-3"
             />
-          ) : (
-            <div
-              className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden"
-              onClick={() => {
-                // Navigate to appropriate detail page based on video type
-                if (post.kind === 'reel' || feedType === 'reels') {
-                  router.push(`/reels/${post.id}`)
-                } else {
-                  router.push(`/watch/${post.id}`)
-                }
-              }}
-            >
-              <img
-                src={post.thumbnailUrl || (post.mediaUrls && post.mediaUrls[0])}
-                alt="Video thumbnail"
-                className="w-full h-64 object-cover"
+          ) : (post.postType === 'video' || post.postType === 'reel') ? (
+            // Video display
+            (feedType as string) === 'reels' ? (
+              <video
+                src={post.mediaUrls[0]}
+                poster={post.thumbnailUrl}
+                className="w-full h-96 rounded-xl mb-3 object-cover"
+                controls
+                preload="metadata"
+                autoPlay={false}
+                muted
               />
-              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
-                  <Play className="w-8 h-8 text-black ml-1" fill="currentColor" />
+            ) : (
+              <div
+                className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden"
+                onClick={() => {
+                  // Navigate to appropriate detail page based on video type
+                  if (post.postType === 'reel' || feedType === 'reels') {
+                    router.push(`/reels/${post.id}`)
+                  } else {
+                    router.push(`/watch/${post.id}`)
+                  }
+                }}
+              >
+                <img
+                  src={post.thumbnailUrl || post.mediaUrls[0]}
+                  alt="Video thumbnail"
+                  className="w-full h-64 object-cover"
+                />
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                  <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
+                    <Play className="w-8 h-8 text-black ml-1" fill="currentColor" />
+                  </div>
                 </div>
               </div>
-            </div>
-          )
+            )
+          ) : null
         )}
 
-        {post.kind === 'news' && post.title && (
+        {post.postType === 'news' && post.title && (
           <div className="border-l-4 border-blue-500 pl-4 mb-3">
             <h3 className="font-bold text-lg text-gray-900 dark:text-white">{post.title}</h3>
           </div>

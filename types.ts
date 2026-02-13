@@ -5,17 +5,16 @@ export interface Post {
   username: string
   userAvatar: string
   content: string
-  imageUrl?: string
-  videoUrl?: string
-  kind?: 'standard' | 'video' | 'reel' | 'news'
+  postType: 'text' | 'image' | 'video' | 'reel' | 'news' | 'stories'
   title?: string
   thumbnailUrl?: string
-  mediaUrls?: string[]
+  mediaUrls: string[]
   timestamp: Date
   createdAt: string
   likes: number
   comments: number
   reposts: number
+  shares: number
   impressions: number
   views: number
   isLiked: boolean
