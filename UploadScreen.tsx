@@ -146,43 +146,18 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       console.log('Getting session token...')
       let sessionToken = null
 
-      try {
-        // Create JWT token for server-side authentication
-        const appwriteService = (await import('./appwriteService')).default
-        const jwt = await appwriteService.createJWT()
-        console.log('Created JWT for server auth:', jwt)
+      // ONLY USE JWT - Session ID doesn't work for server auth
+      console.log('Creating JWT token for server auth...')
+      const appwriteService = (await import('./appwriteService')).default
+      const jwt = await appwriteService.createJWT()
+      console.log('JWT response:', jwt)
 
-        if (jwt && jwt.jwt) {
-          sessionToken = jwt.jwt
-          console.log('Using JWT token:', sessionToken.substring(0, 20) + '...')
-        }
-      } catch (error) {
-        console.log('Error creating JWT:', error)
-
-        // Fallback: Check localStorage
-        console.log('Trying localStorage fallback...')
-        console.log('All localStorage keys:', Object.keys(localStorage))
-
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i)
-          if (key && key.includes('session')) {
-            console.log(`Session key found: ${key}`)
-            const value = localStorage.getItem(key)
-            if (value) {
-              try {
-                const parsed = JSON.parse(value)
-                console.log(`Parsed ${key}:`, parsed)
-                if (parsed.$id) {
-                  sessionToken = parsed.$id
-                  console.log('Found session token in localStorage:', sessionToken)
-                  break
-                }
-              } catch (e) {
-                console.log(`Could not parse ${key} value`)
-              }
-            }
-          }
-        }
+      if (jwt && jwt.jwt) {
+        sessionToken = jwt.jwt
+        console.log('✅ Using JWT token:', sessionToken.substring(0, 20) + '...')
+      } else {
+        console.log('❌ JWT creation failed - no jwt property in response')
+        throw new Error('Failed to create authentication token')
       }
 
       // Make API request with session token

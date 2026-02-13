@@ -14,39 +14,46 @@ const collections = {
   posts: 'posts'
 }
 
-// Helper function to get current user from session
-async function getCurrentUser(request: NextRequest) {
-  try {
-    // Get session token from Authorization header or cookie
-    const authHeader = request.headers.get('authorization')
-    const sessionToken = authHeader?.replace('Bearer ', '') ||
-                        request.cookies.get('a_session_690641ad0029b51eefe0')?.value
+// Helper function to get authenticated services
+async function getAuthenticatedServices(request: NextRequest) {
+  // Get session token
+  const authHeader = request.headers.get('authorization')
+  const sessionToken = authHeader?.replace('Bearer ', '')
 
-    if (!sessionToken) {
-      return null
-    }
-
-    // Create account instance with JWT
-    const account = new Account(client)
-    client.setJWT(sessionToken)
-    return await account.get()
-  } catch (error) {
-    console.error('Auth error:', error)
+  if (!sessionToken) {
     return null
+  }
+
+  // Create authenticated client
+  const authClient = new Client()
+    .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+    .setProject('690641ad0029b51eefe0')
+    .setJWT(sessionToken)
+
+  const authAccount = new Account(authClient)
+  const authDatabases = new Databases(authClient)
+
+  // Verify user
+  const user = await authAccount.get()
+
+  return {
+    user,
+    databases: authDatabases
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const user = await getCurrentUser(request)
-    if (!user) {
+    // Get authenticated services
+    const auth = await getAuthenticatedServices(request)
+    if (!auth) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       )
     }
 
+    const { user, databases } = auth
     const { postId } = await request.json()
 
     if (!postId) {

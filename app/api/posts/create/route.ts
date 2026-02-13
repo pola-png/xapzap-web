@@ -81,16 +81,48 @@ async function getCurrentUser(request: NextRequest) {
   }
 }
 
+// Helper function to get authenticated services
+async function getAuthenticatedServices(request: NextRequest) {
+  // Get session token
+  const authHeader = request.headers.get('authorization')
+  const sessionToken = authHeader?.replace('Bearer ', '')
+
+  if (!sessionToken) {
+    return null
+  }
+
+  // Create authenticated client
+  const authClient = new Client()
+    .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+    .setProject('690641ad0029b51eefe0')
+    .setJWT(sessionToken)
+
+  const authAccount = new Account(authClient)
+  const authDatabases = new Databases(authClient)
+  const authStorage = new Storage(authClient)
+
+  // Verify user
+  const user = await authAccount.get()
+
+  return {
+    user,
+    databases: authDatabases,
+    storage: authStorage
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const user = await getCurrentUser(request)
-    if (!user) {
+    // Get authenticated services
+    const auth = await getAuthenticatedServices(request)
+    if (!auth) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       )
     }
+
+    const { user, databases, storage } = auth
 
     const formData = await request.formData()
     const postData: any = {}
@@ -148,7 +180,7 @@ export async function POST(request: NextRequest) {
     postData.impressions = 0
     postData.views = 0
 
-    // Create the post
+    // Create the post using authenticated database client
     const postId = ID.unique()
     const post = await databases.createDocument(
       databaseId,
