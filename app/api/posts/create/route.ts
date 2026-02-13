@@ -63,9 +63,13 @@ export async function POST(request: NextRequest) {
     // Extract basic post data
     postData.userId = user.$id
     postData.username = user.name || 'User'
-    postData.postType = formData.get('kind') as string || 'image' // Use postType instead of kind
+    const postTypeValue = formData.get('kind') as string || 'text'
+    postData.postType = postTypeValue // Required field: text, image, video, reel, stories
     postData.content = formData.get('content') as string || ''
     postData.title = formData.get('title') as string || ''
+
+    // Initialize mediaUrls array
+    postData.mediaUrls = []
 
     // Handle file uploads to Wasabi
     const file = formData.get('file') as File
@@ -74,13 +78,8 @@ export async function POST(request: NextRequest) {
     if (file) {
       // Upload main file to Wasabi - returns CDN URL directly
       const fileUrl = await storageService.uploadFile(file)
-
-      // Set appropriate URL based on post type
-      if (postData.postType === 'video' || postData.postType === 'reel') {
-        postData.videoUrl = fileUrl
-      } else if (postData.postType === 'image') {
-        postData.imageUrl = fileUrl
-      }
+      // Add to mediaUrls array
+      postData.mediaUrls.push(fileUrl)
     } else {
       // Text-only post - set background color if provided
       const textBgColorHex = formData.get('textBgColor') as string
