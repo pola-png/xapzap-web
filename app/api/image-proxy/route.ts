@@ -23,8 +23,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Path parameter required' }, { status: 400 })
     }
 
-    // Construct the S3 key (remove any leading slashes)
-    const key = path.startsWith('/') ? path.substring(1) : path
+    // Construct the S3 key - add public/ prefix since files are stored in public folder
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path
+    const key = `public/${cleanPath}`
 
     // Fetch image from Wasabi
     const command = new GetObjectCommand({
