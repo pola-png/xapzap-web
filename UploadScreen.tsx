@@ -142,20 +142,47 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         }
       }
 
-      // Try to get session token from localStorage (Appwrite stores it there)
+      // Try to get session token using Appwrite SDK
       console.log('Getting session token...')
       let sessionToken = null
 
-      // Check if Appwrite stores session in localStorage
       try {
-        const appwriteSession = localStorage.getItem('a_session_690641ad0029b51eefe0')
-        if (appwriteSession) {
-          const sessionData = JSON.parse(appwriteSession)
-          sessionToken = sessionData.$id || sessionData
-          console.log('Found session token in localStorage:', sessionToken.substring(0, 20) + '...')
+        // Try to get current session from Appwrite
+        const appwriteService = (await import('./appwriteService')).default
+        const session = await appwriteService.getCurrentSession()
+        console.log('Current session from Appwrite:', session)
+
+        if (session && session.$id) {
+          sessionToken = session.$id
+          console.log('Using session ID:', sessionToken)
         }
       } catch (error) {
-        console.log('No session in localStorage:', error)
+        console.log('Error getting session from Appwrite:', error)
+
+        // Fallback: Check localStorage
+        console.log('Trying localStorage fallback...')
+        console.log('All localStorage keys:', Object.keys(localStorage))
+
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && key.includes('session')) {
+            console.log(`Session key found: ${key}`)
+            const value = localStorage.getItem(key)
+            if (value) {
+              try {
+                const parsed = JSON.parse(value)
+                console.log(`Parsed ${key}:`, parsed)
+                if (parsed.$id) {
+                  sessionToken = parsed.$id
+                  console.log('Found session token in localStorage:', sessionToken)
+                  break
+                }
+              } catch (e) {
+                console.log(`Could not parse ${key} value`)
+              }
+            }
+          }
+        }
       }
 
       // Make API request with session token

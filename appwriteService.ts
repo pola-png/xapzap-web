@@ -122,6 +122,14 @@ class AppwriteService {
     }
   }
 
+  async getCurrentSession() {
+    try {
+      return await this.account.getSession('current')
+    } catch (error) {
+      return null
+    }
+  }
+
   async signOut() {
     try {
       await this.account.deleteSession('current')
