@@ -151,11 +151,11 @@ export default function ProfilePage() {
   const filteredPosts = posts.filter(post => {
     switch (activeTab) {
       case 'posts':
-        return !post.kind || post.kind === 'standard'
+        return !post.postType || post.postType === 'text' || post.postType === 'image'
       case 'videos':
-        return post.kind === 'video' || post.kind === 'reel' || post.videoUrl
+        return post.postType === 'video' || post.postType === 'reel'
       case 'news':
-        return post.kind === 'news' || (post.kind as string) === 'blog'
+        return post.postType === 'news'
       case 'all':
       default:
         return true
