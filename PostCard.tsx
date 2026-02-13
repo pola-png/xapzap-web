@@ -160,44 +160,31 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
         </div>
       )
     } else if (post.postType === 'video') {
-      // Get thumbnail URL with multiple fallbacks
-      const thumbnailSrc = post.thumbnailUrl 
-        ? (normalizeWasabiImage(post.thumbnailUrl) || post.thumbnailUrl)
-        : (post.mediaUrls && post.mediaUrls[0]) // Fallback to video URL
+      // Direct URL without normalization for better mobile compatibility
+      const thumbnailSrc = post.thumbnailUrl || (post.mediaUrls && post.mediaUrls[0]) || ''
       
       return (
         <>
-          {/* Video display - 4:3 aspect ratio (standard video format) */}
           <div
             className="relative w-full rounded-xl mb-3 bg-gray-900 cursor-pointer overflow-hidden"
             style={{ aspectRatio: '4/3' }}
             onClick={() => router.push(`/watch/${post.id}`)}
           >
-            {thumbnailSrc ? (
+            {thumbnailSrc && (
               <img
                 src={thumbnailSrc}
-                alt="Video thumbnail"
+                alt="Video"
                 className="w-full h-full object-cover"
-                loading="lazy"
-                onError={(e) => {
-                  console.log('Thumbnail failed to load:', thumbnailSrc)
-                  e.currentTarget.style.display = 'none'
-                }}
+                loading="eager"
+                decoding="async"
               />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white">
-                <Play className="w-16 h-16" />
-              </div>
             )}
-            {/* Video overlay - always visible */}
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
               <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
                 <Play className="w-8 h-8 text-black ml-1" fill="currentColor" />
               </div>
             </div>
           </div>
-
-          {/* Title between video and reactions */}
           {post.title && (
             <div className="mb-3 px-2">
               <h3 className="text-gray-900 dark:text-white font-semibold text-lg line-clamp-2">{post.title}</h3>
