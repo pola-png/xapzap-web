@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
 
     // Create the post using authenticated database client
     const postId = ID.unique()
+    postData.postId = postId // Required field for document structure
     const post = await databases.createDocument(
       databaseId,
       collections.posts,
