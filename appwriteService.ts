@@ -130,6 +130,14 @@ class AppwriteService {
     }
   }
 
+  async createJWT() {
+    try {
+      return await this.account.createJWT()
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to create JWT')
+    }
+  }
+
   async signOut() {
     try {
       await this.account.deleteSession('current')

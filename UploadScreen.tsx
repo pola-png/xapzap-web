@@ -147,17 +147,17 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       let sessionToken = null
 
       try {
-        // Try to get current session from Appwrite
+        // Create JWT token for server-side authentication
         const appwriteService = (await import('./appwriteService')).default
-        const session = await appwriteService.getCurrentSession()
-        console.log('Current session from Appwrite:', session)
+        const jwt = await appwriteService.createJWT()
+        console.log('Created JWT for server auth:', jwt)
 
-        if (session && session.$id) {
-          sessionToken = session.$id
-          console.log('Using session ID:', sessionToken)
+        if (jwt && jwt.jwt) {
+          sessionToken = jwt.jwt
+          console.log('Using JWT token:', sessionToken.substring(0, 20) + '...')
         }
       } catch (error) {
-        console.log('Error getting session from Appwrite:', error)
+        console.log('Error creating JWT:', error)
 
         // Fallback: Check localStorage
         console.log('Trying localStorage fallback...')
