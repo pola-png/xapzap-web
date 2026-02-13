@@ -142,11 +142,30 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         }
       }
 
-      // Make API request - cookies should be sent automatically
-      console.log('Making upload request with cookies...')
+      // Try to get session token from localStorage (Appwrite stores it there)
+      console.log('Getting session token...')
+      let sessionToken = null
+
+      // Check if Appwrite stores session in localStorage
+      try {
+        const appwriteSession = localStorage.getItem('a_session_690641ad0029b51eefe0')
+        if (appwriteSession) {
+          const sessionData = JSON.parse(appwriteSession)
+          sessionToken = sessionData.$id || sessionData
+          console.log('Found session token in localStorage:', sessionToken.substring(0, 20) + '...')
+        }
+      } catch (error) {
+        console.log('No session in localStorage:', error)
+      }
+
+      // Make API request with session token
+      console.log('Making upload request...')
       const response = await fetch('/api/posts/create', {
         method: 'POST',
-        credentials: 'include', // Send cookies with request
+        headers: sessionToken ? {
+          'Authorization': `Bearer ${sessionToken}`,
+        } : {},
+        credentials: 'include', // Fallback to cookies
         body: formData,
       })
 
