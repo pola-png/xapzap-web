@@ -201,10 +201,10 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
               }`}
             />
           ) : (post.postType === 'video') ? (
-            // Video display - 4:5 aspect ratio
+            // Video display - 4:3 aspect ratio (standard video format)
             <div
               className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden"
-              style={{ aspectRatio: '4/5' }}
+              style={{ aspectRatio: '4/3' }}
               onClick={() => router.push(`/watch/${post.id}`)}
             >
               <img
