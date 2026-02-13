@@ -30,7 +30,20 @@ export default function ReelsDetailPage() {
           postType: postData.postType || 'reel',
           title: postData.title || '',
           thumbnailUrl: postData.thumbnailUrl || '',
-          mediaUrls: postData.mediaUrls || (postData.videoUrl ? [postData.videoUrl] : []),
+          mediaUrls: (() => {
+            if (Array.isArray(postData.mediaUrls)) {
+              return postData.mediaUrls;
+            }
+            if (typeof postData.mediaUrls === 'string') {
+              try {
+                const parsed = JSON.parse(postData.mediaUrls);
+                return Array.isArray(parsed) ? parsed : [postData.mediaUrls];
+              } catch {
+                return [postData.mediaUrls];
+              }
+            }
+            return postData.videoUrl ? [postData.videoUrl] : [];
+          })(),
           timestamp: new Date(postData.$createdAt || postData.createdAt),
           createdAt: postData.$createdAt || postData.createdAt,
           likes: postData.likes || 0,

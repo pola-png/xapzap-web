@@ -19,6 +19,9 @@ export default function WatchDetailPage() {
       try {
         setLoading(true)
         const postData = await appwriteService.getPost(params.id as string)
+        console.log('Raw post data from database:', postData)
+        console.log('mediaUrls type:', typeof postData.mediaUrls, 'value:', postData.mediaUrls)
+        console.log('thumbnailUrl:', postData.thumbnailUrl)
         setPost({
           ...postData,
           id: postData.$id,
@@ -30,7 +33,20 @@ export default function WatchDetailPage() {
           postType: postData.postType || 'video',
           title: postData.title || '',
           thumbnailUrl: postData.thumbnailUrl || '',
-          mediaUrls: postData.mediaUrls || (postData.videoUrl ? [postData.videoUrl] : []),
+          mediaUrls: (() => {
+            if (Array.isArray(postData.mediaUrls)) {
+              return postData.mediaUrls;
+            }
+            if (typeof postData.mediaUrls === 'string') {
+              try {
+                const parsed = JSON.parse(postData.mediaUrls);
+                return Array.isArray(parsed) ? parsed : [postData.mediaUrls];
+              } catch {
+                return [postData.mediaUrls];
+              }
+            }
+            return postData.videoUrl ? [postData.videoUrl] : [];
+          })(),
           timestamp: new Date(postData.$createdAt || postData.createdAt),
           createdAt: postData.$createdAt || postData.createdAt,
           likes: postData.likes || 0,

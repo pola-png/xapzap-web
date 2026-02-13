@@ -208,18 +208,20 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
                 style={{ aspectRatio: '4/3' }}
                 onClick={() => router.push(`/watch/${post.id}`)}
               >
-                <img
-                  src={post.thumbnailUrl || (post.mediaUrls && post.mediaUrls[0])}
-                  alt="Video thumbnail"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback to media URL if thumbnail fails
-                    const target = e.target as HTMLImageElement;
-                    if (target.src !== post.mediaUrls?.[0]) {
-                      target.src = post.mediaUrls?.[0] || '';
-                    }
-                  }}
-                />
+              <img
+                src={post.thumbnailUrl || (post.mediaUrls && post.mediaUrls[0])}
+                alt="Video thumbnail"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.log('Thumbnail failed to load:', post.thumbnailUrl, 'Trying media URL:', post.mediaUrls?.[0]);
+                  // Fallback to media URL if thumbnail fails
+                  const target = e.target as HTMLImageElement;
+                  if (target.src !== post.mediaUrls?.[0]) {
+                    target.src = post.mediaUrls?.[0] || '';
+                  }
+                }}
+                onLoad={() => console.log('Thumbnail loaded successfully:', post.thumbnailUrl || post.mediaUrls?.[0])}
+              />
                 {/* Video overlay */}
                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                   <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
