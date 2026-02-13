@@ -84,21 +84,25 @@ export function ProfileScreen() {
           username: profileData?.displayName || profileData?.username || user.name || 'User',
           userAvatar: profileData?.avatarUrl || '',
           content: doc.content || '',
-          imageUrl: doc.imageUrl || doc.thumbnailUrl || '',
-          videoUrl: doc.videoUrl || '',
-          kind: doc.postType || doc.type || doc.category || doc.kind || '',
+          postType: doc.postType || doc.type || doc.category || doc.kind || 'text',
           title: doc.title || '',
           thumbnailUrl: doc.thumbnailUrl || '',
+          mediaUrls: doc.mediaUrls || (doc.imageUrl ? [doc.imageUrl] : doc.videoUrl ? [doc.videoUrl] : []),
           timestamp: new Date(doc.createdAt || doc.$createdAt),
           createdAt: doc.createdAt || doc.$createdAt,
           likes: doc.likes || 0,
           comments: doc.comments || 0,
           reposts: doc.reposts || 0,
+          shares: doc.shares || 0,
           impressions: doc.impressions || 0,
           views: doc.views || 0,
           isLiked: false,
           isReposted: false,
           isSaved: false,
+          sourcePostId: doc.sourcePostId,
+          sourceUserId: doc.sourceUserId,
+          sourceUsername: doc.sourceUsername,
+          textBgColor: doc.textBgColor,
           isBoosted: doc.isBoosted || false,
           activeBoostId: doc.activeBoostId || ''
         }))
@@ -188,13 +192,13 @@ export function ProfileScreen() {
   }, [posts, videoPosts, newsPosts])
 
   const isVideoPost = (post: Post) => {
-    const kind = post.kind?.toLowerCase() || ''
-    return kind.includes('video') || kind.includes('reel') || kind.includes('short') || !!post.videoUrl
+    const postType = post.postType?.toLowerCase() || ''
+    return postType.includes('video') || postType.includes('reel')
   }
 
   const isNewsPost = (post: Post) => {
-    const kind = post.kind?.toLowerCase() || ''
-    return kind.includes('news') || kind.includes('blog')
+    const postType = post.postType?.toLowerCase() || ''
+    return postType.includes('news')
   }
 
   const handleSignOut = async () => {
@@ -375,13 +379,13 @@ export function ProfileScreen() {
                     </>
                   )}
                 </button>
-                <button className="p-2 border border-border rounded-full hover:bg-accent transition-colors">
+                <button className="p-2 border border-border rounded-full hover:bg-accent transition-colors" aria-label="Send message">
                   <MessageCircle size={16} />
                 </button>
-                <button className="p-2 border border-border rounded-full hover:bg-accent transition-colors">
+                <button className="p-2 border border-border rounded-full hover:bg-accent transition-colors" aria-label="Share profile">
                   <Share size={16} />
                 </button>
-                <button className="p-2 border border-border rounded-full hover:bg-accent transition-colors">
+                <button className="p-2 border border-border rounded-full hover:bg-accent transition-colors" aria-label="More options">
                   <MoreHorizontal size={16} />
                 </button>
               </>
