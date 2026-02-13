@@ -26,7 +26,7 @@ async function getCurrentUser(request: NextRequest) {
       return null
     }
 
-    // Create account instance with session
+    // Create account instance with JWT
     const account = new Account(client)
     client.setJWT(sessionToken)
     return await account.get()

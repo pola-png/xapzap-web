@@ -63,11 +63,11 @@ async function getCurrentUser(request: NextRequest) {
 
     console.log(`✅ Using session token from ${sessionToken ? 'header' : `cookie ${foundCookieName}`}:`, finalToken.substring(0, 20) + '...')
 
-    // Create client with session
+    // Create client with JWT (session token is actually a JWT)
     const sessionClient = new Client()
       .setEndpoint('https://nyc.cloud.appwrite.io/v1')
       .setProject('690641ad0029b51eefe0')
-      .setSession(finalToken)
+      .setJWT(finalToken)
 
     const sessionAccount = new Account(sessionClient)
     const user = await sessionAccount.get()
