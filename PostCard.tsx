@@ -138,13 +138,10 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
   const renderMedia = () => {
     if (!post.mediaUrls || post.mediaUrls.length === 0) return null
 
-    // Normalize media URLs to proxy URLs
-    const normalizedUrls = normalizeWasabiImageArray(post.mediaUrls)
-    const mainImageUrl = normalizedUrls.length > 0 ? normalizedUrls[0] : null
+    // Use direct URLs from mediaUrls (Appwrite file URLs)
+    const imageUrl = post.mediaUrls[0]
 
     if (post.postType === 'image') {
-      // Image display - 1:1 on feeds, full on details
-      const imageUrl = normalizedUrls[0]
       return (
         <div className={`w-full rounded-xl mb-3 overflow-hidden bg-gray-100 dark:bg-gray-800 ${
           feedType === 'watch' ? 'max-h-[70vh]' : 'aspect-square'
@@ -162,8 +159,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
         </div>
       )
     } else if (post.postType === 'video') {
-      // Video thumbnail with play button
-      const thumbnailUrl = normalizeWasabiImage(post.thumbnailUrl || post.mediaUrls[0]) || ''
+      const thumbnailUrl = post.thumbnailUrl || post.mediaUrls[0]
       
       return (
         <>
