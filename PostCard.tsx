@@ -138,15 +138,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
   const renderMedia = () => {
     if (!post.mediaUrls || post.mediaUrls.length === 0) return null
 
-    // Convert /media/file.jpg to /api/image-proxy?path=media/file.jpg
-    const toProxyUrl = (url: string) => {
-      if (url.startsWith('/media/')) {
-        return `/api/image-proxy?path=${url.substring(1)}`
-      }
-      return url
-    }
-
-    const imageUrl = toProxyUrl(post.mediaUrls[0])
+    const imageUrl = post.mediaUrls[0]
 
     if (post.postType === 'image') {
       return (
@@ -166,7 +158,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
         </div>
       )
     } else if (post.postType === 'video') {
-      const thumbnailUrl = toProxyUrl(post.thumbnailUrl || post.mediaUrls[0])
+      const thumbnailUrl = post.thumbnailUrl || post.mediaUrls[0]
       
       return (
         <>

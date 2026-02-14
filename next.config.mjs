@@ -20,7 +20,7 @@ const nextConfig = {
     return [
       {
         source: '/media/:path*',
-        destination: 'https://xapzap-media.s3.wasabisys.com/public/:path*',
+        destination: 'https://xapzap-media.s3.wasabisys.com/media/:path*',
       },
     ]
   },
