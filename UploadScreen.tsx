@@ -129,23 +129,14 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      let processedFile = file
-      
-      // Compress video if needed
-      if ((selectedType === 'video' || selectedType === 'reel') && file.type.startsWith('video/')) {
-        console.log('Original size:', (file.size / 1024 / 1024).toFixed(2), 'MB')
-        processedFile = await compressVideo(file)
-        console.log('Processed size:', (processedFile.size / 1024 / 1024).toFixed(2), 'MB')
-      }
-      
-      setSelectedFile(processedFile)
-      const url = URL.createObjectURL(processedFile)
+      setSelectedFile(file)
+      const url = URL.createObjectURL(file)
       setPreviewUrl(url)
 
       // Generate thumbnail for videos
-      if ((selectedType === 'video' || selectedType === 'reel') && processedFile.type.startsWith('video/')) {
+      if ((selectedType === 'video' || selectedType === 'reel') && file.type.startsWith('video/')) {
         try {
-          const thumbnail = await generateVideoThumbnail(processedFile)
+          const thumbnail = await generateVideoThumbnail(file)
           if (thumbnail) {
             setGeneratedThumbnail(thumbnail)
             console.log('Generated thumbnail:', thumbnail.name)
@@ -153,6 +144,13 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         } catch (error) {
           console.error('Failed to generate thumbnail:', error)
         }
+        
+        // Compress video in background
+        compressVideo(file).then(compressed => {
+          console.log('Original size:', (file.size / 1024 / 1024).toFixed(2), 'MB')
+          console.log('Compressed size:', (compressed.size / 1024 / 1024).toFixed(2), 'MB')
+          setSelectedFile(compressed)
+        })
       }
     }
   }
@@ -194,11 +192,15 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         
         const { presignedUrl, url } = await presignedRes.json()
         
-        await fetch(presignedUrl, {
+        const uploadRes = await fetch(presignedUrl, {
           method: 'PUT',
           body: selectedFile,
           headers: { 'Content-Type': selectedFile.type }
         })
+        
+        if (!uploadRes.ok) {
+          throw new Error('File upload to Wasabi failed')
+        }
         
         formData.append('mediaUrl', url)
       }
@@ -217,11 +219,15 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           
           const { presignedUrl, url } = await presignedRes.json()
           
-          await fetch(presignedUrl, {
+          const uploadRes = await fetch(presignedUrl, {
             method: 'PUT',
             body: thumbnailToUpload,
             headers: { 'Content-Type': thumbnailToUpload.type }
           })
+          
+          if (!uploadRes.ok) {
+            throw new Error('Thumbnail upload to Wasabi failed')
+          }
           
           formData.append('thumbnailUrl', url)
         }
