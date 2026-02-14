@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
       .webp({ quality })
       .toBuffer()
 
-    return new NextResponse(optimized, {
+    return new NextResponse(optimized as any, {
       status: 200,
       headers: {
         'Content-Type': 'image/webp',
