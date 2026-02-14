@@ -144,19 +144,19 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
 
     if (post.postType === 'image') {
       // Image display - 1:1 on feeds, full on details
+      const imageUrl = normalizedUrls[0]
       return (
-        <div className={`relative w-full rounded-xl mb-3 overflow-hidden ${
+        <div className={`w-full rounded-xl mb-3 overflow-hidden bg-gray-100 dark:bg-gray-800 ${
           feedType === 'watch' ? 'max-h-[70vh]' : 'aspect-square'
         }`}>
-          {mainImageUrl && (
-            <OptimizedImage
-              src={mainImageUrl}
+          {imageUrl && (
+            <img
+              src={imageUrl}
               alt="Post"
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className={`${
+              className={`w-full h-full ${
                 feedType === 'watch' ? 'object-contain' : 'object-cover'
               }`}
+              loading="lazy"
             />
           )}
         </div>
@@ -173,12 +173,11 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
             onClick={() => router.push(`/watch/${post.id}`)}
           >
             {thumbnailUrl && (
-              <OptimizedImage
+              <img
                 src={thumbnailUrl}
                 alt="Video thumbnail"
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="object-cover"
+                className="w-full h-full object-cover"
+                loading="lazy"
               />
             )}
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
