@@ -17,12 +17,7 @@ const nextConfig = {
     ]
   },
   async rewrites() {
-    return [
-      {
-        source: '/media/:path*',
-        destination: 'https://xapzap-media.s3.wasabisys.com/media/:path*',
-      },
-    ]
+    return []
   },
 }
 
