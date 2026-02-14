@@ -11,6 +11,22 @@ export function NewsScreen() {
 
   useEffect(() => {
     loadNews()
+
+    // Subscribe to new news posts
+    const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
+      if (payload.events.includes('databases.*.collections.posts.documents.*.create')) {
+        const newPost = payload.payload
+        if (newPost.postType === 'news') {
+          setPosts(prev => [{
+            ...newPost,
+            id: newPost.$id,
+            timestamp: new Date(newPost.$createdAt || newPost.createdAt),
+          }, ...prev])
+        }
+      }
+    })
+
+    return unsubscribe
   }, [])
 
   const loadNews = async () => {

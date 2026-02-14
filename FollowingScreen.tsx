@@ -11,6 +11,21 @@ export function FollowingScreen() {
 
   useEffect(() => {
     loadFollowingPosts()
+
+    // Subscribe to new posts from all users (will be filtered by following list)
+    const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
+      if (payload.events.includes('databases.*.collections.posts.documents.*.create')) {
+        const newPost = payload.payload
+        // Add to feed (will show if from followed user)
+        setPosts(prev => [{
+          ...newPost,
+          id: newPost.$id,
+          timestamp: new Date(newPost.$createdAt || newPost.createdAt),
+        }, ...prev])
+      }
+    })
+
+    return unsubscribe
   }, [])
 
   const loadFollowingPosts = async () => {

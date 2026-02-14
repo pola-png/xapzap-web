@@ -88,7 +88,6 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
         const updatedPost = payload.payload
         setLikes(updatedPost.likes || 0)
         setReposts(updatedPost.reposts || 0)
-        // Update other fields as needed
       }
     })
 

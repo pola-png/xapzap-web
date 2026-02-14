@@ -11,6 +11,22 @@ export function ReelsScreen() {
 
   useEffect(() => {
     loadReels()
+
+    // Subscribe to new reel posts
+    const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
+      if (payload.events.includes('databases.*.collections.posts.documents.*.create')) {
+        const newPost = payload.payload
+        if (newPost.postType === 'reel') {
+          setPosts(prev => [{
+            ...newPost,
+            id: newPost.$id,
+            timestamp: new Date(newPost.$createdAt || newPost.createdAt),
+          }, ...prev])
+        }
+      }
+    })
+
+    return unsubscribe
   }, [])
 
   const loadReels = async () => {

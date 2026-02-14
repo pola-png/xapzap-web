@@ -12,6 +12,22 @@ export function WatchScreen() {
 
   useEffect(() => {
     loadVideos()
+
+    // Subscribe to new video posts
+    const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
+      if (payload.events.includes('databases.*.collections.posts.documents.*.create')) {
+        const newPost = payload.payload
+        if (newPost.postType === 'video') {
+          setPosts(prev => [{
+            ...newPost,
+            id: newPost.$id,
+            timestamp: new Date(newPost.$createdAt || newPost.createdAt),
+          }, ...prev])
+        }
+      }
+    })
+
+    return unsubscribe
   }, [])
 
   const loadVideos = async () => {
