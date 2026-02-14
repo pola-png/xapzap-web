@@ -44,6 +44,8 @@ async function getAuthenticatedServices(request: NextRequest) {
   }
 }
 
+export const maxDuration = 60 // 60 seconds for video uploads
+
 export async function POST(request: NextRequest) {
   try {
     // Get authenticated services
@@ -123,6 +125,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Create post error:', error)
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      type: error.type
+    })
 
     return NextResponse.json(
       { error: error.message || 'Failed to create post' },

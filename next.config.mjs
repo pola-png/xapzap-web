@@ -3,6 +3,11 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '100mb'
+    }
+  },
   async headers() {
     return [
       {
