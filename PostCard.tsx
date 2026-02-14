@@ -145,18 +145,20 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
     if (post.postType === 'image') {
       // Image display - 1:1 on feeds, full on details
       return (
-        <div className={`w-full rounded-xl mb-3 overflow-hidden ${
+        <div className={`relative w-full rounded-xl mb-3 overflow-hidden ${
           feedType === 'watch' ? 'max-h-[70vh]' : 'aspect-square'
         }`}>
-          <OptimizedImage
-            src={mainImageUrl || ''}
-            alt="Post"
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className={`${
-              feedType === 'watch' ? 'object-contain' : 'object-cover'
-            }`}
-          />
+          {mainImageUrl && (
+            <OptimizedImage
+              src={mainImageUrl}
+              alt="Post"
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className={`${
+                feedType === 'watch' ? 'object-contain' : 'object-cover'
+              }`}
+            />
+          )}
         </div>
       )
     } else if (post.postType === 'video') {
