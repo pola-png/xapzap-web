@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     // Extract basic post data
     postData.userId = user.$id
     postData.username = user.name || 'User'
-    const postTypeValue = formData.get('kind') as string || 'text'
+    const postTypeValue = formData.get('postType') as string || 'text'
     postData.postType = postTypeValue // Required field: text, image, video, reel, news
     postData.content = formData.get('content') as string || ''
     postData.title = formData.get('title') as string || ''

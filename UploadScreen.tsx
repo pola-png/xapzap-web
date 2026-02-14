@@ -115,7 +115,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       const formData = new FormData()
 
       // Add basic post data
-      formData.append('kind', selectedType)
+      formData.append('postType', selectedType)
       if (content.trim()) {
         formData.append('content', content.trim())
       }
@@ -153,15 +153,31 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       const sessionToken = jwt.jwt
 
       // Make API request with session token
-      console.log('Making upload request...')
+      console.log('Making upload request...', {
+        type: selectedType,
+        hasFile: !!selectedFile,
+        hasThumbnail: !!(customThumbnail || generatedThumbnail),
+        fileSize: selectedFile?.size
+      })
+      
       const response = await fetch('/api/posts/create', {
         method: 'POST',
         headers: sessionToken ? {
           'Authorization': `Bearer ${sessionToken}`,
         } : {},
-        credentials: 'include', // Fallback to cookies
+        credentials: 'include',
         body: formData,
       })
+
+      console.log('Response status:', response.status)
+      const contentType = response.headers.get('content-type')
+      console.log('Response content-type:', contentType)
+
+      if (!contentType?.includes('application/json')) {
+        const text = await response.text()
+        console.error('Non-JSON response:', text.substring(0, 500))
+        throw new Error('Server returned an error. File may be too large or upload timed out.')
+      }
 
       const data = await response.json()
 
