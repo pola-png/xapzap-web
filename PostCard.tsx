@@ -232,14 +232,17 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
         </>
       )
     } else if (post.postType === 'reel') {
+      const videoUrl = toProxyUrl(post.mediaUrls[0])
+      const thumbnailUrl = toProxyUrl(post.thumbnailUrl || post.mediaUrls[0])
+      
       // Reel display - 1:1 on feeds, 9:16 on reels/details
       if ((feedType as string) === 'reels') {
         // Reels page - 9:16 vertical
         return (
           <div className="relative">
             <video
-              src={post.mediaUrls[0]}
-              poster={post.thumbnailUrl}
+              src={videoUrl}
+              poster={thumbnailUrl}
               className="w-full rounded-xl mb-3 object-cover"
               style={{ aspectRatio: '9/16' }}
               controls
@@ -263,7 +266,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
             onClick={() => router.push(`/reels/${post.id}`)}
           >
             <img
-              src={post.thumbnailUrl || post.mediaUrls[0]}
+              src={thumbnailUrl}
               alt="Reel thumbnail"
               className="w-full h-full object-cover"
             />
