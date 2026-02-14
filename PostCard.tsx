@@ -138,16 +138,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
   const renderMedia = () => {
     if (!post.mediaUrls || post.mediaUrls.length === 0) return null
 
-    // Extract filename from old Vercel URLs and proxy through image-proxy
-    const normalizeUrl = (url: string) => {
-      if (url.includes('/media/')) {
-        const filename = url.split('/media/')[1]
-        return `/api/image-proxy?path=media/${filename}`
-      }
-      return url
-    }
-
-    const imageUrl = normalizeUrl(post.mediaUrls[0])
+    const imageUrl = post.mediaUrls[0]
 
     if (post.postType === 'image') {
       return (
@@ -167,7 +158,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
         </div>
       )
     } else if (post.postType === 'video') {
-      const thumbnailUrl = normalizeUrl(post.thumbnailUrl || post.mediaUrls[0])
+      const thumbnailUrl = post.thumbnailUrl || post.mediaUrls[0]
       
       return (
         <>

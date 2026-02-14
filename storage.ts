@@ -15,7 +15,7 @@ class StorageService {
   }
 
   private readonly bucketName = process.env.WASABI_BUCKET || 'xapzap-media'
-  private readonly cdnBaseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://www.xapzap.com'
+  private readonly cdnBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://xapzap-web.vercel.app'
 
   private constructor() {
     this.s3Client = new S3Client(this.wasabiConfig)
