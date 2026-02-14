@@ -26,6 +26,26 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
   const [reposts, setReposts] = useState(post.reposts || 0)
   const [userProfile, setUserProfile] = useState<any>(null)
 
+  // Check if current user has liked/saved/reposted
+  useEffect(() => {
+    const checkUserInteractions = async () => {
+      const user = await appwriteService.getCurrentUser()
+      if (!user) return
+
+      const [isLiked, isSaved, isReposted] = await Promise.all([
+        appwriteService.isPostLikedBy(user.$id, post.id),
+        appwriteService.isPostSavedBy(user.$id, post.id),
+        appwriteService.isPostRepostedBy(user.$id, post.id)
+      ])
+
+      setLiked(isLiked)
+      setSaved(isSaved)
+      setReposted(isReposted)
+    }
+
+    checkUserInteractions()
+  }, [post.id])
+
   // Fetch user profile data
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -41,6 +61,19 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
 
     fetchUserProfile()
   }, [post.userId])
+
+  // Track impression when post is viewed
+  useEffect(() => {
+    const trackImpression = async () => {
+      try {
+        await appwriteService.incrementPostField(post.id, 'impressions', 1)
+      } catch (error) {
+        console.error('Failed to track impression:', error)
+      }
+    }
+
+    trackImpression()
+  }, [post.id])
 
   // Subscribe to realtime updates for this post
   useEffect(() => {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2 } from 'lucide-react'
+import { ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Eye } from 'lucide-react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { normalizeWasabiImage } from './lib/wasabi'
@@ -25,6 +25,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [reposts, setReposts] = useState(post.reposts || 0)
   const [comments, setComments] = useState(post.comments || 0)
   const [impressions, setImpressions] = useState(post.impressions || 0)
+  const [views, setViews] = useState(post.views || 0)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
@@ -40,6 +41,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         setReposts(updatedPost.reposts || 0)
         setComments(updatedPost.comments || 0)
         setImpressions(updatedPost.impressions || 0)
+        setViews(updatedPost.views || 0)
       }
     })
 
@@ -60,8 +62,19 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     video.addEventListener('play', handlePlay)
     video.addEventListener('pause', handlePause)
 
+    // Track view when video starts playing
+    const trackView = async () => {
+      try {
+        await appwriteService.incrementPostField(post.id, 'views', 1)
+      } catch (error) {
+        console.error('Failed to track view:', error)
+      }
+    }
+
     // Auto-play when component mounts
-    video.play().catch(() => {
+    video.play().then(() => {
+      trackView()
+    }).catch(() => {
       // Handle autoplay failure silently
     })
 
@@ -315,72 +328,70 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden lg:block absolute bottom-24 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4 sm:bottom-20">
-        <div className="max-w-md mx-auto">
+      <div className="hidden lg:block absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-6">
+        <div className="max-w-4xl mx-auto">
           {/* User Info */}
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 mb-4">
             {post.userAvatar ? (
-              <img src={post.userAvatar} alt={post.username} className="w-10 h-10 rounded-full object-cover" />
+              <img src={post.userAvatar} alt={post.username} className="w-12 h-12 rounded-full object-cover" />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold">
+              <div className="w-12 h-12 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold">
                 {(post.username || 'U')[0].toUpperCase()}
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <span className="text-white font-semibold text-base block truncate">{post.username || 'User'}</span>
+              <span className="text-white font-semibold text-lg block truncate">{post.username || 'User'}</span>
               <span className="text-gray-300 text-sm">{new Date(post.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
 
           {/* Content */}
           {post.content && (
-            <p className="text-white text-sm leading-relaxed mb-3 line-clamp-3">{post.content}</p>
+            <p className="text-white text-base leading-relaxed mb-4 line-clamp-2">{post.content}</p>
           )}
 
-          {/* Reactions */}
-          <div className="flex items-center gap-4 overflow-x-auto">
-            <button
-              className="flex items-center gap-2 hover:text-yellow-500 transition-colors p-2 text-gray-300 flex-shrink-0"
-              aria-label="Save video"
-            >
-              <Bookmark size={20} />
-              <span className="text-sm font-medium hidden sm:inline">Save</span>
-            </button>
-            <button
-              className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-gray-300 flex-shrink-0"
-              aria-label="Share video"
-            >
-              <Share size={20} />
-              <span className="text-sm font-medium hidden sm:inline">Share</span>
-            </button>
-            <button
-              className="flex items-center gap-2 hover:text-green-500 transition-colors p-2 text-gray-300 flex-shrink-0"
-              aria-label="Repost video"
-            >
-              <Repeat2 size={20} />
-              <span className="text-sm font-medium hidden sm:inline">{reposts || 0}</span>
-            </button>
-            <button
-              className="flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 text-gray-300 flex-shrink-0"
-              aria-label="View impressions"
-            >
-              <BarChart2 size={20} />
-              <span className="text-sm font-medium hidden sm:inline">{impressions || 0}</span>
-            </button>
-            <button
-              className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-gray-300 flex-shrink-0"
-              aria-label="View comments"
-            >
-              <MessageCircle size={20} />
-              <span className="text-sm font-medium hidden sm:inline">{comments || 0}</span>
-            </button>
+          {/* Horizontal Reactions */}
+          <div className="flex items-center gap-6">
             <button
               onClick={handleLike}
-              className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 flex-shrink-0 ${liked ? 'text-red-500' : 'text-gray-300'}`}
+              className={`flex items-center gap-2 transition-colors ${liked ? 'text-red-500' : 'text-white hover:text-red-400'}`}
               aria-label={liked ? "Unlike video" : "Like video"}
             >
-              <Heart size={20} className={liked ? 'fill-red-500' : ''} />
-              <span className="text-sm font-medium hidden sm:inline">{likes || 0}</span>
+              <Heart size={24} className={liked ? 'fill-red-500' : ''} />
+              <span className="text-base font-medium">{likes || 0}</span>
+            </button>
+            <button
+              className="flex items-center gap-2 text-white hover:text-blue-400 transition-colors"
+              aria-label="View comments"
+            >
+              <MessageCircle size={24} />
+              <span className="text-base font-medium">{comments || 0}</span>
+            </button>
+            <button
+              className="flex items-center gap-2 text-white hover:text-green-400 transition-colors"
+              aria-label="Repost video"
+            >
+              <Repeat2 size={24} />
+              <span className="text-base font-medium">{reposts || 0}</span>
+            </button>
+            <button
+              className="flex items-center gap-2 text-white hover:text-purple-400 transition-colors"
+              aria-label="View count"
+            >
+              <Eye size={24} />
+              <span className="text-base font-medium">{views || 0}</span>
+            </button>
+            <button
+              className="flex items-center gap-2 text-white hover:text-yellow-400 transition-colors"
+              aria-label="Save video"
+            >
+              <Bookmark size={24} />
+            </button>
+            <button
+              className="flex items-center gap-2 text-white hover:text-blue-400 transition-colors"
+              aria-label="Share video"
+            >
+              <Share size={24} />
             </button>
           </div>
         </div>
@@ -402,6 +413,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [reposted, setReposted] = useState(post.isReposted || false)
   const [comments, setComments] = useState(post.comments || 0)
   const [saved, setSaved] = useState(post.isSaved || false)
+  const [views, setViews] = useState(post.views || 0)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
@@ -416,6 +428,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
         setLikes(updatedPost.likes || 0)
         setReposts(updatedPost.reposts || 0)
         setComments(updatedPost.comments || 0)
+        setViews(updatedPost.views || 0)
       }
     })
 
@@ -570,61 +583,87 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           </div>
         )}
 
-        {/* Right Side Reactions */}
-        <div className="absolute right-4 bottom-32 flex flex-col items-center gap-4 z-20">
-          {/* User Info */}
-          <div className="flex flex-col items-center gap-2">
-            {post.userAvatar ? (
-              <img src={post.userAvatar} alt={post.username} className="w-12 h-12 rounded-full object-cover border-2 border-white" />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-gray-600 border-2 border-white flex items-center justify-center text-white font-semibold">
-                {(post.username || 'U')[0].toUpperCase()}
-              </div>
-            )}
-            <button
-              onClick={handleLike}
-              className={`flex flex-col items-center gap-1 p-2 rounded-full transition-all ${liked ? 'text-red-500' : 'text-white'}`}
-              aria-label={liked ? "Unlike reel" : "Like reel"}
-            >
-              <Heart size={32} className={liked ? 'fill-red-500' : ''} />
-              <span className="text-xs font-semibold">{likes || 0}</span>
-            </button>
-          </div>
+        {/* Right Side Reactions (Vertical) */}
+        <div className="absolute right-4 bottom-24 flex flex-col items-center gap-6 z-20">
+          <button
+            onClick={handleLike}
+            className={`flex flex-col items-center gap-1 transition-all ${liked ? 'text-red-500' : 'text-white'}`}
+            aria-label={liked ? "Unlike reel" : "Like reel"}
+          >
+            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
+              <Heart size={28} className={liked ? 'fill-red-500' : ''} />
+            </div>
+            <span className="text-xs font-bold">{likes || 0}</span>
+          </button>
 
-          {/* Reaction Buttons */}
-          <div className="flex flex-col items-center gap-4">
-            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-blue-400 transition-colors" aria-label="View comments">
+          <button
+            className="flex flex-col items-center gap-1 text-white"
+            aria-label="View comments"
+          >
+            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
               <MessageCircle size={28} />
-              <span className="text-xs font-semibold">{comments || 0}</span>
-            </button>
+            </div>
+            <span className="text-xs font-bold">{comments || 0}</span>
+          </button>
 
-            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-green-400 transition-colors" aria-label="Repost reel">
-              <Repeat2 size={28} />
-              <span className="text-xs font-semibold">{reposts || 0}</span>
-            </button>
+          <button
+            onClick={handleRepost}
+            className={`flex flex-col items-center gap-1 transition-all ${reposted ? 'text-green-500' : 'text-white'}`}
+            aria-label="Repost reel"
+          >
+            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
+              <Repeat2 size={28} className={reposted ? 'fill-green-500' : ''} />
+            </div>
+            <span className="text-xs font-bold">{reposts || 0}</span>
+          </button>
 
-            <button className="flex flex-col items-center gap-1 p-2 rounded-full text-white hover:text-blue-400 transition-colors" aria-label="Share reel">
-              <Share size={28} />
-              <span className="text-xs font-semibold">Share</span>
-            </button>
+          <button
+            className="flex flex-col items-center gap-1 text-white"
+            aria-label="View count"
+          >
+            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
+              <Eye size={28} />
+            </div>
+            <span className="text-xs font-bold">{views || 0}</span>
+          </button>
 
-            <button
-              onClick={handleSave}
-              className={`flex flex-col items-center gap-1 p-2 rounded-full transition-all ${saved ? 'text-yellow-500' : 'text-white hover:text-yellow-400'}`}
-              aria-label="Save reel"
-            >
+          <button
+            onClick={handleSave}
+            className={`flex flex-col items-center gap-1 transition-all ${saved ? 'text-yellow-500' : 'text-white'}`}
+            aria-label="Save reel"
+          >
+            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
               <Bookmark size={28} className={saved ? 'fill-yellow-500' : ''} />
-              <span className="text-xs font-semibold">Save</span>
-            </button>
-          </div>
+            </div>
+            <span className="text-xs font-bold">Save</span>
+          </button>
+
+          <button
+            className="flex flex-col items-center gap-1 text-white"
+            aria-label="Share reel"
+          >
+            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
+              <Share size={28} />
+            </div>
+            <span className="text-xs font-bold">Share</span>
+          </button>
         </div>
 
         {/* Bottom Content Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 z-20">
-          <div className="max-w-xs">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-white font-semibold text-sm truncate">{post.username || 'User'}</span>
-              <span className="text-gray-300 text-xs">• {new Date(post.createdAt).toLocaleDateString()}</span>
+        <div className="absolute bottom-0 left-0 right-20 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 z-20">
+          <div className="max-w-md">
+            <div className="flex items-center gap-3 mb-3">
+              {post.userAvatar ? (
+                <img src={post.userAvatar} alt={post.username} className="w-12 h-12 rounded-full object-cover border-2 border-white" />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-gray-600 border-2 border-white flex items-center justify-center text-white font-semibold">
+                  {(post.username || 'U')[0].toUpperCase()}
+                </div>
+              )}
+              <div>
+                <span className="text-white font-bold text-base block">{post.username || 'User'}</span>
+                <span className="text-gray-300 text-xs">{new Date(post.createdAt).toLocaleDateString()}</span>
+              </div>
             </div>
             {post.content && (
               <p className="text-white text-sm leading-relaxed line-clamp-3">{post.content}</p>

@@ -1078,7 +1078,7 @@ class AppwriteService {
       )
     } catch {}
   }
-  private async incrementPostField(postId: string, field: string, delta: number) {
+  async incrementPostField(postId: string, field: string, delta: number) {
     try {
       const post = await this.databases.getDocument(
         this.databaseId,
