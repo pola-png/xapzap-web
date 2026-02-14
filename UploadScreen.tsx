@@ -82,7 +82,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       ])
       
       const data = await ffmpeg.readFile('output.mp4')
-      const compressed = new File([new Uint8Array(data as ArrayBuffer)], file.name, { type: 'video/mp4' })
+      const compressed = new File([data as any], file.name, { type: 'video/mp4' })
       
       return compressed
     } catch (error) {
