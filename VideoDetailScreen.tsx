@@ -266,63 +266,61 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
       </div>
 
-      {/* Mobile Native Layout */}
-      <div className="lg:hidden">
-        {/* Right Side Reactions (Native App Style) */}
-        <div className="absolute right-2 bottom-24 flex flex-col items-end gap-3 z-10">
+      {/* Mobile Layout - Horizontal Reactions */}
+      <div className="lg:hidden absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4 z-10">
+        <div className="max-w-md mx-auto">
           {/* User Info */}
-          <div className="flex flex-col items-center gap-2 mb-2">
+          <div className="flex items-center gap-3 mb-3">
             {post.userAvatar ? (
-              <img src={post.userAvatar} alt={post.username} className="w-10 h-10 rounded-full object-cover border-2 border-white" />
+              <img src={post.userAvatar} alt={post.username} className="w-10 h-10 rounded-full object-cover" />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-600 border-2 border-white flex items-center justify-center text-white font-semibold text-sm">
+              <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold">
                 {(post.username || 'U')[0].toUpperCase()}
               </div>
             )}
-            <button
-              onClick={handleLike}
-              className={`flex items-center gap-1 p-1 rounded-full transition-all ${liked ? 'text-red-500' : 'text-white'}`}
-              aria-label={liked ? "Unlike video" : "Like video"}
-            >
-              <Heart size={24} className={liked ? 'fill-red-500' : ''} />
-              <span className="text-xs font-semibold">{likes || 0}</span>
-            </button>
-          </div>
-
-          {/* Reaction Buttons */}
-          <div className="flex flex-col items-end gap-3">
-            <button className="flex items-center gap-1 p-1 rounded-full text-white hover:text-blue-400 transition-colors" aria-label="View comments">
-              <MessageCircle size={20} />
-              <span className="text-xs font-semibold">{comments || 0}</span>
-            </button>
-
-            <button className="flex flex-col items-center gap-1 p-1 rounded-full text-white hover:text-green-400 transition-colors" aria-label="Repost video">
-              <Repeat2 size={20} />
-              <span className="text-xs font-semibold">{reposts || 0}</span>
-            </button>
-
-            <button className="flex items-center gap-1 p-1 rounded-full text-white hover:text-blue-400 transition-colors" aria-label="Share video">
-              <Share size={20} />
-              <span className="text-xs font-semibold">Share</span>
-            </button>
-
-            <button className="flex items-center gap-1 p-1 rounded-full text-white hover:text-yellow-400 transition-colors" aria-label="Save video">
-              <Bookmark size={20} />
-              <span className="text-xs font-semibold">Save</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Bottom Content Overlay */}
-        <div className="absolute bottom-0 left-4 right-20 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
-          <div className="max-w-xs">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-white font-semibold text-sm truncate">{post.username || 'User'}</span>
+            <div className="min-w-0 flex-1">
+              <span className="text-white font-semibold text-base block truncate">{post.username || 'User'}</span>
               <span className="text-gray-300 text-xs">{new Date(post.createdAt).toLocaleDateString()}</span>
             </div>
-            {post.content && (
-              <p className="text-white text-sm leading-relaxed line-clamp-2">{post.content}</p>
-            )}
+          </div>
+
+          {/* Content */}
+          {post.content && (
+            <p className="text-white text-sm leading-relaxed mb-3 line-clamp-2">{post.content}</p>
+          )}
+
+          {/* Horizontal Reactions */}
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={handleLike}
+              className={`flex items-center gap-1 transition-colors ${liked ? 'text-red-500' : 'text-white'}`}
+              aria-label={liked ? "Unlike video" : "Like video"}
+            >
+              <Heart size={20} className={liked ? 'fill-red-500' : ''} />
+              <span className="text-sm font-medium">{likes || 0}</span>
+            </button>
+            <button className="flex items-center gap-1 text-white" aria-label="View comments">
+              <MessageCircle size={20} />
+              <span className="text-sm font-medium">{comments || 0}</span>
+            </button>
+            <button className="flex items-center gap-1 text-white" aria-label="Repost video">
+              <Repeat2 size={20} />
+              <span className="text-sm font-medium">{reposts || 0}</span>
+            </button>
+            <button className="flex items-center gap-1 text-white" aria-label="View count">
+              <Eye size={20} />
+              <span className="text-sm font-medium">{views || 0}</span>
+            </button>
+            <button className="flex items-center gap-1 text-white" aria-label="Impressions">
+              <BarChart2 size={20} />
+              <span className="text-sm font-medium">{impressions || 0}</span>
+            </button>
+            <button className="text-white" aria-label="Save video">
+              <Bookmark size={20} />
+            </button>
+            <button className="text-white" aria-label="Share video">
+              <Share size={20} />
+            </button>
           </div>
         </div>
       </div>
@@ -380,6 +378,13 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             >
               <Eye size={24} />
               <span className="text-base font-medium">{views || 0}</span>
+            </button>
+            <button
+              className="flex items-center gap-2 text-white hover:text-indigo-400 transition-colors"
+              aria-label="Impressions"
+            >
+              <BarChart2 size={24} />
+              <span className="text-base font-medium">{impressions || 0}</span>
             </button>
             <button
               className="flex items-center gap-2 text-white hover:text-yellow-400 transition-colors"

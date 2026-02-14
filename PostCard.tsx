@@ -62,9 +62,12 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
     fetchUserProfile()
   }, [post.userId])
 
-  // Track impression when post is viewed
+  // Track impression when post is viewed (only once)
   useEffect(() => {
+    let tracked = false
     const trackImpression = async () => {
+      if (tracked) return
+      tracked = true
       try {
         await appwriteService.incrementPostField(post.id, 'impressions', 1)
       } catch (error) {
@@ -72,7 +75,8 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
       }
     }
 
-    trackImpression()
+    const timer = setTimeout(trackImpression, 1000) // Track after 1 second
+    return () => clearTimeout(timer)
   }, [post.id])
 
   // Subscribe to realtime updates for this post
