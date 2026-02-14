@@ -181,6 +181,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
 
       // Upload directly to Wasabi with presigned URL
       if (selectedFile) {
+        console.log('Uploading file:', selectedFile.name, selectedFile.size)
         const presignedRes = await fetch('/api/presigned-url', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -190,7 +191,12 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           })
         })
         
+        if (!presignedRes.ok) {
+          throw new Error('Failed to get presigned URL')
+        }
+        
         const { presignedUrl, url } = await presignedRes.json()
+        console.log('Got presigned URL, uploading to:', url)
         
         const uploadRes = await fetch(presignedUrl, {
           method: 'PUT',
@@ -198,8 +204,11 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           headers: { 'Content-Type': selectedFile.type }
         })
         
+        console.log('Upload response:', uploadRes.status, uploadRes.statusText)
         if (!uploadRes.ok) {
-          throw new Error('File upload to Wasabi failed')
+          const errorText = await uploadRes.text()
+          console.error('Upload error:', errorText)
+          throw new Error(`File upload to Wasabi failed: ${uploadRes.status}`)
         }
         
         formData.append('mediaUrl', url)
@@ -208,6 +217,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       if ((selectedType === 'video' || selectedType === 'reel')) {
         const thumbnailToUpload = customThumbnail || generatedThumbnail
         if (thumbnailToUpload) {
+          console.log('Uploading thumbnail:', thumbnailToUpload.name, thumbnailToUpload.size)
           const presignedRes = await fetch('/api/presigned-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -217,7 +227,12 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
             })
           })
           
+          if (!presignedRes.ok) {
+            throw new Error('Failed to get presigned URL for thumbnail')
+          }
+          
           const { presignedUrl, url } = await presignedRes.json()
+          console.log('Got thumbnail presigned URL, uploading to:', url)
           
           const uploadRes = await fetch(presignedUrl, {
             method: 'PUT',
@@ -225,8 +240,11 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
             headers: { 'Content-Type': thumbnailToUpload.type }
           })
           
+          console.log('Thumbnail upload response:', uploadRes.status, uploadRes.statusText)
           if (!uploadRes.ok) {
-            throw new Error('Thumbnail upload to Wasabi failed')
+            const errorText = await uploadRes.text()
+            console.error('Thumbnail upload error:', errorText)
+            throw new Error(`Thumbnail upload to Wasabi failed: ${uploadRes.status}`)
           }
           
           formData.append('thumbnailUrl', url)
