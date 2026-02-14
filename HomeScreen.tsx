@@ -11,9 +11,12 @@ export function HomeScreen() {
   const [currentUserId, setCurrentUserId] = useState<string>('')
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [hasLoaded, setHasLoaded] = useState(false)
 
   useEffect(() => {
-    loadPosts()
+    if (!hasLoaded) {
+      loadPosts()
+    }
 
     // Subscribe to new posts
     const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
@@ -28,7 +31,7 @@ export function HomeScreen() {
     })
 
     return unsubscribe
-  }, [])
+  }, [hasLoaded])
 
   const loadPosts = async () => {
     setLoading(true)
@@ -52,6 +55,7 @@ export function HomeScreen() {
           timestamp: new Date(d.$createdAt || d.createdAt),
         })) as Post[])
       }
+      setHasLoaded(true)
     } catch (error) {
       console.error('Failed to load posts:', error)
       // Fallback to regular posts
@@ -62,6 +66,7 @@ export function HomeScreen() {
           id: d.$id,
           timestamp: new Date(d.$createdAt || d.createdAt),
         })) as Post[])
+        setHasLoaded(true)
       } catch (fallbackError) {
         console.error('Fallback also failed:', fallbackError)
       }

@@ -9,9 +9,12 @@ import appwriteService from './appwriteService'
 export function WatchScreen() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [hasLoaded, setHasLoaded] = useState(false)
 
   useEffect(() => {
-    loadVideos()
+    if (!hasLoaded) {
+      loadVideos()
+    }
 
     // Subscribe to new video posts
     const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
@@ -28,7 +31,7 @@ export function WatchScreen() {
     })
 
     return unsubscribe
-  }, [])
+  }, [hasLoaded])
 
   const loadVideos = async () => {
     setLoading(true)
@@ -39,6 +42,7 @@ export function WatchScreen() {
         id: d.$id,
         timestamp: new Date(d.$createdAt || d.createdAt),
       })) as Post[])
+      setHasLoaded(true)
     } catch (error) {
       console.error('Failed to load videos:', error)
       // Fallback to client-side filtering
@@ -50,6 +54,7 @@ export function WatchScreen() {
           timestamp: new Date(d.$createdAt || d.createdAt),
         }))
         setPosts(videos as Post[])
+        setHasLoaded(true)
       } catch (fallbackError) {
         console.error('Fallback also failed:', fallbackError)
       }

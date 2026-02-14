@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { AuthWrapper } from '../AuthWrapper'
+import { MainLayoutWrapper } from '../MainLayoutWrapper'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -76,7 +77,9 @@ export default function RootLayout({
           }}
         />
         <AuthWrapper>
-          {children}
+          <MainLayoutWrapper>
+            {children}
+          </MainLayoutWrapper>
         </AuthWrapper>
       </body>
     </html>

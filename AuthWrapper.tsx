@@ -57,13 +57,14 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
   }
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/', '/watch', '/reels', '/search']
+  const publicRoutes = ['/', '/watch', '/reels', '/search', '/news', '/following', '/live', '/hashtag', '/auth', '/profile']
 
   // Check if current route requires authentication
   const requiresAuth = !publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'))
 
   if (requiresAuth && !user) {
-    return <AuthScreen onAuthSuccess={handleAuthSuccess} />
+    router.push('/auth/signin')
+    return null
   }
 
   return <>{children}</>
