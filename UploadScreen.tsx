@@ -662,7 +662,12 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
               >
                 <X size={20} />
               </button>
-          <h1 className="text-lg font-semibold">New Post</h1>
+          <h1 className="text-lg font-semibold">
+            {selectedType === 'video' && 'New Video'}
+            {selectedType === 'reel' && 'New Reel'}
+            {selectedType === 'image' && 'New Post'}
+            {selectedType === 'news' && 'New News'}
+          </h1>
           <button
             onClick={handleUpload}
             disabled={uploading || (!content.trim() && !selectedFile)}
