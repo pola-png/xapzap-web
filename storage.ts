@@ -15,7 +15,6 @@ class StorageService {
   }
 
   private readonly bucketName = process.env.WASABI_BUCKET || 'xapzap-media'
-  private readonly cdnBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://xapzap-web.vercel.app'
 
   private constructor() {
     this.s3Client = new S3Client(this.wasabiConfig)
@@ -38,17 +37,16 @@ class StorageService {
 
       const uploadParams = {
         Bucket: this.bucketName,
-        Key: `public/${fileName}`, // Store in public folder
+        Key: `media/${fileName}`,
         Body: uint8Array,
         ContentType: file.type
-        // ACL removed - using bucket policy for public access
       }
 
       const command = new PutObjectCommand(uploadParams)
       await this.s3Client.send(command)
 
-      // Return CDN URL with /media/ prefix for routing
-      return `${this.cdnBaseUrl}/media/${fileName}`
+      // Return relative URL that works on any domain
+      return `/media/${fileName}`
     } catch (error) {
       console.error('Upload error:', error)
       throw error
@@ -61,15 +59,15 @@ class StorageService {
   }
 
   getFileUrl(fileName: string): string {
-    // Return permanent CDN URL with /media/ prefix
-    return `${this.cdnBaseUrl}/media/${fileName}`
+    // Return relative URL
+    return `/media/${fileName}`
   }
 
 
 
-  // Utility method to extract filename from CDN URL
-  extractFileName(cdnUrl: string): string {
-    return cdnUrl.replace(`${this.cdnBaseUrl}/media/`, '')
+  // Utility method to extract filename from URL
+  extractFileName(url: string): string {
+    return url.replace('/media/', '')
   }
 }
 
