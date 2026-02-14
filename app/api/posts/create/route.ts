@@ -66,35 +66,16 @@ export async function POST(request: NextRequest) {
     postData.userId = user.$id
     postData.username = user.name || 'User'
     const postTypeValue = formData.get('postType') as string || 'text'
-    postData.postType = postTypeValue // Required field: text, image, video, reel, news
+    postData.postType = postTypeValue
     postData.content = formData.get('content') as string || ''
     postData.title = formData.get('title') as string || ''
 
-    // Initialize mediaUrls array
-    postData.mediaUrls = []
+    // Get uploaded media URLs from Appwrite function
+    const mediaUrl = formData.get('mediaUrl') as string
+    const thumbnailUrl = formData.get('thumbnailUrl') as string
 
-    // Handle file uploads to Wasabi
-    const file = formData.get('file') as File
-    const thumbnail = formData.get('thumbnail') as File
-
-    if (file) {
-      // Upload main file to Wasabi - returns CDN URL directly
-      const fileUrl = await storageService.uploadFile(file)
-      // Add to mediaUrls array
-      postData.mediaUrls.push(fileUrl)
-    } else {
-      // Text-only post - set background color if provided
-      const textBgColorHex = formData.get('textBgColor') as string
-      if (textBgColorHex) {
-        // Convert hex to integer (remove # and parse as hex)
-        postData.textBgColor = parseInt(textBgColorHex.replace('#', ''), 16)
-      }
-    }
-
-    // Handle thumbnail upload to Wasabi
-    if (thumbnail && (postData.postType === 'video' || postData.postType === 'reel')) {
-      // Upload thumbnail to Wasabi - returns CDN URL directly
-      const thumbnailUrl = await storageService.uploadFile(thumbnail)
+    postData.mediaUrls = mediaUrl ? [mediaUrl] : []
+    if (thumbnailUrl) {
       postData.thumbnailUrl = thumbnailUrl
     }
 

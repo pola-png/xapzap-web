@@ -129,17 +129,55 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         formData.append('textBgColor', textBgColor)
       }
 
-      // Add files
+      // Upload files to Appwrite function first
+      let uploadedFileUrl = ''
+      let uploadedThumbnailUrl = ''
+
       if (selectedFile) {
-        formData.append('file', selectedFile)
+        const uploadResponse = await fetch('https://6990a38c00067fecec02.nyc.appwrite.run', {
+          method: 'POST',
+          headers: {
+            'X-Appwrite-Project': '690641ad0029b51eefe0',
+            'X-File-Name': `${Date.now()}_${selectedFile.name}`,
+            'X-File-Type': selectedFile.type
+          },
+          body: selectedFile
+        })
+
+        if (!uploadResponse.ok) {
+          throw new Error('File upload failed')
+        }
+
+        const uploadResult = await uploadResponse.json()
+        uploadedFileUrl = uploadResult.url
       }
 
-      // Add thumbnail for videos/reels
       if ((selectedType === 'video' || selectedType === 'reel')) {
         const thumbnailToUpload = customThumbnail || generatedThumbnail
         if (thumbnailToUpload) {
-          formData.append('thumbnail', thumbnailToUpload)
+          const thumbResponse = await fetch('https://6990a38c00067fecec02.nyc.appwrite.run', {
+            method: 'POST',
+            headers: {
+              'X-Appwrite-Project': '690641ad0029b51eefe0',
+              'X-File-Name': `thumb_${Date.now()}_${thumbnailToUpload.name}`,
+              'X-File-Type': thumbnailToUpload.type
+            },
+            body: thumbnailToUpload
+          })
+
+          if (thumbResponse.ok) {
+            const thumbResult = await thumbResponse.json()
+            uploadedThumbnailUrl = thumbResult.url
+          }
         }
+      }
+
+      // Add uploaded URLs to formData
+      if (uploadedFileUrl) {
+        formData.append('mediaUrl', uploadedFileUrl)
+      }
+      if (uploadedThumbnailUrl) {
+        formData.append('thumbnailUrl', uploadedThumbnailUrl)
       }
 
       // Get JWT token for server authentication
