@@ -179,6 +179,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           onClick={handleVideoClick}
           muted={isMuted}
           playsInline
+          preload="auto"
         />
 
         {/* Controls Overlay */}
@@ -533,6 +534,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           muted={isMuted}
           playsInline
           loop
+          preload="auto"
         />
 
         {/* Top Controls */}

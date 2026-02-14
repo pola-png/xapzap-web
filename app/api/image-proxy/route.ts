@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3'
+import sharp from 'sharp'
 
 // Wasabi configuration
 const wasabiConfig = {
@@ -18,18 +19,16 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const path = searchParams.get('path')
-
-    console.log('Proxy request - path:', path)
+    const width = parseInt(searchParams.get('w') || '1200')
+    const quality = parseInt(searchParams.get('q') || '80')
 
     if (!path) {
       return NextResponse.json({ error: 'Path parameter required' }, { status: 400 })
     }
 
-    // Construct the S3 key - use path directly (private files)
     const key = path.startsWith('/') ? path.substring(1) : path
-    console.log('Proxy request - key:', key)
 
-    // Fetch image from Wasabi
+    // Fetch from Wasabi
     const command = new GetObjectCommand({
       Bucket: bucketName,
       Key: key
@@ -38,39 +37,53 @@ export async function GET(request: NextRequest) {
     const response = await s3Client.send(command)
 
     if (!response.Body) {
-      return NextResponse.json({ error: 'Image not found' }, { status: 404 })
+      return NextResponse.json({ error: 'File not found' }, { status: 404 })
     }
 
-    // Get content type from metadata or detect from extension
-    let contentType = response.ContentType
-    if (!contentType) {
-      const ext = key.split('.').pop()?.toLowerCase()
-      if (ext === 'jpg' || ext === 'jpeg') contentType = 'image/jpeg'
-      else if (ext === 'png') contentType = 'image/png'
-      else if (ext === 'gif') contentType = 'image/gif'
-      else if (ext === 'webp') contentType = 'image/webp'
-      else if (ext === 'mp4') contentType = 'video/mp4'
-      else if (ext === 'webm') contentType = 'video/webm'
-      else contentType = 'image/jpeg'
+    const ext = key.split('.').pop()?.toLowerCase()
+    const isVideo = ext === 'mp4' || ext === 'webm' || ext === 'mov'
+
+    // Videos: pass through without optimization
+    if (isVideo) {
+      const chunks = []
+      for await (const chunk of response.Body as any) {
+        chunks.push(chunk)
+      }
+      const buffer = Buffer.concat(chunks)
+
+      return new NextResponse(buffer, {
+        status: 200,
+        headers: {
+          'Content-Type': response.ContentType || 'video/mp4',
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        }
+      })
     }
 
-    // Return image with caching headers - pass the stream directly
-    return new NextResponse(response.Body as any, {
+    // Images: optimize with Sharp
+    const chunks = []
+    for await (const chunk of response.Body as any) {
+      chunks.push(chunk)
+    }
+    const buffer = Buffer.concat(chunks)
+
+    const optimized = await sharp(buffer)
+      .resize(width, null, { withoutEnlargement: true })
+      .webp({ quality })
+      .toBuffer()
+
+    return new NextResponse(optimized, {
       status: 200,
       headers: {
-        'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=31536000, immutable', // Cache for 1 year
-        'CDN-Cache-Control': 'max-age=31536000',
-        'Vercel-CDN-Cache-Control': 'max-age=31536000'
+        'Content-Type': 'image/webp',
+        'Cache-Control': 'public, max-age=31536000, immutable',
       }
     })
 
   } catch (error) {
     console.error('Image proxy error:', error)
-
-    // Return a fallback image or error response
     return NextResponse.json(
-      { error: 'Failed to fetch image' },
+      { error: 'Failed to fetch file' },
       { status: 500 }
     )
   }
