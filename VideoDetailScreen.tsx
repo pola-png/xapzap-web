@@ -173,8 +173,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       <div className="w-full h-3/4 flex items-center justify-center relative">
         <video
           ref={videoRef}
-          src={normalizeWasabiImage(post.mediaUrls && post.mediaUrls[0]) || (post.mediaUrls && post.mediaUrls[0])}
-          poster={normalizeWasabiImage(post.thumbnailUrl) || post.thumbnailUrl}
+          src={post.mediaUrls && post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls && post.mediaUrls[0]}
+          poster={post.thumbnailUrl?.startsWith('/media/') ? `/api/image-proxy?path=${post.thumbnailUrl.substring(1)}` : post.thumbnailUrl}
           className="w-full h-full object-contain"
           onClick={handleVideoClick}
           muted={isMuted}
@@ -527,7 +527,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
       <div className="relative w-full h-full">
         <video
           ref={videoRef}
-          src={post.mediaUrls && post.mediaUrls[0]}
+          src={post.mediaUrls && post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls && post.mediaUrls[0]}
           className="w-full h-full object-cover"
           onClick={handleVideoClick}
           muted={isMuted}
