@@ -30,8 +30,6 @@ class StorageService {
   async uploadFile(file: File, path?: string): Promise<string> {
     try {
       const fileName = path || `${Date.now()}_${file.name}`
-
-      // Convert file to buffer
       const buffer = await file.arrayBuffer()
       const uint8Array = new Uint8Array(buffer)
 
@@ -45,7 +43,11 @@ class StorageService {
       const command = new PutObjectCommand(uploadParams)
       await this.s3Client.send(command)
 
-      // Return relative URL that works on any domain
+      // TODO: Trigger Appwrite Function for video optimization
+      // if (file.type.startsWith('video/')) {
+      //   await this.triggerAppwriteOptimization(fileName)
+      // }
+
       return `/media/${fileName}`
     } catch (error) {
       console.error('Upload error:', error)
@@ -53,19 +55,10 @@ class StorageService {
     }
   }
 
-  async deleteFile(fileName: string): Promise<void> {
-    // Implement delete if needed
-    console.log('Delete not implemented yet:', fileName)
-  }
-
   getFileUrl(fileName: string): string {
-    // Return relative URL
     return `/media/${fileName}`
   }
 
-
-
-  // Utility method to extract filename from URL
   extractFileName(url: string): string {
     return url.replace('/media/', '')
   }
