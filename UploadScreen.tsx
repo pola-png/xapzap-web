@@ -60,6 +60,37 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     })
   }
 
+  const compressVideo = async (file: File): Promise<File> => {
+    try {
+      const { FFmpeg } = await import('@ffmpeg/ffmpeg')
+      const { fetchFile } = await import('@ffmpeg/util')
+      
+      const ffmpeg = new FFmpeg()
+      await ffmpeg.load()
+      
+      await ffmpeg.writeFile('input.mp4', await fetchFile(file))
+      
+      // Compress: 720p, 30fps, reduce bitrate
+      await ffmpeg.exec([
+        '-i', 'input.mp4',
+        '-vf', 'scale=1280:720',
+        '-r', '30',
+        '-b:v', '1M',
+        '-c:v', 'libx264',
+        '-preset', 'fast',
+        'output.mp4'
+      ])
+      
+      const data = await ffmpeg.readFile('output.mp4')
+      const compressed = new File([data], file.name, { type: 'video/mp4' })
+      
+      return compressed
+    } catch (error) {
+      console.error('Compression failed:', error)
+      return file
+    }
+  }
+
   const generateVideoThumbnail = (videoFile: File): Promise<File | null> => {
     return new Promise((resolve) => {
       const video = document.createElement('video')
@@ -98,14 +129,23 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      setSelectedFile(file)
-      const url = URL.createObjectURL(file)
+      let processedFile = file
+      
+      // Compress video if needed
+      if ((selectedType === 'video' || selectedType === 'reel') && file.type.startsWith('video/')) {
+        console.log('Original size:', (file.size / 1024 / 1024).toFixed(2), 'MB')
+        processedFile = await compressVideo(file)
+        console.log('Processed size:', (processedFile.size / 1024 / 1024).toFixed(2), 'MB')
+      }
+      
+      setSelectedFile(processedFile)
+      const url = URL.createObjectURL(processedFile)
       setPreviewUrl(url)
 
       // Generate thumbnail for videos
-      if ((selectedType === 'video' || selectedType === 'reel') && file.type.startsWith('video/')) {
+      if ((selectedType === 'video' || selectedType === 'reel') && processedFile.type.startsWith('video/')) {
         try {
-          const thumbnail = await generateVideoThumbnail(file)
+          const thumbnail = await generateVideoThumbnail(processedFile)
           if (thumbnail) {
             setGeneratedThumbnail(thumbnail)
             console.log('Generated thumbnail:', thumbnail.name)
@@ -141,63 +181,50 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         formData.append('textBgColor', textBgColor)
       }
 
-      // Upload files to Appwrite function first
-      let uploadedFileUrl = ''
-      let uploadedThumbnailUrl = ''
-
+      // Upload directly to Wasabi with presigned URL
       if (selectedFile) {
-        const { Client, Functions } = await import('appwrite')
-        const client = new Client()
-          .setEndpoint('https://nyc.cloud.appwrite.io/v1')
-          .setProject('690641ad0029b51eefe0')
+        const presignedRes = await fetch('/api/presigned-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName: selectedFile.name,
+            fileType: selectedFile.type
+          })
+        })
         
-        const functions = new Functions(client)
+        const { presignedUrl, url } = await presignedRes.json()
         
-        const execution = await functions.createExecution(
-          'wasabi-upload',
-          JSON.stringify({
-            fileName: `${Date.now()}_${selectedFile.name}`,
-            fileType: selectedFile.type,
-            fileData: await fileToBase64(selectedFile)
-          }),
-          false
-        )
-
-        const responseData = JSON.parse(execution.responseBody)
-        uploadedFileUrl = responseData.url
+        await fetch(presignedUrl, {
+          method: 'PUT',
+          body: selectedFile,
+          headers: { 'Content-Type': selectedFile.type }
+        })
+        
+        formData.append('mediaUrl', url)
       }
 
       if ((selectedType === 'video' || selectedType === 'reel')) {
         const thumbnailToUpload = customThumbnail || generatedThumbnail
         if (thumbnailToUpload) {
-          const { Client, Functions } = await import('appwrite')
-          const client = new Client()
-            .setEndpoint('https://nyc.cloud.appwrite.io/v1')
-            .setProject('690641ad0029b51eefe0')
+          const presignedRes = await fetch('/api/presigned-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: thumbnailToUpload.name,
+              fileType: thumbnailToUpload.type
+            })
+          })
           
-          const functions = new Functions(client)
+          const { presignedUrl, url } = await presignedRes.json()
           
-          const execution = await functions.createExecution(
-            'wasabi-upload',
-            JSON.stringify({
-              fileName: `thumb_${Date.now()}_${thumbnailToUpload.name}`,
-              fileType: thumbnailToUpload.type,
-              fileData: await fileToBase64(thumbnailToUpload)
-            }),
-            false
-          )
-
-          const thumbData = JSON.parse(execution.responseBody)
-          uploadedThumbnailUrl = thumbData.url
+          await fetch(presignedUrl, {
+            method: 'PUT',
+            body: thumbnailToUpload,
+            headers: { 'Content-Type': thumbnailToUpload.type }
+          })
+          
+          formData.append('thumbnailUrl', url)
         }
-      }
-
-      // Add uploaded URLs to formData
-      if (uploadedFileUrl) {
-        formData.append('mediaUrl', uploadedFileUrl)
-      }
-      if (uploadedThumbnailUrl) {
-        formData.append('thumbnailUrl', uploadedThumbnailUrl)
       }
 
       // Get JWT token for server authentication
