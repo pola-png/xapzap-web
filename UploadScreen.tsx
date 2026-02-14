@@ -48,6 +48,18 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE'
   ]
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const base64 = (reader.result as string).split(',')[1]
+        resolve(base64)
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
   const generateVideoThumbnail = (videoFile: File): Promise<File | null> => {
     return new Promise((resolve) => {
       const video = document.createElement('video')
@@ -134,14 +146,20 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       let uploadedThumbnailUrl = ''
 
       if (selectedFile) {
-        const uploadResponse = await fetch('https://6990a38c00067fecec02.nyc.appwrite.run', {
+        const uploadResponse = await fetch('https://nyc.cloud.appwrite.io/v1/functions/wasabi-upload/executions', {
           method: 'POST',
           headers: {
-            'X-Appwrite-Project': '690641ad0029b51eefe0',
-            'X-File-Name': `${Date.now()}_${selectedFile.name}`,
-            'X-File-Type': selectedFile.type
+            'Content-Type': 'application/json',
+            'X-Appwrite-Project': '690641ad0029b51eefe0'
           },
-          body: selectedFile
+          body: JSON.stringify({
+            data: JSON.stringify({
+              fileName: `${Date.now()}_${selectedFile.name}`,
+              fileType: selectedFile.type,
+              fileData: await fileToBase64(selectedFile)
+            }),
+            async: false
+          })
         })
 
         if (!uploadResponse.ok) {
@@ -149,25 +167,33 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         }
 
         const uploadResult = await uploadResponse.json()
-        uploadedFileUrl = uploadResult.url
+        const responseData = JSON.parse(uploadResult.responseBody)
+        uploadedFileUrl = responseData.url
       }
 
       if ((selectedType === 'video' || selectedType === 'reel')) {
         const thumbnailToUpload = customThumbnail || generatedThumbnail
         if (thumbnailToUpload) {
-          const thumbResponse = await fetch('https://6990a38c00067fecec02.nyc.appwrite.run', {
+          const thumbResponse = await fetch('https://nyc.cloud.appwrite.io/v1/functions/wasabi-upload/executions', {
             method: 'POST',
             headers: {
-              'X-Appwrite-Project': '690641ad0029b51eefe0',
-              'X-File-Name': `thumb_${Date.now()}_${thumbnailToUpload.name}`,
-              'X-File-Type': thumbnailToUpload.type
+              'Content-Type': 'application/json',
+              'X-Appwrite-Project': '690641ad0029b51eefe0'
             },
-            body: thumbnailToUpload
+            body: JSON.stringify({
+              data: JSON.stringify({
+                fileName: `thumb_${Date.now()}_${thumbnailToUpload.name}`,
+                fileType: thumbnailToUpload.type,
+                fileData: await fileToBase64(thumbnailToUpload)
+              }),
+              async: false
+            })
           })
 
           if (thumbResponse.ok) {
             const thumbResult = await thumbResponse.json()
-            uploadedThumbnailUrl = thumbResult.url
+            const thumbData = JSON.parse(thumbResult.responseBody)
+            uploadedThumbnailUrl = thumbData.url
           }
         }
       }
