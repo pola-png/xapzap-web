@@ -146,55 +146,49 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       let uploadedThumbnailUrl = ''
 
       if (selectedFile) {
-        const uploadResponse = await fetch('https://nyc.cloud.appwrite.io/v1/functions/wasabi-upload/executions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Appwrite-Project': '690641ad0029b51eefe0'
-          },
-          body: JSON.stringify({
-            data: JSON.stringify({
-              fileName: `${Date.now()}_${selectedFile.name}`,
-              fileType: selectedFile.type,
-              fileData: await fileToBase64(selectedFile)
-            }),
-            async: false
-          })
-        })
+        const { Client, Functions } = await import('appwrite')
+        const client = new Client()
+          .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+          .setProject('690641ad0029b51eefe0')
+        
+        const functions = new Functions(client)
+        
+        const execution = await functions.createExecution(
+          'wasabi-upload',
+          JSON.stringify({
+            fileName: `${Date.now()}_${selectedFile.name}`,
+            fileType: selectedFile.type,
+            fileData: await fileToBase64(selectedFile)
+          }),
+          false
+        )
 
-        if (!uploadResponse.ok) {
-          throw new Error('File upload failed')
-        }
-
-        const uploadResult = await uploadResponse.json()
-        const responseData = JSON.parse(uploadResult.responseBody)
+        const responseData = JSON.parse(execution.responseBody)
         uploadedFileUrl = responseData.url
       }
 
       if ((selectedType === 'video' || selectedType === 'reel')) {
         const thumbnailToUpload = customThumbnail || generatedThumbnail
         if (thumbnailToUpload) {
-          const thumbResponse = await fetch('https://nyc.cloud.appwrite.io/v1/functions/wasabi-upload/executions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Appwrite-Project': '690641ad0029b51eefe0'
-            },
-            body: JSON.stringify({
-              data: JSON.stringify({
-                fileName: `thumb_${Date.now()}_${thumbnailToUpload.name}`,
-                fileType: thumbnailToUpload.type,
-                fileData: await fileToBase64(thumbnailToUpload)
-              }),
-              async: false
-            })
-          })
+          const { Client, Functions } = await import('appwrite')
+          const client = new Client()
+            .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+            .setProject('690641ad0029b51eefe0')
+          
+          const functions = new Functions(client)
+          
+          const execution = await functions.createExecution(
+            'wasabi-upload',
+            JSON.stringify({
+              fileName: `thumb_${Date.now()}_${thumbnailToUpload.name}`,
+              fileType: thumbnailToUpload.type,
+              fileData: await fileToBase64(thumbnailToUpload)
+            }),
+            false
+          )
 
-          if (thumbResponse.ok) {
-            const thumbResult = await thumbResponse.json()
-            const thumbData = JSON.parse(thumbResult.responseBody)
-            uploadedThumbnailUrl = thumbData.url
-          }
+          const thumbData = JSON.parse(execution.responseBody)
+          uploadedThumbnailUrl = thumbData.url
         }
       }
 
