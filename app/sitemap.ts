@@ -39,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           url: `${baseUrl}/watch/${generateSlug(post.caption || post.title || 'video', post.$id)}`,
           lastModified: new Date(post.$updatedAt || post.$createdAt),
           changeFrequency: 'weekly',
-          priority: 0.9,
+          priority: 1.0,
         })
       })
 
@@ -62,7 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           url: `${baseUrl}/reels/${generateSlug(post.caption || 'reel', post.$id)}`,
           lastModified: new Date(post.$updatedAt || post.$createdAt),
           changeFrequency: 'weekly',
-          priority: 0.9,
+          priority: 1.0,
         })
       })
 
@@ -85,7 +85,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           url: `${baseUrl}/news/${generateSlug(post.title || post.caption || 'article', post.$id)}`,
           lastModified: new Date(post.$updatedAt || post.$createdAt),
           changeFrequency: 'daily',
-          priority: 0.9,
+          priority: 1.0,
         })
       })
 
