@@ -6,14 +6,23 @@ import { PostCard } from "./PostCard"
 import { VideoDetailScreen } from "./VideoDetailScreen"
 import { Post } from "./types"
 import appwriteService from "./appwriteService"
+import { feedCache } from "./lib/cache"
 
 export function HomeScreen() {
   const [currentUserId, setCurrentUserId] = useState<string>('')
   const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [hasLoaded, setHasLoaded] = useState(false)
 
   useEffect(() => {
+    // Check cache first
+    const cached = feedCache.get('home')
+    if (cached) {
+      setPosts(cached)
+      setHasLoaded(true)
+      return
+    }
+
     if (!hasLoaded) {
       loadPosts()
     }
@@ -22,11 +31,15 @@ export function HomeScreen() {
     const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
       if (payload.events.includes('databases.*.collections.posts.documents.*.create')) {
         const newPost = payload.payload
-        setPosts(prev => [{
-          ...newPost,
-          id: newPost.$id,
-          timestamp: new Date(newPost.$createdAt || newPost.createdAt),
-        }, ...prev])
+        setPosts(prev => {
+          const updated = [{
+            ...newPost,
+            id: newPost.$id,
+            timestamp: new Date(newPost.$createdAt || newPost.createdAt),
+          }, ...prev]
+          feedCache.set('home', updated)
+          return updated
+        })
       }
     })
 
@@ -39,33 +52,36 @@ export function HomeScreen() {
       const user = await appwriteService.getCurrentUser()
       if (user) {
         setCurrentUserId(user.$id)
-        // Use personalized For You feed for logged-in users
         const result = await appwriteService.fetchForYouFeed(user.$id)
-        setPosts(result.documents.map((d: any) => ({
+        const mapped = result.documents.map((d: any) => ({
           ...d,
           id: d.$id,
           timestamp: new Date(d.$createdAt || d.createdAt),
-        })) as Post[])
+        })) as Post[]
+        setPosts(mapped)
+        feedCache.set('home', mapped)
       } else {
-        // Fallback to regular posts for guests
         const result = await appwriteService.fetchPosts()
-        setPosts(result.documents.map((d: any) => ({
+        const mapped = result.documents.map((d: any) => ({
           ...d,
           id: d.$id,
           timestamp: new Date(d.$createdAt || d.createdAt),
-        })) as Post[])
+        })) as Post[]
+        setPosts(mapped)
+        feedCache.set('home', mapped)
       }
       setHasLoaded(true)
     } catch (error) {
       console.error('Failed to load posts:', error)
-      // Fallback to regular posts
       try {
         const result = await appwriteService.fetchPosts()
-        setPosts(result.documents.map((d: any) => ({
+        const mapped = result.documents.map((d: any) => ({
           ...d,
           id: d.$id,
           timestamp: new Date(d.$createdAt || d.createdAt),
-        })) as Post[])
+        })) as Post[]
+        setPosts(mapped)
+        feedCache.set('home', mapped)
         setHasLoaded(true)
       } catch (fallbackError) {
         console.error('Fallback also failed:', fallbackError)

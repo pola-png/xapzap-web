@@ -4,24 +4,34 @@ import { useState, useEffect } from 'react'
 import { PostCard } from './PostCard'
 import { Post } from './types'
 import appwriteService from './appwriteService'
+import { feedCache } from './lib/cache'
 
 export function ReelsScreen() {
   const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    const cached = feedCache.get('reels')
+    if (cached) {
+      setPosts(cached)
+      return
+    }
+
     loadReels()
 
-    // Subscribe to new reel posts
     const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
       if (payload.events.includes('databases.*.collections.posts.documents.*.create')) {
         const newPost = payload.payload
         if (newPost.postType === 'reel') {
-          setPosts(prev => [{
-            ...newPost,
-            id: newPost.$id,
-            timestamp: new Date(newPost.$createdAt || newPost.createdAt),
-          }, ...prev])
+          setPosts(prev => {
+            const updated = [{
+              ...newPost,
+              id: newPost.$id,
+              timestamp: new Date(newPost.$createdAt || newPost.createdAt),
+            }, ...prev]
+            feedCache.set('reels', updated)
+            return updated
+          })
         }
       }
     })
@@ -33,14 +43,15 @@ export function ReelsScreen() {
     setLoading(true)
     try {
       const result = await appwriteService.fetchReelsFeed()
-      setPosts(result.documents.map((d: any) => ({
+      const mapped = result.documents.map((d: any) => ({
         ...d,
         id: d.$id,
         timestamp: new Date(d.$createdAt || d.createdAt),
-      })) as Post[])
+      })) as Post[]
+      setPosts(mapped)
+      feedCache.set('reels', mapped)
     } catch (error) {
       console.error('Failed to load reels:', error)
-      // Fallback to client-side filtering
       try {
         const result = await appwriteService.fetchPosts()
         const reels = result.documents.filter((d: any) => d.kind === 'reel').map((d: any) => ({
@@ -49,6 +60,7 @@ export function ReelsScreen() {
           timestamp: new Date(d.$createdAt || d.createdAt),
         }))
         setPosts(reels as Post[])
+        feedCache.set('reels', reels as Post[])
       } catch (fallbackError) {
         console.error('Fallback also failed:', fallbackError)
       }

@@ -5,27 +5,38 @@ import { PostCard } from './PostCard'
 import { VideoDetailScreen } from './VideoDetailScreen'
 import { Post } from './types'
 import appwriteService from './appwriteService'
+import { feedCache } from './lib/cache'
 
 export function WatchScreen() {
   const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [hasLoaded, setHasLoaded] = useState(false)
 
   useEffect(() => {
+    const cached = feedCache.get('watch')
+    if (cached) {
+      setPosts(cached)
+      setHasLoaded(true)
+      return
+    }
+
     if (!hasLoaded) {
       loadVideos()
     }
 
-    // Subscribe to new video posts
     const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
       if (payload.events.includes('databases.*.collections.posts.documents.*.create')) {
         const newPost = payload.payload
         if (newPost.postType === 'video') {
-          setPosts(prev => [{
-            ...newPost,
-            id: newPost.$id,
-            timestamp: new Date(newPost.$createdAt || newPost.createdAt),
-          }, ...prev])
+          setPosts(prev => {
+            const updated = [{
+              ...newPost,
+              id: newPost.$id,
+              timestamp: new Date(newPost.$createdAt || newPost.createdAt),
+            }, ...prev]
+            feedCache.set('watch', updated)
+            return updated
+          })
         }
       }
     })
@@ -37,15 +48,16 @@ export function WatchScreen() {
     setLoading(true)
     try {
       const result = await appwriteService.fetchWatchFeed()
-      setPosts(result.documents.map((d: any) => ({
+      const mapped = result.documents.map((d: any) => ({
         ...d,
         id: d.$id,
         timestamp: new Date(d.$createdAt || d.createdAt),
-      })) as Post[])
+      })) as Post[]
+      setPosts(mapped)
+      feedCache.set('watch', mapped)
       setHasLoaded(true)
     } catch (error) {
       console.error('Failed to load videos:', error)
-      // Fallback to client-side filtering
       try {
         const result = await appwriteService.fetchPosts()
         const videos = result.documents.filter((d: any) => d.kind === 'video' || d.videoUrl).map((d: any) => ({
@@ -54,6 +66,7 @@ export function WatchScreen() {
           timestamp: new Date(d.$createdAt || d.createdAt),
         }))
         setPosts(videos as Post[])
+        feedCache.set('watch', videos as Post[])
         setHasLoaded(true)
       } catch (fallbackError) {
         console.error('Fallback also failed:', fallbackError)

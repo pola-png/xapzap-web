@@ -4,24 +4,34 @@ import { useState, useEffect } from 'react'
 import { PostCard } from './PostCard'
 import { Post } from './types'
 import appwriteService from './appwriteService'
+import { feedCache } from './lib/cache'
 
 export function NewsScreen() {
   const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    const cached = feedCache.get('news')
+    if (cached) {
+      setPosts(cached)
+      return
+    }
+
     loadNews()
 
-    // Subscribe to new news posts
     const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
       if (payload.events.includes('databases.*.collections.posts.documents.*.create')) {
         const newPost = payload.payload
         if (newPost.postType === 'news') {
-          setPosts(prev => [{
-            ...newPost,
-            id: newPost.$id,
-            timestamp: new Date(newPost.$createdAt || newPost.createdAt),
-          }, ...prev])
+          setPosts(prev => {
+            const updated = [{
+              ...newPost,
+              id: newPost.$id,
+              timestamp: new Date(newPost.$createdAt || newPost.createdAt),
+            }, ...prev]
+            feedCache.set('news', updated)
+            return updated
+          })
         }
       }
     })
@@ -33,14 +43,15 @@ export function NewsScreen() {
     setLoading(true)
     try {
       const result = await appwriteService.fetchNewsArticles()
-      setPosts(result.documents.map((d: any) => ({
+      const mapped = result.documents.map((d: any) => ({
         ...d,
         id: d.$id,
         timestamp: new Date(d.$createdAt || d.createdAt),
-      })) as Post[])
+      })) as Post[]
+      setPosts(mapped)
+      feedCache.set('news', mapped)
     } catch (error) {
       console.error('Failed to load news:', error)
-      // Fallback to filtering posts
       try {
         const result = await appwriteService.fetchPosts()
         const news = result.documents.filter((d: any) => d.kind === 'news').map((d: any) => ({
@@ -49,6 +60,7 @@ export function NewsScreen() {
           timestamp: new Date(d.$createdAt || d.createdAt),
         }))
         setPosts(news as Post[])
+        feedCache.set('news', news as Post[])
       } catch (fallbackError) {
         console.error('Fallback also failed:', fallbackError)
       }
