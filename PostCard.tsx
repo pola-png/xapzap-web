@@ -25,10 +25,12 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
   const [saved, setSaved] = useState(post.isSaved || false)
   const [reposted, setReposted] = useState(post.isReposted || false)
   const [reposts, setReposts] = useState(post.reposts || 0)
-  const [userProfile, setUserProfile] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<any>(post.displayName ? { displayName: post.displayName, avatarUrl: post.avatarUrl } : null)
 
-  // Check if current user has liked/saved/reposted
+  // Check if current user has liked/saved/reposted - skip if already in post data
   useEffect(() => {
+    if (post.isLiked !== undefined) return // Already have interaction data
+    
     const checkUserInteractions = async () => {
       const user = await appwriteService.getCurrentUser()
       if (!user) return
@@ -57,10 +59,12 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
     }
 
     checkUserInteractions()
-  }, [post.id])
+  }, [post.id, post.isLiked])
 
-  // Fetch user profile data
+  // Fetch user profile data - skip if already in post data
   useEffect(() => {
+    if (post.displayName) return // Already have profile data
+    
     const fetchUserProfile = async () => {
       if (!post.userId) return
 
@@ -81,7 +85,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
     }
 
     fetchUserProfile()
-  }, [post.userId])
+  }, [post.userId, post.displayName])
 
   // Track impression when post is viewed (only once)
   useEffect(() => {
