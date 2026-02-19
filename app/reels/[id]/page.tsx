@@ -20,6 +20,13 @@ export default function ReelsDetailPage() {
         setLoading(true)
         const postData = await appwriteService.getPost(params.id as string)
         const profile = await appwriteService.getProfileByUserId(postData.userId)
+        const user = await appwriteService.getCurrentUser()
+        const interactions = user ? await Promise.all([
+          appwriteService.isPostLikedBy(user.$id, postData.$id),
+          appwriteService.isPostSavedBy(user.$id, postData.$id),
+          appwriteService.isPostRepostedBy(user.$id, postData.$id)
+        ]) : [false, false, false]
+        
         setPost({
           ...postData,
           id: postData.$id,
@@ -55,9 +62,9 @@ export default function ReelsDetailPage() {
           shares: postData.shares || 0,
           impressions: postData.impressions || 0,
           views: postData.views || 0,
-          isLiked: false,
-          isReposted: false,
-          isSaved: false,
+          isLiked: interactions[0],
+          isReposted: interactions[1],
+          isSaved: interactions[2],
           sourcePostId: postData.sourcePostId,
           sourceUserId: postData.sourceUserId,
           sourceUsername: postData.sourceUsername,
@@ -76,7 +83,7 @@ export default function ReelsDetailPage() {
     loadPost()
   }, [params.id])
 
-  if (loading) {
+  if (loading && !post) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>

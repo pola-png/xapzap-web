@@ -45,34 +45,41 @@ export function WatchScreen() {
   }, [hasLoaded])
 
   const loadVideos = async () => {
-    setLoading(true)
+    const isInitialLoad = posts.length === 0
+    if (isInitialLoad) setLoading(true)
     try {
       const result = await appwriteService.fetchWatchFeed()
-      const mapped = result.documents.map((d: any) => ({
-        ...d,
-        id: d.$id,
-        timestamp: new Date(d.$createdAt || d.createdAt),
-      })) as Post[]
-      setPosts(mapped)
-      feedCache.set('watch', mapped)
+      const user = await appwriteService.getCurrentUser()
+      
+      const enrichedPosts = await Promise.all(
+        result.documents.map(async (d: any) => {
+          const profile = await appwriteService.getProfileByUserId(d.userId)
+          const interactions = user ? await Promise.all([
+            appwriteService.isPostLikedBy(user.$id, d.$id),
+            appwriteService.isPostSavedBy(user.$id, d.$id),
+            appwriteService.isPostRepostedBy(user.$id, d.$id)
+          ]) : [false, false, false]
+          
+          return {
+            ...d,
+            id: d.$id,
+            timestamp: new Date(d.$createdAt || d.createdAt),
+            displayName: profile?.displayName || 'User',
+            avatarUrl: profile?.avatarUrl || '',
+            isLiked: interactions[0],
+            isSaved: interactions[1],
+            isReposted: interactions[2]
+          }
+        })
+      )
+      
+      setPosts(enrichedPosts as Post[])
+      feedCache.set('watch', enrichedPosts as Post[])
       setHasLoaded(true)
     } catch (error) {
       console.error('Failed to load videos:', error)
-      try {
-        const result = await appwriteService.fetchPosts()
-        const videos = result.documents.filter((d: any) => d.kind === 'video' || d.videoUrl).map((d: any) => ({
-          ...d,
-          id: d.$id,
-          timestamp: new Date(d.$createdAt || d.createdAt),
-        }))
-        setPosts(videos as Post[])
-        feedCache.set('watch', videos as Post[])
-        setHasLoaded(true)
-      } catch (fallbackError) {
-        console.error('Fallback also failed:', fallbackError)
-      }
     } finally {
-      setLoading(false)
+      if (isInitialLoad) setLoading(false)
     }
   }
 
