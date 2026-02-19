@@ -22,59 +22,16 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
     loadUserData()
   }, [])
 
-  useEffect(() => {
-    if (user) {
-      loadBadges()
-      const unsubscribe = setupRealtimeSubscriptions()
-      return unsubscribe
-    }
-  }, [user])
-
   const loadUserData = async () => {
-    try {
-      const currentUser = await appwriteService.getCurrentUser()
-      setUser(currentUser)
-      
-      if (currentUser) {
-        const profile = await appwriteService.getProfileByUserId(currentUser.$id)
-        setUserAvatar(profile?.avatarUrl || '')
-      }
-    } catch (error) {
-      console.error('Failed to load user data:', error)
-    }
-  }
-
-  const loadBadges = async () => {
-    if (!user) return
+    const currentUser = await appwriteService.getCurrentUser().catch(() => null)
+    if (!currentUser) return
     
-    try {
-      const [chatCount, notifCount] = await Promise.all([
-        appwriteService.getUnreadChatCount(user.$id),
-        appwriteService.getUnreadNotificationCount(user.$id)
-      ])
-      
-      setUnreadChats(chatCount)
-      setUnreadNotifications(notifCount)
-    } catch (error) {
-      console.error('Failed to load badges:', error)
-    }
-  }
-
-  const setupRealtimeSubscriptions = () => {
-    if (!user) return () => {}
-
-    const unsubscribeMessages = appwriteService.subscribeToCollection('messages', () => {
-      loadBadges()
-    })
-
-    const unsubscribeNotifications = appwriteService.subscribeToCollection('notifications', () => {
-      loadBadges()
-    })
-
-    return () => {
-      unsubscribeMessages()
-      unsubscribeNotifications()
-    }
+    setUser(currentUser)
+    
+    // Non-blocking background loads
+    appwriteService.getProfileByUserId(currentUser.$id).then(profile => setUserAvatar(profile?.avatarUrl || '')).catch(() => {})
+    appwriteService.getUnreadChatCount(currentUser.$id).then(setUnreadChats).catch(() => {})
+    appwriteService.getUnreadNotificationCount(currentUser.$id).then(setUnreadNotifications).catch(() => {})
   }
 
   const handleCreateClick = async () => {
