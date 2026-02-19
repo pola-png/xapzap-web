@@ -4,6 +4,8 @@ export interface Post {
   userId: string
   username: string
   userAvatar: string
+  displayName: string
+  avatarUrl: string
   content: string
   postType: 'text' | 'image' | 'video' | 'reel' | 'news' | 'stories'
   title?: string
