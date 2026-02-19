@@ -19,6 +19,7 @@ export default function ReelsDetailPage() {
       try {
         setLoading(true)
         const postData = await appwriteService.getPost(params.id as string)
+        const profile = await appwriteService.getProfileByUserId(postData.userId)
         setPost({
           ...postData,
           id: postData.$id,
@@ -26,6 +27,8 @@ export default function ReelsDetailPage() {
           userId: postData.userId || '',
           username: postData.username || 'User',
           userAvatar: postData.userAvatar || '',
+          displayName: profile?.displayName || 'User',
+          avatarUrl: profile?.avatarUrl || '',
           content: postData.content || '',
           postType: postData.postType || 'reel',
           title: postData.title || '',

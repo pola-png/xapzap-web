@@ -22,6 +22,7 @@ export default function WatchDetailPage() {
         console.log('Raw post data from database:', postData)
         console.log('mediaUrls type:', typeof postData.mediaUrls, 'value:', postData.mediaUrls)
         console.log('thumbnailUrl:', postData.thumbnailUrl)
+        const profile = await appwriteService.getProfileByUserId(postData.userId)
         setPost({
           ...postData,
           id: postData.$id,
@@ -29,6 +30,8 @@ export default function WatchDetailPage() {
           userId: postData.userId || '',
           username: postData.username || 'User',
           userAvatar: postData.userAvatar || '',
+          displayName: profile?.displayName || 'User',
+          avatarUrl: profile?.avatarUrl || '',
           content: postData.content || '',
           postType: postData.postType || 'video',
           title: postData.title || '',
