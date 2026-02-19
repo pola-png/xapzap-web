@@ -12,12 +12,11 @@ export function ReelsScreen() {
 
   useEffect(() => {
     const cached = feedCache.get('reels')
-    if (cached) {
+    if (cached && cached.length > 0) {
       setPosts(cached)
-      return
+    } else {
+      loadReels()
     }
-
-    loadReels()
 
     const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
       if (payload.events.includes('databases.*.collections.posts.documents.*.create')) {

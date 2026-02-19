@@ -256,7 +256,7 @@ class AppwriteService {
       // Filter for posts that have video content (excluding reels)
       const videoPosts = result.documents.filter(post =>
         (post.videoUrl || (post.mediaUrls && post.mediaUrls.length > 0) || post.thumbnailUrl) &&
-        post.kind !== 'reel' // Exclude reels from watch feed
+        post.postType !== 'reel'
       )
 
       // Sort by engagement score
@@ -279,8 +279,8 @@ class AppwriteService {
         const result = await this.fetchPosts(limit * 2)
         const videoPosts = result.documents.filter(post =>
           (post.videoUrl || (post.mediaUrls && post.mediaUrls.length > 0)) &&
-          post.kind !== 'reel' &&
-          (post.kind === 'video' || post.postType === 'video')
+          post.postType !== 'reel' &&
+          post.postType === 'video'
         ).slice(0, limit)
 
         return {
@@ -298,7 +298,7 @@ class AppwriteService {
   async fetchReelsFeed(limit = 20, cursor?: string) {
     try {
       let queries: any[] = [
-        Query.equal('kind', 'reel'),
+        Query.equal('postType', 'reel'),
         Query.limit(limit * 2)
       ]
       if (cursor) queries.push(Query.cursorAfter(cursor))
@@ -928,7 +928,7 @@ class AppwriteService {
 
   async fetchPostsByKind(kind: string, limit = 20, cursor?: string) {
     const queries = [
-      Query.equal('kind', kind),
+      Query.equal('postType', kind),
       Query.orderDesc('createdAt'),
       Query.limit(limit)
     ]
