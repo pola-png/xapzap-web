@@ -83,6 +83,8 @@ export function ProfileScreen() {
           userId: doc.userId,
           username: profileData?.displayName || profileData?.username || user.name || 'User',
           userAvatar: profileData?.avatarUrl || '',
+          displayName: profileData?.displayName || profileData?.username || user.name || 'User',
+          avatarUrl: profileData?.avatarUrl || '',
           content: doc.content || '',
           postType: doc.postType || doc.type || doc.category || 'text',
           title: doc.title || '',
