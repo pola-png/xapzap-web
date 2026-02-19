@@ -34,26 +34,11 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
     appwriteService.getUnreadNotificationCount(currentUser.$id).then(setUnreadNotifications).catch(() => {})
   }
 
-  const handleCreateClick = async () => {
-    const currentUser = await appwriteService.getCurrentUser()
-    if (!currentUser) {
-      router.push('/auth/signin')
-      return
-    }
+  const handleCreateClick = () => {
     router.push('/upload')
   }
 
-  const handleNavClick = async (path: string) => {
-    const protectedPaths = ['/chat', '/upload', '/notifications', '/profile']
-    
-    if (protectedPaths.includes(path)) {
-      const currentUser = await appwriteService.getCurrentUser()
-      if (!currentUser) {
-        router.push('/auth/signin')
-        return
-      }
-    }
-    
+  const handleNavClick = (path: string) => {
     router.push(path)
   }
 
