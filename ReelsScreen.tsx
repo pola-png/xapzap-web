@@ -171,7 +171,7 @@ export function ReelsScreen() {
           p.id === postId ? { ...p, isSaved: !p.isSaved } : p
         ))
       } else if (action === 'comment') {
-        router.push(`/reels/${generateSlug(post.caption || 'reel', postId)}`)
+        router.push(`/reels/${generateSlug(post.content || 'reel', postId)}`)
       } else if (action === 'repost') {
         await appwriteService.repostPost(postId)
         setPosts(prev => prev.map(p => 
@@ -184,8 +184,8 @@ export function ReelsScreen() {
       } else if (action === 'share') {
         if (navigator.share) {
           await navigator.share({
-            title: post.caption || 'Check out this reel',
-            url: window.location.origin + `/reels/${generateSlug(post.caption || 'reel', postId)}`
+            title: post.content || 'Check out this reel',
+            url: window.location.origin + `/reels/${generateSlug(post.content || 'reel', postId)}`
           })
         }
       }
@@ -346,8 +346,8 @@ export function ReelsScreen() {
                 <div className="flex items-center gap-2 mb-2">
                   <span className="font-semibold">@{post.displayName}</span>
                 </div>
-                {post.caption && (
-                  <p className="text-sm mb-2 line-clamp-2">{post.caption}</p>
+                {post.content && (
+                  <p className="text-sm mb-2 line-clamp-2">{post.content}</p>
                 )}
               </div>
             </div>
