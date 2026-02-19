@@ -166,7 +166,7 @@ export function ReelsScreen() {
           p.id === postId ? { 
             ...p, 
             isLiked: !p.isLiked,
-            likesCount: p.isLiked ? p.likesCount - 1 : p.likesCount + 1
+            likes: p.isLiked ? (p.likes || 0) - 1 : (p.likes || 0) + 1
           } : p
         ))
       } else if (action === 'save') {
@@ -190,7 +190,7 @@ export function ReelsScreen() {
           p.id === postId ? { 
             ...p, 
             isReposted: !p.isReposted,
-            repostsCount: p.isReposted ? p.repostsCount - 1 : p.repostsCount + 1
+            reposts: p.isReposted ? (p.reposts || 0) - 1 : (p.reposts || 0) + 1
           } : p
         ))
       } else if (action === 'share') {
@@ -290,7 +290,7 @@ export function ReelsScreen() {
                   />
                 </div>
                 <span className="text-white text-xs font-semibold">
-                  {post.likesCount > 0 ? post.likesCount : ''}
+                  {(post.likes || 0) > 0 ? post.likes : ''}
                 </span>
               </button>
 
@@ -303,7 +303,7 @@ export function ReelsScreen() {
                   <MessageCircle className="w-7 h-7 text-white" />
                 </div>
                 <span className="text-white text-xs font-semibold">
-                  {post.commentsCount > 0 ? post.commentsCount : ''}
+                  {(post.comments || 0) > 0 ? post.comments : ''}
                 </span>
               </button>
 
@@ -318,7 +318,7 @@ export function ReelsScreen() {
                   />
                 </div>
                 <span className="text-white text-xs font-semibold">
-                  {post.repostsCount > 0 ? post.repostsCount : ''}
+                  {(post.reposts || 0) > 0 ? post.reposts : ''}
                 </span>
               </button>
 
