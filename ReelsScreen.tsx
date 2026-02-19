@@ -157,11 +157,7 @@ export function ReelsScreen() {
       if (!post) return
 
       if (action === 'like') {
-        if (post.isLiked) {
-          await appwriteService.unlikePost(postId)
-        } else {
-          await appwriteService.likePost(postId)
-        }
+        await appwriteService.likePost(postId)
         setPosts(prev => prev.map(p => 
           p.id === postId ? { 
             ...p, 
@@ -170,22 +166,14 @@ export function ReelsScreen() {
           } : p
         ))
       } else if (action === 'save') {
-        if (post.isSaved) {
-          await appwriteService.unsavePost(user.$id, postId)
-        } else {
-          await appwriteService.savePost(postId)
-        }
+        await appwriteService.savePost(postId)
         setPosts(prev => prev.map(p => 
           p.id === postId ? { ...p, isSaved: !p.isSaved } : p
         ))
       } else if (action === 'comment') {
         router.push(`/reels/${generateSlug(post.caption || 'reel', postId)}`)
       } else if (action === 'repost') {
-        if (post.isReposted) {
-          await appwriteService.unrepostPost(user.$id, postId)
-        } else {
-          await appwriteService.repostPost(postId)
-        }
+        await appwriteService.repostPost(postId)
         setPosts(prev => prev.map(p => 
           p.id === postId ? { 
             ...p, 
