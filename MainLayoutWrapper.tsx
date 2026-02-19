@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useState, useEffect } from 'react'
+import { ReactNode, useState, useEffect, useTransition } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Home, MessageCircle, PlusSquare, Bell, User, Search, Video, Film, Radio, Newspaper, Users } from 'lucide-react'
 import { cn } from './utils'
@@ -13,6 +13,7 @@ interface MainLayoutWrapperProps {
 export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const [isPending, startTransition] = useTransition()
   const [unreadChats, setUnreadChats] = useState(0)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [user, setUser] = useState<any>(null)
@@ -35,11 +36,15 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
   }
 
   const handleCreateClick = () => {
-    router.push('/upload')
+    startTransition(() => {
+      router.push('/upload')
+    })
   }
 
   const handleNavClick = (path: string) => {
-    router.push(path)
+    startTransition(() => {
+      router.push(path)
+    })
   }
 
   const sidebarItems = [
@@ -106,7 +111,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
                 return (
                   <button
                     key={item.path}
-                    onClick={() => router.push(item.path)}
+                    onClick={() => startTransition(() => router.push(item.path))}
                     className={cn(
                       "w-full flex items-center gap-3 px-6 py-3 transition-colors",
                       isActive ? "text-[#1DA1F2] bg-[#1DA1F2]/10" : "text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-secondary))]"
@@ -146,7 +151,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
                 {sidebarItems.map((item) => (
                   <button
                     key={item.path}
-                    onClick={() => router.push(item.path)}
+                    onClick={() => startTransition(() => router.push(item.path))}
                     className={cn(
                       "px-3 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors flex-shrink-0",
                       pathname === item.path
