@@ -5,11 +5,11 @@ import { useEffect, useState } from 'react'
 import { ReelsDetailScreen } from '../../../VideoDetailScreen'
 import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
+import { extractIdFromSlug } from '../../../lib/slug'
 
 export default function ReelsDetailPage() {
   const params = useParams()
   const [post, setPost] = useState<Post | null>(null)
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -17,8 +17,8 @@ export default function ReelsDetailPage() {
       if (!params.id) return
 
       try {
-        setLoading(true)
-        const postData = await appwriteService.getPost(params.id as string)
+        const postId = extractIdFromSlug(params.id as string)
+        const postData = await appwriteService.getPost(postId)
         const profile = await appwriteService.getProfileByUserId(postData.userId)
         const user = await appwriteService.getCurrentUser()
         const interactions = user ? await Promise.all([
@@ -75,21 +75,11 @@ export default function ReelsDetailPage() {
       } catch (err) {
         console.error('Failed to load reel:', err)
         setError('Failed to load reel')
-      } finally {
-        setLoading(false)
       }
     }
 
     loadPost()
   }, [params.id])
-
-  if (loading && !post) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-      </div>
-    )
-  }
 
   if (error || !post) {
     return (

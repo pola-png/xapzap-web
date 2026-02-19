@@ -27,7 +27,6 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string>('')
   const [isFollowing, setIsFollowing] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
@@ -46,7 +45,6 @@ export default function ProfilePage() {
 
   const loadProfile = async () => {
     try {
-      setLoading(true)
 
       // Get current user
       const currentUser = await appwriteService.getCurrentUser()
@@ -105,8 +103,6 @@ export default function ProfilePage() {
 
     } catch (error) {
       console.error('Failed to load profile:', error)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -161,14 +157,6 @@ export default function ProfilePage() {
         return true
     }
   })
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-      </div>
-    )
-  }
 
   if (!profile) {
     return (

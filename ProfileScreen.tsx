@@ -29,7 +29,6 @@ export function ProfileScreen() {
   const [posts, setPosts] = useState<Post[]>([])
   const [videoPosts, setVideoPosts] = useState<Post[]>([])
   const [newsPosts, setNewsPosts] = useState<Post[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [isFollowing, setIsFollowing] = useState(false)
   const [followLoaded, setFollowLoaded] = useState(false)
   const [activeTab, setActiveTab] = useState<'posts' | 'videos' | 'news' | 'all'>('posts')
@@ -41,7 +40,6 @@ export function ProfileScreen() {
 
   const loadProfile = async () => {
     try {
-      setIsLoading(true)
       const user = await appwriteService.getCurrentUser()
       setCurrentUser(user)
       
@@ -124,8 +122,6 @@ export function ProfileScreen() {
 
     } catch (error) {
       console.error('Failed to load profile:', error)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -217,21 +213,6 @@ export function ProfileScreen() {
       month: 'long',
       year: 'numeric'
     })
-  }
-
-  if (isLoading) {
-    return (
-      <div className="max-w-4xl mx-auto">
-        <div className="animate-pulse">
-          <div className="h-48 bg-muted" />
-          <div className="p-6">
-            <div className="h-6 bg-muted rounded mb-2" />
-            <div className="h-4 bg-muted rounded w-1/3 mb-4" />
-            <div className="h-4 bg-muted rounded w-2/3" />
-          </div>
-        </div>
-      </div>
-    )
   }
 
   if (!profile) {

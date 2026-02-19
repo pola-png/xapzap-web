@@ -8,6 +8,7 @@ import appwriteService from './appwriteService'
 import { OptimizedImage } from './components/OptimizedImage'
 import { normalizeWasabiImageArray, normalizeWasabiImage } from './lib/wasabi'
 import { feedCache } from './lib/cache'
+import { generateSlug } from './lib/slug'
 
 interface PostCardProps {
   post: Post
@@ -260,7 +261,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
           <div
             className="relative w-full rounded-xl mb-3 bg-gray-900 cursor-pointer overflow-hidden"
             style={{ aspectRatio: '4/3' }}
-            onClick={() => router.push(`/watch/${post.id}`)}
+            onClick={() => router.push(`/watch/${generateSlug(post.title || 'video', post.id)}`)}
           >
             {thumbnailUrl && (
               <img
@@ -315,7 +316,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
         return (
           <div
             className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden aspect-square"
-            onClick={() => router.push(`/reels/${post.id}`)}
+            onClick={() => router.push(`/reels/${generateSlug(post.title || post.content?.substring(0, 30) || 'reel', post.id)}`)}
           >
             <img
               src={thumbnailUrl}
