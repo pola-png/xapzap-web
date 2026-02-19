@@ -299,6 +299,7 @@ export function ReelsScreen() {
               <button 
                 onClick={() => handleReaction(post.id, 'repost')}
                 className="flex flex-col items-center gap-1"
+                aria-label="Repost"
               >
                 <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
                   <Repeat2 
@@ -314,6 +315,7 @@ export function ReelsScreen() {
               <button 
                 onClick={() => handleReaction(post.id, 'save')}
                 className="flex flex-col items-center gap-1"
+                aria-label="Save"
               >
                 <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
                   <Bookmark 
@@ -326,6 +328,7 @@ export function ReelsScreen() {
               <button 
                 onClick={() => handleReaction(post.id, 'share')}
                 className="flex flex-col items-center gap-1"
+                aria-label="Share"
               >
                 <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
                   <Share2 className="w-6 h-6 text-white" />
@@ -333,7 +336,7 @@ export function ReelsScreen() {
               </button>
 
               {/* More */}
-              <button className="flex flex-col items-center gap-1">
+              <button className="flex flex-col items-center gap-1" aria-label="More options">
                 <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
                   <MoreVertical className="w-6 h-6 text-white" />
                 </div>
