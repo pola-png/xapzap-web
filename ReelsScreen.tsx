@@ -228,7 +228,7 @@ export function ReelsScreen() {
         {posts.map((post, index) => (
           <div key={post.id} className="h-screen w-screen relative">
             <video
-              ref={el => videoRefs.current[index] = el}
+              ref={el => { videoRefs.current[index] = el }}
               src={post.mediaUrl}
               className="h-full w-full object-cover"
               loop
