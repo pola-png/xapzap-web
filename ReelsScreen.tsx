@@ -158,9 +158,9 @@ export function ReelsScreen() {
 
       if (action === 'like') {
         if (post.isLiked) {
-          await appwriteService.unlikePost(user.$id, postId)
+          await appwriteService.unlikePost(postId)
         } else {
-          await appwriteService.likePost(user.$id, postId)
+          await appwriteService.likePost(postId)
         }
         setPosts(prev => prev.map(p => 
           p.id === postId ? { 
@@ -173,7 +173,7 @@ export function ReelsScreen() {
         if (post.isSaved) {
           await appwriteService.unsavePost(user.$id, postId)
         } else {
-          await appwriteService.savePost(user.$id, postId)
+          await appwriteService.savePost(postId)
         }
         setPosts(prev => prev.map(p => 
           p.id === postId ? { ...p, isSaved: !p.isSaved } : p
@@ -184,7 +184,7 @@ export function ReelsScreen() {
         if (post.isReposted) {
           await appwriteService.unrepostPost(user.$id, postId)
         } else {
-          await appwriteService.repostPost(user.$id, postId)
+          await appwriteService.repostPost(postId)
         }
         setPosts(prev => prev.map(p => 
           p.id === postId ? { 
