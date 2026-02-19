@@ -72,11 +72,7 @@ export function NewsScreen() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="space-y-4 pb-20 sm:pb-24">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : posts.length === 0 ? (
+        {posts.length === 0 && !loading ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No news yet</p>
             <p className="text-sm text-muted-foreground mt-2">Breaking news and updates will appear here</p>
@@ -89,6 +85,11 @@ export function NewsScreen() {
               feedType="news"
             />
           ))
+        )}
+        {loading && posts.length === 0 && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
         )}
       </div>
     </div>

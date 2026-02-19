@@ -7,6 +7,7 @@ import { Post } from './types'
 import appwriteService from './appwriteService'
 import { OptimizedImage } from './components/OptimizedImage'
 import { normalizeWasabiImageArray, normalizeWasabiImage } from './lib/wasabi'
+import { feedCache } from './lib/cache'
 
 interface PostCardProps {
   post: Post
@@ -32,6 +33,15 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
       const user = await appwriteService.getCurrentUser()
       if (!user) return
 
+      // Check cache first
+      const cached = feedCache.getInteraction(post.id, user.$id)
+      if (cached) {
+        setLiked(cached.liked)
+        setSaved(cached.saved)
+        setReposted(cached.reposted)
+        return
+      }
+
       const [isLiked, isSaved, isReposted] = await Promise.all([
         appwriteService.isPostLikedBy(user.$id, post.id),
         appwriteService.isPostSavedBy(user.$id, post.id),
@@ -41,6 +51,9 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
       setLiked(isLiked)
       setSaved(isSaved)
       setReposted(isReposted)
+      
+      // Cache the result
+      feedCache.setInteraction(post.id, user.$id, { liked: isLiked, saved: isSaved, reposted: isReposted })
     }
 
     checkUserInteractions()
@@ -51,9 +64,17 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
     const fetchUserProfile = async () => {
       if (!post.userId) return
 
+      // Check cache first
+      const cached = feedCache.getProfile(post.userId)
+      if (cached) {
+        setUserProfile(cached)
+        return
+      }
+
       try {
         const profile = await appwriteService.getProfileByUserId(post.userId)
         setUserProfile(profile)
+        feedCache.setProfile(post.userId, profile)
       } catch (error) {
         console.error('Failed to fetch user profile:', error)
       }
@@ -108,6 +129,12 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
     // Optimistic update
     setLiked(!wasLiked)
     setLikes(wasLiked ? Math.max(0, likes - 1) : likes + 1)
+    
+    // Update cache
+    const cached = feedCache.getInteraction(post.id, currentUser.$id)
+    if (cached) {
+      feedCache.setInteraction(post.id, currentUser.$id, { ...cached, liked: !wasLiked })
+    }
 
     try {
       if (wasLiked) {
@@ -120,6 +147,9 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
       // Revert on error
       setLiked(wasLiked)
       setLikes(prevLikes)
+      if (cached) {
+        feedCache.setInteraction(post.id, currentUser.$id, { ...cached, liked: wasLiked })
+      }
     }
   }
 
@@ -135,6 +165,12 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
 
     // Optimistic update
     setSaved(!wasSaved)
+    
+    // Update cache
+    const cached = feedCache.getInteraction(post.id, currentUser.$id)
+    if (cached) {
+      feedCache.setInteraction(post.id, currentUser.$id, { ...cached, saved: !wasSaved })
+    }
 
     try {
       await appwriteService.savePost(post.id)
@@ -142,6 +178,9 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
       console.error('Failed to toggle save:', error)
       // Revert on error
       setSaved(wasSaved)
+      if (cached) {
+        feedCache.setInteraction(post.id, currentUser.$id, { ...cached, saved: wasSaved })
+      }
     }
   }
 
@@ -159,6 +198,12 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
     // Optimistic update
     setReposted(!wasReposted)
     setReposts(wasReposted ? Math.max(0, reposts - 1) : reposts + 1)
+    
+    // Update cache
+    const cached = feedCache.getInteraction(post.id, currentUser.$id)
+    if (cached) {
+      feedCache.setInteraction(post.id, currentUser.$id, { ...cached, reposted: !wasReposted })
+    }
 
     try {
       await appwriteService.repostPost(post.id)
@@ -167,6 +212,9 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
       // Revert on error
       setReposted(wasReposted)
       setReposts(prevReposts)
+      if (cached) {
+        feedCache.setInteraction(post.id, currentUser.$id, { ...cached, reposted: wasReposted })
+      }
     }
   }
 
@@ -300,15 +348,15 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
             className="hover:opacity-80 transition-opacity"
             aria-label={`View ${userProfile?.displayName || userProfile?.username || post.username}'s profile`}
           >
-            {userProfile?.avatarUrl || post.userAvatar ? (
+            {userProfile?.avatarUrl ? (
               <img
-                src={userProfile?.avatarUrl || post.userAvatar}
-                alt={userProfile?.displayName || userProfile?.username || post.username}
+                src={userProfile.avatarUrl}
+                alt={userProfile.displayName || 'User'}
                 className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-900 dark:text-white font-semibold">
-                {((userProfile?.displayName || userProfile?.username || post.username) || 'U')[0].toUpperCase()}
+                {(userProfile?.displayName || 'U')[0].toUpperCase()}
               </div>
             )}
           </button>
@@ -316,9 +364,9 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
             <button
               onClick={() => router.push(`/profile/${post.userId}`)}
               className="text-gray-900 dark:text-white font-bold text-base hover:underline transition-all text-left"
-              aria-label={`View ${userProfile?.displayName || userProfile?.username || post.username}'s profile`}
+              aria-label={`View ${userProfile?.displayName || 'User'}'s profile`}
             >
-              {userProfile?.displayName || userProfile?.username || post.username || 'User'}
+              {userProfile?.displayName || 'User'}
             </button>
             <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">{new Date(post.createdAt).toLocaleDateString()}</span>
           </div>
