@@ -56,7 +56,7 @@ export function ReelsScreen() {
           const post = posts[index]
           if (post && !impressionTracked.current.has(post.id)) {
             setTimeout(() => {
-              appwriteService.incrementPostField(post.id, 'impressions')
+              appwriteService.incrementPostField(post.id, 'impressions', 1)
               impressionTracked.current.add(post.id)
               setPosts(prev => prev.map(p => 
                 p.id === post.id ? { ...p, impressions: (p.impressions || 0) + 1 } : p
@@ -72,7 +72,7 @@ export function ReelsScreen() {
 
   const handleVideoPlay = (postId: string) => {
     if (!viewTracked.current.has(postId)) {
-      appwriteService.incrementPostField(postId, 'views')
+      appwriteService.incrementPostField(postId, 'views', 1)
       viewTracked.current.add(postId)
       setPosts(prev => prev.map(p => 
         p.id === postId ? { ...p, views: (p.views || 0) + 1 } : p
