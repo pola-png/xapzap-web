@@ -6,6 +6,7 @@ import { ReelsDetailScreen } from '../../../VideoDetailScreen'
 import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
 import { extractIdFromSlug } from '../../../lib/slug'
+import { generateVideoStructuredData } from '../../../lib/structured-data'
 
 export default function ReelsDetailPage() {
   const params = useParams()
@@ -27,7 +28,7 @@ export default function ReelsDetailPage() {
           appwriteService.isPostRepostedBy(user.$id, postData.$id)
         ]) : [false, false, false]
         
-        setPost({
+        const enrichedPost = {
           ...postData,
           id: postData.$id,
           postId: postData.postId || postData.$id,
@@ -39,7 +40,9 @@ export default function ReelsDetailPage() {
           content: postData.content || '',
           postType: postData.postType || 'reel',
           title: postData.title || '',
+          caption: postData.caption || '',
           thumbnailUrl: postData.thumbnailUrl || '',
+          mediaUrl: postData.mediaUrl || (postData.mediaUrls && postData.mediaUrls[0]) || '',
           mediaUrls: (() => {
             if (Array.isArray(postData.mediaUrls)) {
               return postData.mediaUrls;
@@ -62,6 +65,9 @@ export default function ReelsDetailPage() {
           shares: postData.shares || 0,
           impressions: postData.impressions || 0,
           views: postData.views || 0,
+          likesCount: postData.likes || 0,
+          commentsCount: postData.comments || 0,
+          repostsCount: postData.reposts || 0,
           isLiked: interactions[0],
           isReposted: interactions[1],
           isSaved: interactions[2],
@@ -71,7 +77,45 @@ export default function ReelsDetailPage() {
           textBgColor: postData.textBgColor,
           isBoosted: postData.isBoosted || false,
           activeBoostId: postData.activeBoostId || ''
-        } as Post)
+        } as Post
+
+        setPost(enrichedPost)
+
+        // Inject structured data for SEO
+        if (typeof window !== 'undefined') {
+          const structuredData = generateVideoStructuredData(enrichedPost)
+          const script = document.createElement('script')
+          script.type = 'application/ld+json'
+          script.text = JSON.stringify(structuredData)
+          document.head.appendChild(script)
+
+          // Update meta tags dynamically
+          document.title = `${enrichedPost.caption || 'Reel'} by ${enrichedPost.displayName} | XapZap`
+          
+          const updateOrCreateMeta = (selector: string, attribute: string, content: string) => {
+            let meta = document.querySelector(selector)
+            if (!meta) {
+              meta = document.createElement('meta')
+              if (attribute === 'name') {
+                meta.setAttribute('name', selector.replace('meta[name="', '').replace('"]', ''))
+              } else {
+                meta.setAttribute('property', selector.replace('meta[property="', '').replace('"]', ''))
+              }
+              document.head.appendChild(meta)
+            }
+            meta.setAttribute('content', content)
+          }
+
+          updateOrCreateMeta('meta[name="description"]', 'name', enrichedPost.caption || `Watch ${enrichedPost.displayName}'s reel on XapZap`)
+          updateOrCreateMeta('meta[property="og:title"]', 'property', `${enrichedPost.caption || 'Reel'} by ${enrichedPost.displayName}`)
+          updateOrCreateMeta('meta[property="og:description"]', 'property', enrichedPost.caption || `Watch ${enrichedPost.displayName}'s reel`)
+          updateOrCreateMeta('meta[property="og:image"]', 'property', enrichedPost.thumbnailUrl || '/og-image.jpg')
+          updateOrCreateMeta('meta[property="og:type"]', 'property', 'video.other')
+          updateOrCreateMeta('meta[property="og:video"]', 'property', enrichedPost.mediaUrl || '')
+          updateOrCreateMeta('meta[name="twitter:card"]', 'name', 'player')
+          updateOrCreateMeta('meta[name="twitter:title"]', 'name', `${enrichedPost.caption || 'Reel'} by ${enrichedPost.displayName}`)
+          updateOrCreateMeta('meta[name="twitter:image"]', 'name', enrichedPost.thumbnailUrl || '/og-image.jpg')
+        }
       } catch (err) {
         console.error('Failed to load reel:', err)
         setError('Failed to load reel')

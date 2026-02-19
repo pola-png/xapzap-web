@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { AuthWrapper } from '../AuthWrapper'
 import { MainLayoutWrapper } from '../MainLayoutWrapper'
+import { generateWebsiteStructuredData, generateOrganizationStructuredData } from '../lib/structured-data'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -55,6 +56,7 @@ export const metadata: Metadata = {
   verification: {
     google: 'google-site-verification-code',
   },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'),
 }
 
 export const dynamic = 'force-dynamic'
@@ -65,6 +67,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const websiteData = generateWebsiteStructuredData()
+  const orgData = generateOrganizationStructuredData()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -78,6 +83,14 @@ export default function RootLayout({
               }
             `,
           }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteData) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgData) }}
         />
       </head>
       <body className={inter.className}>
