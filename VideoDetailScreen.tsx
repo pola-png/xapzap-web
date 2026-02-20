@@ -165,7 +165,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       </div>
 
       {/* Video Player Container */}
-      <div className="flex-1 flex items-center justify-center bg-black relative">
+      <div className="w-full aspect-video bg-black relative mt-12">
         <video
           ref={videoRef}
           src={post.mediaUrls && post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls && post.mediaUrls[0]}
@@ -188,7 +188,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <div className="absolute inset-0 flex items-center justify-center">
               <button
                 onClick={togglePlay}
-                className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center text-white hover:bg-red-700 transition-all transform hover:scale-110 shadow-2xl"
+                className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110 shadow-2xl"
                 aria-label="Play video"
               >
                 <Play size={40} fill="white" className="ml-1" />
@@ -204,10 +204,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
               onClick={handleSeek}
             >
               <div
-                className="h-full bg-red-600 rounded-full transition-all duration-100 relative"
+                className="h-full bg-white rounded-full transition-all duration-100 relative"
                 style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
               >
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </div>
 
@@ -240,7 +240,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       </div>
 
       {/* Bottom Section - Reactions & Comments */}
-      <div className="bg-background border-t border-border">
+      <div className="flex-1 bg-background overflow-y-auto">
         {/* Reactions Bar */}
         <div className="flex items-center justify-around py-3 px-4 border-b border-border">
           <button

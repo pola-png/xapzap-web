@@ -125,11 +125,15 @@ export default function WatchDetailPage() {
     loadPost()
   }, [params.id])
 
-  if (error || !post) {
+  if (!post) {
+    return null
+  }
+
+  if (error) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-white text-center">
-          <p className="text-xl mb-4">{error || 'Video not found'}</p>
+          <p className="text-xl mb-4">{error}</p>
           <button
             onClick={() => window.history.back()}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
