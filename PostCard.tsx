@@ -396,7 +396,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
           >
             {post.content}
           </div>
-        ) : (post.content && post.postType !== 'video' && feedType !== 'home' && feedType !== 'watch') ? (
+        ) : (post.content && !(post.postType === 'video' && (feedType === 'home' || feedType === 'watch'))) ? (
           <p className="text-gray-900 dark:text-white text-base leading-relaxed mb-3">{post.content}</p>
         ) : null}
 

@@ -251,7 +251,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 <span className="absolute text-xs font-bold">10</span>
               </button>
               <button
-                onClick={togglePlay}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  togglePlay()
+                }}
                 className="w-20 h-20 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/40 transition-all transform hover:scale-110 shadow-2xl"
                 aria-label={isPlaying ? "Pause video" : "Play video"}
               >
@@ -292,50 +295,44 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Controls Below Video */}
       <div className="bg-black px-4 py-3">
-        {/* Title and Description */}
-        <div className="mb-3">
-          {post.title && (
-            <div className="flex items-baseline gap-1 mb-1">
-              <p className="text-white font-bold text-xl truncate flex-1">
-                {post.title.length > 35 ? post.title.substring(0, 35) : post.title}
-              </p>
-              {post.title.length > 35 && (
-                <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
-              )}
-            </div>
-          )}
-          {post.content && (
-            <div className="flex items-baseline gap-1 mb-1">
-              <p className="text-white/70 text-xs truncate flex-1">
-                {post.content.length > 40 ? post.content.substring(0, 40) : post.content}
-              </p>
-              {post.content.length > 40 && (
-                <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
-              )}
-            </div>
-          )}
+        {/* Title */}
+        {post.title && (
+          <div className="flex items-baseline gap-1 mb-3">
+            <p className="text-white font-bold text-xl truncate flex-1">
+              {post.title.length > 35 ? post.title.substring(0, 35) : post.title}
+            </p>
+            {post.title.length > 35 && (
+              <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
+            )}
+          </div>
+        )}
+
+        {/* Username with View Count, Follow, and Menu */}
+        <div className="flex items-center justify-between">
           {post.username && (
             <p className="text-white/60 text-xs">@{post.username}</p>
           )}
-        </div>
-
-        {/* Follow and Menu Buttons */}
-        <div className="flex items-center justify-end gap-2">
-          {!isFollowing && (
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1 text-white/60 text-xs">
+              <Eye size={14} />
+              {views || 0}
+            </span>
+            {!isFollowing && (
+              <button
+                onClick={handleFollow}
+                className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/90 transition-colors"
+              >
+                Follow
+              </button>
+            )}
             <button
-              onClick={handleFollow}
-              className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/90 transition-colors"
+              onClick={() => setShowMenu(!showMenu)}
+              className="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors"
+              aria-label="More options"
             >
-              Follow
+              <MoreHorizontal size={20} />
             </button>
-          )}
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors"
-            aria-label="More options"
-          >
-            <MoreHorizontal size={20} />
-          </button>
+          </div>
         </div>
       </div>
 
