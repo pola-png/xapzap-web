@@ -180,7 +180,17 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
       {/* Header - Outside video */}
-      <div className="bg-black/90 backdrop-blur-sm p-4 z-20">
+      <div className="bg-black/90 backdrop-blur-sm p-4 z-20 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {post.userAvatar ? (
+            <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover" />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-semibold">
+              {(post.displayName || 'U')[0].toUpperCase()}
+            </div>
+          )}
+          <h3 className="text-white font-semibold text-base">{post.displayName || 'User'}</h3>
+        </div>
         <button
           onClick={onClose}
           className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors"
@@ -287,22 +297,25 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           {post.title && (
             <div className="flex items-baseline gap-1 mb-1">
               <p className="text-white font-bold text-xl truncate flex-1">
-                {post.title.length > 23 ? post.title.substring(0, 23) : post.title}
+                {post.title.length > 35 ? post.title.substring(0, 35) : post.title}
               </p>
-              {post.title.length > 23 && (
+              {post.title.length > 35 && (
                 <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
               )}
             </div>
           )}
           {post.content && (
-            <div className="flex items-baseline gap-1">
+            <div className="flex items-baseline gap-1 mb-1">
               <p className="text-white/70 text-xs truncate flex-1">
-                {post.content.length > 30 ? post.content.substring(0, 30) : post.content}
+                {post.content.length > 40 ? post.content.substring(0, 40) : post.content}
               </p>
-              {post.content.length > 30 && (
+              {post.content.length > 40 && (
                 <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
               )}
             </div>
+          )}
+          {post.username && (
+            <p className="text-white/60 text-xs">@{post.username}</p>
           )}
         </div>
 
