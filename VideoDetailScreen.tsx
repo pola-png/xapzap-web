@@ -301,7 +301,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         {/* Title with Username and View Count */}
         {post.title && (
           <div>
-            <div className="flex items-baseline gap-1 mb-1">
+            <div className="flex items-baseline gap-1">
               <p className="text-foreground font-bold text-xl truncate flex-1">
                 {post.title.length > 35 ? post.title.substring(0, 35) : post.title}
               </p>
@@ -384,7 +384,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
 
         {/* Comment Input - Fixed at Bottom */}
-        <div className="p-4 bg-muted rounded-b-xl border-t border-border">
+        <div className="p-4 pb-20 bg-muted rounded-b-xl border-t border-border">
           <div className="flex items-center gap-3">
             {post.userAvatar ? (
               <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover" />
