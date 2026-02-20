@@ -229,7 +229,7 @@ export function ReelsScreen() {
           <div key={post.id} className="h-screen w-screen relative">
             <video
               ref={el => { videoRefs.current[index] = el }}
-              src={post.mediaUrl}
+              src={post.mediaUrls[0]}
               className="h-full w-full object-cover"
               loop
               playsInline
