@@ -319,41 +319,23 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           )}
         </div>
 
-        {/* Video Owner Info */}
-        <div className="flex items-start gap-3">
-          {post.userAvatar ? (
-            <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-semibold flex-shrink-0">
-              {(post.displayName || 'U')[0].toUpperCase()}
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="text-white font-semibold text-sm">{post.displayName || 'User'}</h3>
-              <span className="flex items-center gap-1 text-white/60 text-xs flex-shrink-0">
-                <BarChart2 size={14} />
-                {impressions || 0}
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {!isFollowing && (
-              <button
-                onClick={handleFollow}
-                className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/90 transition-colors"
-              >
-                Follow
-              </button>
-            )}
+        {/* Follow and Menu Buttons */}
+        <div className="flex items-center justify-end gap-2">
+          {!isFollowing && (
             <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors"
-              aria-label="More options"
+              onClick={handleFollow}
+              className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/90 transition-colors"
             >
-              <MoreHorizontal size={20} />
+              Follow
             </button>
-          </div>
+          )}
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors"
+            aria-label="More options"
+          >
+            <MoreHorizontal size={20} />
+          </button>
         </div>
       </div>
 
