@@ -90,7 +90,7 @@ export default function WatchDetailPage() {
           document.head.appendChild(script)
 
           // Update meta tags dynamically
-          document.title = `${enrichedPost.caption || 'Video'} by ${enrichedPost.displayName} | XapZap`
+          document.title = `${enrichedPost.content || 'Video'} by ${enrichedPost.displayName} | XapZap`
           
           const updateOrCreateMeta = (selector: string, attribute: string, content: string) => {
             let meta = document.querySelector(selector)
@@ -106,14 +106,14 @@ export default function WatchDetailPage() {
             meta.setAttribute('content', content)
           }
 
-          updateOrCreateMeta('meta[name="description"]', 'name', enrichedPost.caption || `Watch ${enrichedPost.displayName}'s video on XapZap`)
-          updateOrCreateMeta('meta[property="og:title"]', 'property', `${enrichedPost.caption || 'Video'} by ${enrichedPost.displayName}`)
-          updateOrCreateMeta('meta[property="og:description"]', 'property', enrichedPost.caption || `Watch ${enrichedPost.displayName}'s video`)
+          updateOrCreateMeta('meta[name="description"]', 'name', enrichedPost.content || `Watch ${enrichedPost.displayName}'s video on XapZap`)
+          updateOrCreateMeta('meta[property="og:title"]', 'property', `${enrichedPost.content || 'Video'} by ${enrichedPost.displayName}`)
+          updateOrCreateMeta('meta[property="og:description"]', 'property', enrichedPost.content || `Watch ${enrichedPost.displayName}'s video`)
           updateOrCreateMeta('meta[property="og:image"]', 'property', enrichedPost.thumbnailUrl || '/og-image.jpg')
           updateOrCreateMeta('meta[property="og:type"]', 'property', 'video.other')
-          updateOrCreateMeta('meta[property="og:video"]', 'property', enrichedPost.mediaUrl || '')
+          updateOrCreateMeta('meta[property="og:video"]', 'property', enrichedPost.mediaUrls[0] || '')
           updateOrCreateMeta('meta[name="twitter:card"]', 'name', 'player')
-          updateOrCreateMeta('meta[name="twitter:title"]', 'name', `${enrichedPost.caption || 'Video'} by ${enrichedPost.displayName}`)
+          updateOrCreateMeta('meta[name="twitter:title"]', 'name', `${enrichedPost.content || 'Video'} by ${enrichedPost.displayName}`)
           updateOrCreateMeta('meta[name="twitter:image"]', 'name', enrichedPost.thumbnailUrl || '/og-image.jpg')
         }
       } catch (err) {
