@@ -224,16 +224,19 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         {/* Video Owner Info */}
         <div className="flex items-center gap-3">
           {post.userAvatar ? (
-            <img src={post.userAvatar} alt={post.username} className="w-10 h-10 rounded-full object-cover" />
+            <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover" />
           ) : (
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-semibold">
-              {(post.username || 'U')[0].toUpperCase()}
+              {(post.displayName || 'U')[0].toUpperCase()}
             </div>
           )}
           <div className="flex-1">
-            <h3 className="text-white font-semibold text-sm">{post.username || 'User'}</h3>
+            <h3 className="text-white font-semibold text-sm">{post.displayName || 'User'}</h3>
+            {post.title && (
+              <p className="text-white font-medium text-sm">{post.title}</p>
+            )}
             {post.content && (
-              <p className="text-white/70 text-sm truncate">
+              <p className="text-white/70 text-xs truncate">
                 {post.content}{' '}
                 <button onClick={() => setShowDescription(true)} className="text-white/90 font-medium">...see more</button>
               </p>
@@ -247,7 +250,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={() => setShowDescription(false)}>
           <div className="bg-background w-full rounded-t-2xl p-6 animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="w-12 h-1 bg-muted rounded-full mx-auto mb-4" />
-            <h3 className="text-foreground font-semibold text-lg mb-2">Description</h3>
+            {post.title && <h3 className="text-foreground font-semibold text-lg mb-2">{post.title}</h3>}
             <p className="text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
           </div>
         </div>
@@ -269,11 +272,15 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <MessageCircle size={18} />
             <span className="text-xs font-medium">{comments || 0}</span>
           </button>
-          <button className="flex items-center gap-1 hover:text-purple-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Views - ${views || 0} views`}>
-            <BarChart2 size={18} />
+          <button className="flex items-center gap-1 hover:text-green-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Views - ${views || 0} views`}>
+            <Eye size={18} />
             <span className="text-xs font-medium">{views || 0}</span>
           </button>
-          <button className="flex items-center gap-1 hover:text-green-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Reposts - ${reposts || 0} reposts`}>
+          <button className="flex items-center gap-1 hover:text-purple-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Impressions - ${impressions || 0} impressions`}>
+            <BarChart2 size={18} />
+            <span className="text-xs font-medium">{impressions || 0}</span>
+          </button>
+          <button className="flex items-center gap-1 hover:text-amber-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Reposts - ${reposts || 0} reposts`}>
             <Repeat2 size={18} />
             <span className="text-xs font-medium">{reposts || 0}</span>
           </button>
@@ -294,10 +301,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <div className="p-4 border-t border-border bg-background">
           <div className="flex items-center gap-3">
             {post.userAvatar ? (
-              <img src={post.userAvatar} alt={post.username} className="w-10 h-10 rounded-full object-cover" />
+              <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover" />
             ) : (
               <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground font-semibold">
-                {(post.username || 'U')[0].toUpperCase()}
+                {(post.displayName || 'U')[0].toUpperCase()}
               </div>
             )}
             <input
