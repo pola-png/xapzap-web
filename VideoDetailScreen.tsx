@@ -42,7 +42,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       const user = await appwriteService.getCurrentUser()
       setCurrentUserId(user?.$id || null)
       if (user && post.userId) {
-        const following = await appwriteService.isUserFollowing(user.$id, post.userId)
+        const following = await appwriteService.isFollowing(user.$id, post.userId)
         setIsFollowing(following)
       }
     }
