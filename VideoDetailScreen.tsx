@@ -23,11 +23,13 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [liked, setLiked] = useState(post.isLiked || false)
   const [likes, setLikes] = useState(post.likes || 0)
   const [reposts, setReposts] = useState(post.reposts || 0)
+  const [reposted, setReposted] = useState(post.isReposted || false)
   const [comments, setComments] = useState(post.comments || 0)
+  const [saved, setSaved] = useState(post.isSaved || false)
   const [impressions, setImpressions] = useState(post.impressions || 0)
   const [views, setViews] = useState(post.views || 0)
   const [showDescription, setShowDescription] = useState(false)
-  const [isFollowing, setIsFollowing] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(post.isFollowing || false)
   const [showMenu, setShowMenu] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -153,35 +155,67 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   }
 
   const handleLike = async () => {
+    const wasLiked = liked
+    const prevLikes = likes
+    setLiked(!wasLiked)
+    setLikes(wasLiked ? Math.max(0, likes - 1) : likes + 1)
+
     try {
-      if (liked) {
+      if (wasLiked) {
         await appwriteService.unlikePost(post.id)
-        setLiked(false)
-        setLikes(Math.max(0, likes - 1))
       } else {
         await appwriteService.likePost(post.id)
-        setLiked(true)
-        setLikes(likes + 1)
       }
     } catch (error) {
       console.error('Failed to toggle like:', error)
+      setLiked(wasLiked)
+      setLikes(prevLikes)
+    }
+  }
+
+  const handleSave = async () => {
+    const wasSaved = saved
+    setSaved(!wasSaved)
+
+    try {
+      await appwriteService.savePost(post.id)
+    } catch (error) {
+      console.error('Failed to toggle save:', error)
+      setSaved(wasSaved)
+    }
+  }
+
+  const handleRepost = async () => {
+    const wasReposted = reposted
+    const prevReposts = reposts
+    setReposted(!wasReposted)
+    setReposts(wasReposted ? Math.max(0, reposts - 1) : reposts + 1)
+
+    try {
+      await appwriteService.repostPost(post.id)
+    } catch (error) {
+      console.error('Failed to toggle repost:', error)
+      setReposted(wasReposted)
+      setReposts(prevReposts)
     }
   }
 
   const handleFollow = async () => {
+    const wasFollowing = isFollowing
+    setIsFollowing(!wasFollowing)
+
     try {
       const user = await appwriteService.getCurrentUser()
       if (!user) return
       
-      if (isFollowing) {
+      if (wasFollowing) {
         await appwriteService.unfollowUser(post.userId)
-        setIsFollowing(false)
       } else {
         await appwriteService.followUser(post.userId)
-        setIsFollowing(true)
       }
     } catch (error) {
       console.error('Failed to toggle follow:', error)
+      setIsFollowing(wasFollowing)
     }
   }
 
@@ -354,14 +388,14 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       <div className="flex-1 bg-background flex flex-col">
         {/* Reactions Bar */}
         <div className="flex items-center justify-between gap-1 py-3 px-4 mx-4 mt-3 bg-muted/50 rounded-2xl border border-border/30">
-          <button className="flex items-center justify-center hover:text-yellow-500 transition-colors p-2 rounded-xl text-foreground hover:bg-background/50" aria-label="Save">
-            <Bookmark size={22} />
+          <button onClick={handleSave} className={`flex items-center justify-center transition-colors p-2 rounded-xl ${saved ? 'text-yellow-500' : 'text-foreground hover:text-yellow-500'} hover:bg-background/50`} aria-label="Save">
+            <Bookmark size={22} className={saved ? 'fill-yellow-500' : ''} />
           </button>
           <button className="flex items-center justify-center hover:text-blue-500 transition-colors p-2 rounded-xl text-foreground hover:bg-background/50" aria-label="Share">
             <Share size={22} />
           </button>
-          <button className="flex items-center gap-1 hover:text-amber-500 transition-colors p-2 rounded-xl text-foreground hover:bg-background/50" aria-label={`Reposts - ${reposts || 0} reposts`}>
-            <Repeat2 size={22} />
+          <button onClick={handleRepost} className={`flex items-center gap-1 transition-colors p-2 rounded-xl ${reposted ? 'text-amber-500' : 'text-foreground hover:text-amber-500'} hover:bg-background/50`} aria-label={`Reposts - ${reposts || 0} reposts`}>
+            <Repeat2 size={22} className={reposted ? 'fill-amber-500' : ''} />
             <span className="text-sm font-medium">{reposts || 0}</span>
           </button>
           <button className="flex items-center gap-1 hover:text-blue-500 transition-colors p-2 rounded-xl text-foreground hover:bg-background/50" aria-label={`Comments - ${comments || 0} comments`}>
@@ -371,52 +405,20 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           {!isFollowing && (
             <button
               onClick={handleFollow}
-              className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/90 transition-colors"
+              className="px-5 py-2 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:bg-primary/90 transition-colors"
             >
               Follow
             </button>
           )}
           <button
             onClick={handleLike}
-            className={`flex items-center gap-1 hover:text-red-500 transition-colors p-2 rounded-xl ${liked ? 'text-red-500' : 'text-foreground'} hover:bg-background/50`}
+            className={`flex items-center gap-1 transition-colors p-2 rounded-xl ${liked ? 'text-red-500' : 'text-foreground hover:text-red-500'} hover:bg-background/50`}
             aria-label={`Like - ${likes || 0} likes`}
           >
             <Heart size={22} className={liked ? 'fill-red-500' : ''} />
             <span className="text-sm font-medium">{likes || 0}</span>
           </button>
         </div>
-          <button className="flex items-center justify-center hover:text-yellow-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label="Save">
-            <Bookmark size={22} />
-          </button>
-          <button className="flex items-center justify-center hover:text-blue-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label="Share">
-            <Share size={22} />
-          </button>
-          <button className="flex items-center gap-1 hover:text-amber-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Reposts - ${reposts || 0} reposts`}>
-            <Repeat2 size={22} />
-            <span className="text-sm font-medium">{reposts || 0}</span>
-          </button>
-          <button className="flex items-center gap-1 hover:text-blue-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Comments - ${comments || 0} comments`}>
-            <MessageCircle size={22} />
-            <span className="text-sm font-medium">{comments || 0}</span>
-          </button>
-          {!isFollowing && (
-            <button
-              onClick={handleFollow}
-              className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/90 transition-colors"
-            >
-              Follow
-            </button>
-          )}
-          <button
-            onClick={handleLike}
-            className={`flex items-center gap-1 hover:text-red-500 transition-colors p-1.5 rounded-lg ${liked ? 'text-red-500' : 'text-foreground'}`}
-            aria-label={`Like - ${likes || 0} likes`}
-          >
-            <Heart size={22} className={liked ? 'fill-red-500' : ''} />
-            <span className="text-sm font-medium">{likes || 0}</span>
-          </button>
-        </div>
-
         {/* Comments Section - Scrollable */}
         <div className="flex-1 overflow-y-auto p-4 bg-background">
           <p className="text-muted-foreground text-sm">No comments yet</p>
