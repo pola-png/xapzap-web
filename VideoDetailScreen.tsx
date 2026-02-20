@@ -26,6 +26,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [comments, setComments] = useState(post.comments || 0)
   const [impressions, setImpressions] = useState(post.impressions || 0)
   const [views, setViews] = useState(post.views || 0)
+  const [showDescription, setShowDescription] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
@@ -153,11 +154,11 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-4 bg-gradient-to-b from-black/80 to-transparent">
+      {/* Header - Outside video */}
+      <div className="bg-black/90 backdrop-blur-sm p-4 z-20">
         <button
           onClick={onClose}
-          className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+          className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors"
           aria-label="Close video"
         >
           <ArrowLeft size={20} />
@@ -165,7 +166,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       </div>
 
       {/* Video Player Container */}
-      <div className="w-full aspect-video bg-black relative mt-12">
+      <div className="w-full aspect-video bg-black relative">
         <video
           ref={videoRef}
           src={post.mediaUrls && post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls && post.mediaUrls[0]}
@@ -177,102 +178,120 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           preload="auto"
         />
 
-        {/* YouTube-Style Controls Overlay */}
-        <div
-          className={`absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent transition-opacity duration-300 ${
-            showControls ? 'opacity-100' : 'opacity-0'
-          }`}
+        {/* Speaker Icon - Top Right */}
+        <button
+          onClick={toggleMute}
+          className="absolute top-4 right-4 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors z-10"
+          aria-label={isMuted ? "Unmute" : "Mute"}
         >
-          {/* Center Play Button */}
-          {!isPlaying && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <button
-                onClick={togglePlay}
-                className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110 shadow-2xl"
-                aria-label="Play video"
-              >
-                <Play size={40} fill="white" className="ml-1" />
-              </button>
+          {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
+        </button>
+
+        {/* Duration - Bottom Right */}
+        <div className="absolute bottom-4 right-4 px-2 py-1 bg-black/70 backdrop-blur-sm rounded text-white text-xs font-medium z-10">
+          {formatTime(currentTime)} / {formatTime(duration)}
+        </div>
+
+        {/* Center Play Button Only */}
+        {!isPlaying && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+            <button
+              onClick={togglePlay}
+              className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110 shadow-2xl"
+              aria-label="Play video"
+            >
+              <Play size={40} fill="white" className="ml-1" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Controls Below Video */}
+      <div className="bg-black px-4 py-3">
+        {/* Progress Bar */}
+        <div
+          className="w-full h-1 bg-white/20 rounded-full cursor-pointer group hover:h-1.5 transition-all mb-3"
+          onClick={handleSeek}
+        >
+          <div
+            className="h-full bg-white rounded-full transition-all duration-100 relative"
+            style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
+          >
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        </div>
+
+        {/* Video Owner Info */}
+        <div className="flex items-center gap-3">
+          {post.userAvatar ? (
+            <img src={post.userAvatar} alt={post.username} className="w-10 h-10 rounded-full object-cover" />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-semibold">
+              {(post.username || 'U')[0].toUpperCase()}
             </div>
           )}
-
-          {/* Bottom Controls */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
-            {/* Progress Bar */}
-            <div
-              className="w-full h-1 bg-white/20 rounded-full cursor-pointer group hover:h-1.5 transition-all"
-              onClick={handleSeek}
-            >
-              <div
-                className="h-full bg-white rounded-full transition-all duration-100 relative"
-                style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
-              >
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-            </div>
-
-            {/* Controls Row */}
-            <div className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={togglePlay}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors"
-                  aria-label={isPlaying ? "Pause" : "Play"}
-                >
-                  {isPlaying ? <Pause size={24} /> : <Play size={24} fill="white" />}
-                </button>
-
-                <button
-                  onClick={toggleMute}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors"
-                  aria-label={isMuted ? "Unmute" : "Mute"}
-                >
-                  {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
-                </button>
-
-                <span className="text-sm font-medium">
-                  {formatTime(currentTime)} / {formatTime(duration)}
-                </span>
-              </div>
-            </div>
+          <div className="flex-1">
+            <h3 className="text-white font-semibold text-sm">{post.username || 'User'}</h3>
+            {post.content && (
+              <p className="text-white/70 text-sm truncate">
+                {post.content}{' '}
+                <button onClick={() => setShowDescription(true)} className="text-white/90 font-medium">...see more</button>
+              </p>
+            )}
           </div>
         </div>
       </div>
 
+      {/* Description Modal */}
+      {showDescription && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={() => setShowDescription(false)}>
+          <div className="bg-background w-full rounded-t-2xl p-6 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="w-12 h-1 bg-muted rounded-full mx-auto mb-4" />
+            <h3 className="text-foreground font-semibold text-lg mb-2">Description</h3>
+            <p className="text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+          </div>
+        </div>
+      )}
+
       {/* Bottom Section - Reactions & Comments */}
-      <div className="flex-1 bg-background overflow-y-auto">
+      <div className="flex-1 bg-background flex flex-col">
         {/* Reactions Bar */}
-        <div className="flex items-center justify-around py-3 px-4 border-b border-border">
+        <div className="flex items-center justify-between gap-1 py-3 px-2 border-b border-border">
           <button
             onClick={handleLike}
-            className={`flex flex-col items-center gap-1 transition-colors ${liked ? 'text-red-500' : 'text-foreground hover:text-red-500'}`}
-            aria-label={liked ? "Unlike" : "Like"}
+            className={`flex items-center gap-1 hover:text-red-500 transition-colors p-1.5 rounded-lg ${liked ? 'text-red-500' : 'text-foreground'}`}
+            aria-label={`Like - ${likes || 0} likes`}
           >
-            <Heart size={24} className={liked ? 'fill-red-500' : ''} />
+            <Heart size={18} className={liked ? 'fill-red-500' : ''} />
             <span className="text-xs font-medium">{likes || 0}</span>
           </button>
-          <button className="flex flex-col items-center gap-1 text-foreground hover:text-blue-500 transition-colors" aria-label="Comments">
-            <MessageCircle size={24} />
+          <button className="flex items-center gap-1 hover:text-blue-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Comments - ${comments || 0} comments`}>
+            <MessageCircle size={18} />
             <span className="text-xs font-medium">{comments || 0}</span>
           </button>
-          <button className="flex flex-col items-center gap-1 text-foreground hover:text-green-500 transition-colors" aria-label="Repost">
-            <Repeat2 size={24} />
-            <span className="text-xs font-medium">{reposts || 0}</span>
-          </button>
-          <button className="flex flex-col items-center gap-1 text-foreground hover:text-purple-500 transition-colors" aria-label="Views">
-            <Eye size={24} />
+          <button className="flex items-center gap-1 hover:text-purple-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Views - ${views || 0} views`}>
+            <BarChart2 size={18} />
             <span className="text-xs font-medium">{views || 0}</span>
           </button>
-          <button className="flex flex-col items-center gap-1 text-foreground hover:text-yellow-500 transition-colors" aria-label="Save">
-            <Bookmark size={24} />
+          <button className="flex items-center gap-1 hover:text-green-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Reposts - ${reposts || 0} reposts`}>
+            <Repeat2 size={18} />
+            <span className="text-xs font-medium">{reposts || 0}</span>
           </button>
-          <button className="flex flex-col items-center gap-1 text-foreground hover:text-blue-500 transition-colors" aria-label="Share">
-            <Share size={24} />
+          <button className="flex items-center justify-center hover:text-yellow-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label="Save">
+            <Bookmark size={18} />
+          </button>
+          <button className="flex items-center justify-center hover:text-blue-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label="Share">
+            <Share size={18} />
           </button>
         </div>
 
-        {/* Comment Input */}
-        <div className="p-4">
+        {/* Comments Section - Scrollable */}
+        <div className="flex-1 overflow-y-auto p-4">
+          <p className="text-muted-foreground text-sm">No comments yet</p>
+        </div>
+
+        {/* Comment Input - Fixed at Bottom */}
+        <div className="p-4 border-t border-border bg-background">
           <div className="flex items-center gap-3">
             {post.userAvatar ? (
               <img src={post.userAvatar} alt={post.username} className="w-10 h-10 rounded-full object-cover" />
