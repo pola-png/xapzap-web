@@ -401,7 +401,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       {/* Bottom Section - Reactions & Comments */}
       <div className="flex-1 bg-background flex flex-col">
         {/* Reactions Bar */}
-        <div className="flex items-center justify-between gap-1 py-3 px-4 mx-4 mt-3 bg-muted/50 rounded-2xl border border-border/30">
+        <div className="flex items-center justify-between gap-1 py-3 px-4 bg-muted/50 border-t border-border/30">
           <button onClick={handleSave} className={`flex items-center justify-center transition-colors p-2 rounded-xl ${saved ? 'text-yellow-500' : 'text-foreground hover:text-yellow-500'} hover:bg-background/50`} aria-label="Save">
             <Bookmark size={22} className={saved ? 'fill-yellow-500' : ''} />
           </button>
@@ -439,19 +439,19 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
 
         {/* Comment Input - Fixed at Bottom */}
-        <div className="p-4 pb-20 bg-muted/50 mx-4 mb-4 rounded-2xl border border-border/30">
+        <div className="p-3 pb-20 bg-muted/50 border-t border-border/30">
           <div className="flex items-center gap-3">
             {post.userAvatar ? (
-              <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover" />
+              <img src={post.userAvatar} alt={post.displayName} className="w-8 h-8 rounded-full object-cover" />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground font-semibold">
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-foreground font-semibold text-sm">
                 {(post.displayName || 'U')[0].toUpperCase()}
               </div>
             )}
             <input
               type="text"
               placeholder="Add a comment..."
-              className="flex-1 bg-muted rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex-1 bg-background border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <button className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-colors">
               Post
