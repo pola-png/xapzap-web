@@ -231,18 +231,18 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                   const video = videoRef.current
                   if (video) video.currentTime = Math.max(0, video.currentTime - 10)
                 }}
-                className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex flex-col items-center justify-center text-white hover:bg-white/20 transition-all transform hover:scale-110 shadow-2xl"
+                className="w-16 h-16 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/40 transition-all transform hover:scale-110 shadow-2xl relative"
                 aria-label="Rewind 10 seconds"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                   <path d="M3 3v5h5" />
                 </svg>
-                <span className="text-[10px] font-bold mt-0.5">10</span>
+                <span className="absolute text-xs font-bold">10</span>
               </button>
               <button
                 onClick={togglePlay}
-                className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all transform hover:scale-110 shadow-2xl"
+                className="w-20 h-20 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/40 transition-all transform hover:scale-110 shadow-2xl"
                 aria-label={isPlaying ? "Pause video" : "Play video"}
               >
                 {isPlaying ? <Pause size={40} fill="white" /> : <Play size={40} fill="white" className="ml-1" />}
@@ -253,14 +253,14 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                   const video = videoRef.current
                   if (video) video.currentTime = Math.min(video.duration, video.currentTime + 10)
                 }}
-                className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex flex-col items-center justify-center text-white hover:bg-white/20 transition-all transform hover:scale-110 shadow-2xl"
+                className="w-16 h-16 bg-black/30 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/40 transition-all transform hover:scale-110 shadow-2xl relative"
                 aria-label="Forward 10 seconds"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
                   <path d="M21 3v5h-5" />
                 </svg>
-                <span className="text-[10px] font-bold mt-0.5">10</span>
+                <span className="absolute text-xs font-bold">10</span>
               </button>
             </div>
           </div>
@@ -283,38 +283,37 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
 
         {/* Video Owner Info */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           {post.userAvatar ? (
-            <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover" />
+            <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-semibold">
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-semibold flex-shrink-0">
               {(post.displayName || 'U')[0].toUpperCase()}
             </div>
           )}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h3 className="text-white font-semibold text-sm">{post.displayName || 'User'}</h3>
-              <span className="flex items-center gap-1 text-white/60 text-xs">
+              <span className="flex items-center gap-1 text-white/60 text-xs flex-shrink-0">
                 <BarChart2 size={14} />
                 {impressions || 0}
               </span>
             </div>
             {post.title && (
-              <p className="text-white font-medium text-sm truncate">
-                {post.title}
-                {post.title.length > 50 && (
-                  <button onClick={() => setShowDescription(true)} className="text-white/90 ml-1">...</button>
-                )}
-              </p>
+              <div className="flex items-baseline gap-1">
+                <p className="text-white font-semibold text-base truncate flex-1">
+                  {post.title}
+                </p>
+                <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
+              </div>
             )}
-            {post.content && !post.title && (
-              <p className="text-white/70 text-xs truncate">
-                {post.content}{' '}
-                <button onClick={() => setShowDescription(true)} className="text-white/90 font-medium">...see more</button>
+            {post.content && (
+              <p className="text-white/70 text-xs line-clamp-1">
+                {post.content}
               </p>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {!isFollowing && (
               <button
                 onClick={handleFollow}
