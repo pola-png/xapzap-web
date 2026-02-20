@@ -44,3 +44,8 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Hide bottom navigation when video detail screen is open */
+body.hide-bottom-nav nav[class*="fixed bottom-0"] {
+  display: none;
+}

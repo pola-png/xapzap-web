@@ -33,6 +33,14 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
+  // Hide bottom navigation when video detail is open
+  useEffect(() => {
+    document.body.classList.add('hide-bottom-nav')
+    return () => {
+      document.body.classList.remove('hide-bottom-nav')
+    }
+  }, [])
+
   // Subscribe to realtime updates for this post
   useEffect(() => {
     if (!post.id) return
@@ -297,7 +305,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       </div>
 
       {/* Controls Below Video */}
-      <div className="bg-background px-4 pb-0">
+      <div className="bg-background px-4 pb-1">
         {/* Title with Username and View Count */}
         {post.title && (
           <div>
@@ -333,11 +341,11 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Description Modal */}
       {showDescription && (
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end" onClick={() => setShowDescription(false)}>
-          <div className="bg-background w-full max-h-[60vh] rounded-t-2xl p-6 overflow-y-auto" onClick={(e) => e.stopPropagation()} style={{ bottom: 0 }}>
-            <div className="w-12 h-1 bg-muted rounded-full mx-auto mb-4" />
-            {post.title && <h3 className="text-foreground font-semibold text-lg mb-3">{post.title}</h3>}
-            {post.content && <p className="text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>}
+        <div className="fixed inset-x-0 bottom-0 z-[60]" style={{ top: 'auto' }}>
+          <div className="bg-background w-full max-h-[80vh] rounded-t-3xl p-6 overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="w-12 h-1.5 bg-border/50 rounded-full mx-auto mb-6 cursor-pointer" onClick={() => setShowDescription(false)} />
+            {post.title && <h3 className="text-foreground font-bold text-2xl mb-4 leading-tight">{post.title}</h3>}
+            {post.content && <p className="text-muted-foreground text-base leading-relaxed whitespace-pre-wrap">{post.content}</p>}
           </div>
         </div>
       )}
@@ -345,7 +353,38 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       {/* Bottom Section - Reactions & Comments */}
       <div className="flex-1 bg-background flex flex-col">
         {/* Reactions Bar */}
-        <div className="flex items-center justify-between gap-1 py-4 px-4 bg-muted rounded-t-xl border-t border-border">
+        <div className="flex items-center justify-between gap-1 py-3 px-4 mx-4 mt-3 bg-muted/50 rounded-2xl border border-border/30">
+          <button className="flex items-center justify-center hover:text-yellow-500 transition-colors p-2 rounded-xl text-foreground hover:bg-background/50" aria-label="Save">
+            <Bookmark size={22} />
+          </button>
+          <button className="flex items-center justify-center hover:text-blue-500 transition-colors p-2 rounded-xl text-foreground hover:bg-background/50" aria-label="Share">
+            <Share size={22} />
+          </button>
+          <button className="flex items-center gap-1 hover:text-amber-500 transition-colors p-2 rounded-xl text-foreground hover:bg-background/50" aria-label={`Reposts - ${reposts || 0} reposts`}>
+            <Repeat2 size={22} />
+            <span className="text-sm font-medium">{reposts || 0}</span>
+          </button>
+          <button className="flex items-center gap-1 hover:text-blue-500 transition-colors p-2 rounded-xl text-foreground hover:bg-background/50" aria-label={`Comments - ${comments || 0} comments`}>
+            <MessageCircle size={22} />
+            <span className="text-sm font-medium">{comments || 0}</span>
+          </button>
+          {!isFollowing && (
+            <button
+              onClick={handleFollow}
+              className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/90 transition-colors"
+            >
+              Follow
+            </button>
+          )}
+          <button
+            onClick={handleLike}
+            className={`flex items-center gap-1 hover:text-red-500 transition-colors p-2 rounded-xl ${liked ? 'text-red-500' : 'text-foreground'} hover:bg-background/50`}
+            aria-label={`Like - ${likes || 0} likes`}
+          >
+            <Heart size={22} className={liked ? 'fill-red-500' : ''} />
+            <span className="text-sm font-medium">{likes || 0}</span>
+          </button>
+        </div>
           <button className="flex items-center justify-center hover:text-yellow-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label="Save">
             <Bookmark size={22} />
           </button>
@@ -384,7 +423,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
 
         {/* Comment Input - Fixed at Bottom */}
-        <div className="p-4 pb-20 bg-muted rounded-b-xl border-t border-border">
+        <div className="p-4 pb-20 bg-muted/50 mx-4 mb-4 rounded-2xl border border-border/30">
           <div className="flex items-center gap-3">
             {post.userAvatar ? (
               <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover" />

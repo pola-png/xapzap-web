@@ -14,9 +14,10 @@ interface MainLayoutProps {
   isGuest?: boolean
   onUserStateChange?: (user: any) => void
   authRefreshTrigger?: number
+  hideBottomNav?: boolean
 }
 
-export function MainLayout({ children, currentTab, onTabChange, onCreateClick, isGuest = false, onUserStateChange, authRefreshTrigger = 0 }: MainLayoutProps) {
+export function MainLayout({ children, currentTab, onTabChange, onCreateClick, isGuest = false, onUserStateChange, authRefreshTrigger = 0, hideBottomNav = false }: MainLayoutProps) {
   const router = useRouter()
   const [unreadChats, setUnreadChats] = useState(0)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
@@ -252,6 +253,7 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
           </div>
         )}
         <main className="pb-20">{children}</main>
+        {!hideBottomNav && (
         <nav className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--bg-primary))] border-t border-[rgb(var(--border-color))] safe-area-inset-bottom">
           <div className="flex items-center justify-around py-2 px-2">
             {[
@@ -278,6 +280,7 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
             })}
           </div>
         </nav>
+        )}
       </div>
     </div>
   )
