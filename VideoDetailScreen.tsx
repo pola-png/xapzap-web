@@ -27,6 +27,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [impressions, setImpressions] = useState(post.impressions || 0)
   const [views, setViews] = useState(post.views || 0)
   const [showDescription, setShowDescription] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
@@ -116,18 +118,22 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   }
 
   const handleVideoClick = () => {
-    togglePlay()
-    setShowControls(true)
+    if (isPlaying) {
+      setShowControls(!showControls)
+    } else {
+      togglePlay()
+      setShowControls(false)
+    }
 
     if (controlsTimeoutRef.current) {
       clearTimeout(controlsTimeoutRef.current)
     }
 
-    controlsTimeoutRef.current = setTimeout(() => {
-      if (isPlaying) {
+    if (showControls && isPlaying) {
+      controlsTimeoutRef.current = setTimeout(() => {
         setShowControls(false)
-      }
-    }, 3000)
+      }, 3000)
+    }
   }
 
   const formatTime = (time: number) => {
@@ -149,6 +155,23 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       }
     } catch (error) {
       console.error('Failed to toggle like:', error)
+    }
+  }
+
+  const handleFollow = async () => {
+    try {
+      const user = await appwriteService.getCurrentUser()
+      if (!user) return
+      
+      if (isFollowing) {
+        await appwriteService.unfollowUser(post.userId)
+        setIsFollowing(false)
+      } else {
+        await appwriteService.followUser(post.userId)
+        setIsFollowing(true)
+      }
+    } catch (error) {
+      console.error('Failed to toggle follow:', error)
     }
   }
 
@@ -179,29 +202,65 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         />
 
         {/* Speaker Icon - Top Right */}
-        <button
-          onClick={toggleMute}
-          className="absolute top-4 right-4 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors z-10"
-          aria-label={isMuted ? "Unmute" : "Mute"}
-        >
-          {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
-        </button>
+        {showControls && (
+          <button
+            onClick={toggleMute}
+            className="absolute top-4 right-4 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors z-10"
+            aria-label={isMuted ? "Unmute" : "Mute"}
+          >
+            {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
+          </button>
+        )}
 
         {/* Duration - Bottom Right */}
-        <div className="absolute bottom-4 right-4 px-2 py-1 bg-black/70 backdrop-blur-sm rounded text-white text-xs font-medium z-10">
-          {formatTime(currentTime)} / {formatTime(duration)}
-        </div>
+        {showControls && (
+          <div className="absolute bottom-4 right-4 px-2 py-1 bg-black/70 backdrop-blur-sm rounded text-white text-xs font-medium z-10">
+            {formatTime(currentTime)} / {formatTime(duration)}
+          </div>
+        )}
 
         {/* Center Play Button Only */}
         {!isPlaying && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-            <button
-              onClick={togglePlay}
-              className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110 shadow-2xl"
-              aria-label="Play video"
-            >
-              <Play size={40} fill="white" className="ml-1" />
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const video = videoRef.current
+                  if (video) video.currentTime = Math.max(0, video.currentTime - 10)
+                }}
+                className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110 shadow-2xl"
+                aria-label="Rewind 10 seconds"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                  <text x="12" y="16" fontSize="8" fill="currentColor" textAnchor="middle">10</text>
+                </svg>
+              </button>
+              <button
+                onClick={togglePlay}
+                className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110 shadow-2xl"
+                aria-label="Play video"
+              >
+                <Play size={40} fill="white" className="ml-1" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const video = videoRef.current
+                  if (video) video.currentTime = Math.min(video.duration, video.currentTime + 10)
+                }}
+                className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110 shadow-2xl"
+                aria-label="Forward 10 seconds"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                  <path d="M21 3v5h-5" />
+                  <text x="12" y="16" fontSize="8" fill="currentColor" textAnchor="middle">10</text>
+                </svg>
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -231,7 +290,13 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             </div>
           )}
           <div className="flex-1">
-            <h3 className="text-white font-semibold text-sm">{post.displayName || 'User'}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-white font-semibold text-sm">{post.displayName || 'User'}</h3>
+              <span className="flex items-center gap-1 text-white/60 text-xs">
+                <BarChart2 size={14} />
+                {impressions || 0}
+              </span>
+            </div>
             {post.title && (
               <p className="text-white font-medium text-sm">{post.title}</p>
             )}
@@ -242,8 +307,34 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
               </p>
             )}
           </div>
+          <div className="flex items-center gap-2">
+            {!isFollowing && (
+              <button
+                onClick={handleFollow}
+                className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/90 transition-colors"
+              >
+                Follow
+              </button>
+            )}
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors"
+              aria-label="More options"
+            >
+              <MoreHorizontal size={20} />
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Menu Dropdown */}
+      {showMenu && (
+        <div className="absolute top-[280px] right-4 bg-background border border-border rounded-lg shadow-lg z-50 min-w-[150px]">
+          <button className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-2">
+            <span>Report</span>
+          </button>
+        </div>
+      )}
 
       {/* Description Modal */}
       {showDescription && (
@@ -260,6 +351,24 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       <div className="flex-1 bg-background flex flex-col">
         {/* Reactions Bar */}
         <div className="flex items-center justify-between gap-1 py-3 px-2 border-b border-border">
+          <button className="flex items-center justify-center hover:text-yellow-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label="Save">
+            <Bookmark size={18} />
+          </button>
+          <button className="flex items-center justify-center hover:text-blue-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label="Share">
+            <Share size={18} />
+          </button>
+          <button className="flex items-center gap-1 hover:text-amber-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Reposts - ${reposts || 0} reposts`}>
+            <Repeat2 size={18} />
+            <span className="text-xs font-medium">{reposts || 0}</span>
+          </button>
+          <button className="flex items-center gap-1 hover:text-green-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Views - ${views || 0} views`}>
+            <Eye size={18} />
+            <span className="text-xs font-medium">{views || 0}</span>
+          </button>
+          <button className="flex items-center gap-1 hover:text-blue-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Comments - ${comments || 0} comments`}>
+            <MessageCircle size={18} />
+            <span className="text-xs font-medium">{comments || 0}</span>
+          </button>
           <button
             onClick={handleLike}
             className={`flex items-center gap-1 hover:text-red-500 transition-colors p-1.5 rounded-lg ${liked ? 'text-red-500' : 'text-foreground'}`}
@@ -267,28 +376,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           >
             <Heart size={18} className={liked ? 'fill-red-500' : ''} />
             <span className="text-xs font-medium">{likes || 0}</span>
-          </button>
-          <button className="flex items-center gap-1 hover:text-blue-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Comments - ${comments || 0} comments`}>
-            <MessageCircle size={18} />
-            <span className="text-xs font-medium">{comments || 0}</span>
-          </button>
-          <button className="flex items-center gap-1 hover:text-green-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Views - ${views || 0} views`}>
-            <Eye size={18} />
-            <span className="text-xs font-medium">{views || 0}</span>
-          </button>
-          <button className="flex items-center gap-1 hover:text-purple-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Impressions - ${impressions || 0} impressions`}>
-            <BarChart2 size={18} />
-            <span className="text-xs font-medium">{impressions || 0}</span>
-          </button>
-          <button className="flex items-center gap-1 hover:text-amber-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Reposts - ${reposts || 0} reposts`}>
-            <Repeat2 size={18} />
-            <span className="text-xs font-medium">{reposts || 0}</span>
-          </button>
-          <button className="flex items-center justify-center hover:text-yellow-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label="Save">
-            <Bookmark size={18} />
-          </button>
-          <button className="flex items-center justify-center hover:text-blue-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label="Share">
-            <Share size={18} />
           </button>
         </div>
 
