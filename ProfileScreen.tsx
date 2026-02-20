@@ -163,24 +163,25 @@ export function ProfileScreen() {
   const handleFollow = async () => {
     if (!profile || !currentUser || !followLoaded) return
     
+    const wasFollowing = isFollowing
+    const prevCount = profile.followersCount
+    
+    setIsFollowing(!wasFollowing)
+    setProfile(prev => prev ? {
+      ...prev,
+      followersCount: wasFollowing ? Math.max(0, prev.followersCount - 1) : prev.followersCount + 1
+    } : null)
+    
     try {
-      if (isFollowing) {
+      if (wasFollowing) {
         await appwriteService.unfollowUser(profile.userId)
-        setIsFollowing(false)
-        setProfile(prev => prev ? {
-          ...prev,
-          followersCount: Math.max(0, prev.followersCount - 1)
-        } : null)
       } else {
         await appwriteService.followUser(profile.userId)
-        setIsFollowing(true)
-        setProfile(prev => prev ? {
-          ...prev,
-          followersCount: prev.followersCount + 1
-        } : null)
       }
     } catch (error) {
       console.error('Follow action failed:', error)
+      setIsFollowing(wasFollowing)
+      setProfile(prev => prev ? { ...prev, followersCount: prevCount } : null)
     }
   }
 

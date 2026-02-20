@@ -109,19 +109,23 @@ export default function ProfilePage() {
   const handleFollow = async () => {
     if (!currentUserId || followLoading) return
 
+    const wasFollowing = isFollowing
+    const prevFollowers = stats.followers
+    
     setFollowLoading(true)
+    setIsFollowing(!wasFollowing)
+    setStats(prev => ({ ...prev, followers: wasFollowing ? prev.followers - 1 : prev.followers + 1 }))
+    
     try {
-      if (isFollowing) {
+      if (wasFollowing) {
         await appwriteService.unfollowUser(userId)
-        setIsFollowing(false)
-        setStats(prev => ({ ...prev, followers: prev.followers - 1 }))
       } else {
         await appwriteService.followUser(userId)
-        setIsFollowing(true)
-        setStats(prev => ({ ...prev, followers: prev.followers + 1 }))
       }
     } catch (error) {
       console.error('Failed to toggle follow:', error)
+      setIsFollowing(wasFollowing)
+      setStats(prev => ({ ...prev, followers: prevFollowers }))
     } finally {
       setFollowLoading(false)
     }

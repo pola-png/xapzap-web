@@ -29,11 +29,25 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [impressions, setImpressions] = useState(post.impressions || 0)
   const [views, setViews] = useState(post.views || 0)
   const [showDescription, setShowDescription] = useState(false)
-  const [isFollowing, setIsFollowing] = useState(post.isFollowing || false)
+  const [isFollowing, setIsFollowing] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+
+  // Get current user ID and check if following
+  useEffect(() => {
+    const loadUser = async () => {
+      const user = await appwriteService.getCurrentUser()
+      setCurrentUserId(user?.$id || null)
+      if (user && post.userId) {
+        const following = await appwriteService.isUserFollowing(user.$id, post.userId)
+        setIsFollowing(following)
+      }
+    }
+    loadUser()
+  }, [])
 
   // Hide bottom navigation when video detail is open
   useEffect(() => {
@@ -402,10 +416,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <MessageCircle size={22} />
             <span className="text-sm font-medium">{comments || 0}</span>
           </button>
-          {!isFollowing && (
+          {!isFollowing && currentUserId && currentUserId !== post.userId && (
             <button
               onClick={handleFollow}
-              className="px-5 py-2 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:bg-primary/90 transition-colors"
+              className="px-5 py-2 bg-blue-500 text-white rounded-full text-sm font-semibold hover:bg-blue-600 transition-colors"
             >
               Follow
             </button>
