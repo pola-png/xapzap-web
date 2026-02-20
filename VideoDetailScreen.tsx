@@ -301,16 +301,23 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             </div>
             {post.title && (
               <div className="flex items-baseline gap-1">
-                <p className="text-white font-semibold text-base truncate flex-1">
-                  {post.title}
+                <p className="text-white font-extrabold text-xl truncate flex-1">
+                  {post.title.length > 25 ? post.title.substring(0, 25) : post.title}
                 </p>
-                <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
+                {post.title.length > 25 && (
+                  <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
+                )}
               </div>
             )}
             {post.content && (
-              <p className="text-white/70 text-xs line-clamp-1">
-                {post.content}
-              </p>
+              <div className="flex items-baseline gap-1">
+                <p className="text-white/70 text-xs truncate flex-1">
+                  {post.content.length > 30 ? post.content.substring(0, 30) : post.content}
+                </p>
+                {post.content.length > 30 && (
+                  <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
+                )}
+              </div>
             )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
