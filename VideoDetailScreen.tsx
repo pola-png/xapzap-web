@@ -57,7 +57,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
     const handleLoadedMetadata = () => setDuration(video.duration)
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
-    const handlePlay = () => setIsPlaying(true)
+    const handlePlay = () => {
+      setIsPlaying(true)
+      setShowControls(false)
+    }
     const handlePause = () => setIsPlaying(false)
 
     video.addEventListener('loadedmetadata', handleLoadedMetadata)
@@ -120,19 +123,18 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const handleVideoClick = () => {
     if (isPlaying) {
       setShowControls(!showControls)
+      
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current)
+      }
+
+      if (!showControls) {
+        controlsTimeoutRef.current = setTimeout(() => {
+          setShowControls(false)
+        }, 2000)
+      }
     } else {
       togglePlay()
-      setShowControls(false)
-    }
-
-    if (controlsTimeoutRef.current) {
-      clearTimeout(controlsTimeoutRef.current)
-    }
-
-    if (showControls && isPlaying) {
-      controlsTimeoutRef.current = setTimeout(() => {
-        setShowControls(false)
-      }, 3000)
     }
   }
 
@@ -219,8 +221,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           </div>
         )}
 
-        {/* Center Play Button Only */}
-        {!isPlaying && (
+        {/* Center Play/Controls - Show when paused OR when showControls is true */}
+        {(!isPlaying || showControls) && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/30">
             <div className="flex items-center gap-4">
               <button
@@ -229,21 +231,21 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                   const video = videoRef.current
                   if (video) video.currentTime = Math.max(0, video.currentTime - 10)
                 }}
-                className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110 shadow-2xl"
+                className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex flex-col items-center justify-center text-white hover:bg-white/20 transition-all transform hover:scale-110 shadow-2xl"
                 aria-label="Rewind 10 seconds"
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                   <path d="M3 3v5h5" />
-                  <text x="12" y="16" fontSize="8" fill="currentColor" textAnchor="middle">10</text>
                 </svg>
+                <span className="text-[10px] font-bold mt-0.5">10</span>
               </button>
               <button
                 onClick={togglePlay}
-                className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110 shadow-2xl"
-                aria-label="Play video"
+                className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all transform hover:scale-110 shadow-2xl"
+                aria-label={isPlaying ? "Pause video" : "Play video"}
               >
-                <Play size={40} fill="white" className="ml-1" />
+                {isPlaying ? <Pause size={40} fill="white" /> : <Play size={40} fill="white" className="ml-1" />}
               </button>
               <button
                 onClick={(e) => {
@@ -251,14 +253,14 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                   const video = videoRef.current
                   if (video) video.currentTime = Math.min(video.duration, video.currentTime + 10)
                 }}
-                className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110 shadow-2xl"
+                className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex flex-col items-center justify-center text-white hover:bg-white/20 transition-all transform hover:scale-110 shadow-2xl"
                 aria-label="Forward 10 seconds"
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
                   <path d="M21 3v5h-5" />
-                  <text x="12" y="16" fontSize="8" fill="currentColor" textAnchor="middle">10</text>
                 </svg>
+                <span className="text-[10px] font-bold mt-0.5">10</span>
               </button>
             </div>
           </div>
@@ -298,9 +300,14 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
               </span>
             </div>
             {post.title && (
-              <p className="text-white font-medium text-sm">{post.title}</p>
+              <p className="text-white font-medium text-sm truncate">
+                {post.title}
+                {post.title.length > 50 && (
+                  <button onClick={() => setShowDescription(true)} className="text-white/90 ml-1">...</button>
+                )}
+              </p>
             )}
-            {post.content && (
+            {post.content && !post.title && (
               <p className="text-white/70 text-xs truncate">
                 {post.content}{' '}
                 <button onClick={() => setShowDescription(true)} className="text-white/90 font-medium">...see more</button>
@@ -338,11 +345,11 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Description Modal */}
       {showDescription && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={() => setShowDescription(false)}>
-          <div className="bg-background w-full rounded-t-2xl p-6 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end" onClick={() => setShowDescription(false)}>
+          <div className="bg-background w-full max-h-[60vh] rounded-t-2xl p-6 overflow-y-auto" onClick={(e) => e.stopPropagation()} style={{ bottom: 0 }}>
             <div className="w-12 h-1 bg-muted rounded-full mx-auto mb-4" />
-            {post.title && <h3 className="text-foreground font-semibold text-lg mb-2">{post.title}</h3>}
-            <p className="text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+            {post.title && <h3 className="text-foreground font-semibold text-lg mb-3">{post.title}</h3>}
+            {post.content && <p className="text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>}
           </div>
         </div>
       )}
