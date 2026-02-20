@@ -269,21 +269,32 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Controls Below Video */}
       <div className="bg-black px-4 py-3">
-        {/* Progress Bar */}
-        <div
-          className="w-full h-1 bg-white/20 rounded-full cursor-pointer group hover:h-1.5 transition-all mb-3"
-          onClick={handleSeek}
-        >
-          <div
-            className="h-full bg-white rounded-full transition-all duration-100 relative"
-            style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
-          >
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
+        {/* Title and Description */}
+        <div className="mb-3">
+          {post.title && (
+            <div className="flex items-baseline gap-1 mb-1">
+              <p className="text-white font-bold text-xl truncate flex-1">
+                {post.title.length > 23 ? post.title.substring(0, 23) : post.title}
+              </p>
+              {post.title.length > 23 && (
+                <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
+              )}
+            </div>
+          )}
+          {post.content && (
+            <div className="flex items-baseline gap-1">
+              <p className="text-white/70 text-xs truncate flex-1">
+                {post.content.length > 30 ? post.content.substring(0, 30) : post.content}
+              </p>
+              {post.content.length > 30 && (
+                <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Video Owner Info */}
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3 mb-3">
           {post.userAvatar ? (
             <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
           ) : (
@@ -299,26 +310,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 {impressions || 0}
               </span>
             </div>
-            {post.title && (
-              <div className="flex items-baseline gap-1">
-                <p className="text-white font-extrabold text-xl truncate flex-1">
-                  {post.title.length > 25 ? post.title.substring(0, 25) : post.title}
-                </p>
-                {post.title.length > 25 && (
-                  <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
-                )}
-              </div>
-            )}
-            {post.content && (
-              <div className="flex items-baseline gap-1">
-                <p className="text-white/70 text-xs truncate flex-1">
-                  {post.content.length > 30 ? post.content.substring(0, 30) : post.content}
-                </p>
-                {post.content.length > 30 && (
-                  <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
-                )}
-              </div>
-            )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             {!isFollowing && (
@@ -338,11 +329,24 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             </button>
           </div>
         </div>
+
+        {/* Progress Bar */}
+        <div
+          className="w-full h-1 bg-white/20 rounded-full cursor-pointer group hover:h-1.5 transition-all"
+          onClick={handleSeek}
+        >
+          <div
+            className="h-full bg-white rounded-full transition-all duration-100 relative"
+            style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
+          >
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        </div>
       </div>
 
       {/* Menu Dropdown */}
       {showMenu && (
-        <div className="absolute top-[280px] right-4 bg-background border border-border rounded-lg shadow-lg z-50 min-w-[150px]">
+        <div className="absolute top-[240px] right-4 bg-background border border-border rounded-lg shadow-lg z-50 min-w-[150px]">
           <button className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-2">
             <span>Report</span>
           </button>
