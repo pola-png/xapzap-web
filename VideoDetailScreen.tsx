@@ -265,6 +265,19 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             </div>
           </div>
         )}
+
+        {/* Progress Bar - At bottom of video */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 cursor-pointer group hover:h-1.5 transition-all z-10"
+          onClick={handleSeek}
+        >
+          <div
+            className="h-full bg-white transition-all duration-100 relative"
+            style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
+          >
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        </div>
       </div>
 
       {/* Controls Below Video */}
@@ -294,7 +307,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
 
         {/* Video Owner Info */}
-        <div className="flex items-start gap-3 mb-3">
+        <div className="flex items-start gap-3">
           {post.userAvatar ? (
             <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
           ) : (
@@ -327,19 +340,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             >
               <MoreHorizontal size={20} />
             </button>
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div
-          className="w-full h-1 bg-white/20 rounded-full cursor-pointer group hover:h-1.5 transition-all"
-          onClick={handleSeek}
-        >
-          <div
-            className="h-full bg-white rounded-full transition-all duration-100 relative"
-            style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
-          >
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </div>
       </div>
