@@ -297,10 +297,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       </div>
 
       {/* Controls Below Video */}
-      <div className="bg-black px-4 py-2">
+      <div className="bg-black px-4 py-1">
         {/* Title */}
         {post.title && (
-          <div className="flex items-baseline gap-1 mb-1">
+          <div className="flex items-baseline gap-1">
             <p className="text-white font-bold text-xl truncate flex-1">
               {post.title.length > 35 ? post.title.substring(0, 35) : post.title}
             </p>
@@ -325,7 +325,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             {!isFollowing && (
               <button
                 onClick={handleFollow}
-                className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/90 transition-colors"
+                className="px-6 py-2 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:bg-primary/90 transition-colors"
               >
                 Follow
               </button>
@@ -366,26 +366,26 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         {/* Reactions Bar */}
         <div className="flex items-center justify-between gap-1 py-3 px-2 border-b border-border">
           <button className="flex items-center justify-center hover:text-yellow-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label="Save">
-            <Bookmark size={18} />
+            <Bookmark size={22} />
           </button>
           <button className="flex items-center justify-center hover:text-blue-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label="Share">
-            <Share size={18} />
+            <Share size={22} />
           </button>
           <button className="flex items-center gap-1 hover:text-amber-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Reposts - ${reposts || 0} reposts`}>
-            <Repeat2 size={18} />
-            <span className="text-xs font-medium">{reposts || 0}</span>
+            <Repeat2 size={22} />
+            <span className="text-sm font-medium">{reposts || 0}</span>
           </button>
           <button className="flex items-center gap-1 hover:text-blue-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Comments - ${comments || 0} comments`}>
-            <MessageCircle size={18} />
-            <span className="text-xs font-medium">{comments || 0}</span>
+            <MessageCircle size={22} />
+            <span className="text-sm font-medium">{comments || 0}</span>
           </button>
           <button
             onClick={handleLike}
             className={`flex items-center gap-1 hover:text-red-500 transition-colors p-1.5 rounded-lg ${liked ? 'text-red-500' : 'text-foreground'}`}
             aria-label={`Like - ${likes || 0} likes`}
           >
-            <Heart size={18} className={liked ? 'fill-red-500' : ''} />
-            <span className="text-xs font-medium">{likes || 0}</span>
+            <Heart size={22} className={liked ? 'fill-red-500' : ''} />
+            <span className="text-sm font-medium">{likes || 0}</span>
           </button>
         </div>
 
