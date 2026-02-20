@@ -189,7 +189,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
               {(post.displayName || 'U')[0].toUpperCase()}
             </div>
           )}
-          <h3 className="text-white font-semibold text-base">{post.displayName || 'User'}</h3>
+          <div>
+            <h3 className="text-white font-semibold text-base">{post.displayName || 'User'}</h3>
+            <span className="text-white/60 text-xs">{new Date(post.createdAt).toLocaleDateString()}</span>
+          </div>
         </div>
         <button
           onClick={onClose}
@@ -294,10 +297,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       </div>
 
       {/* Controls Below Video */}
-      <div className="bg-black px-4 py-3">
+      <div className="bg-black px-4 py-2">
         {/* Title */}
         {post.title && (
-          <div className="flex items-baseline gap-1 mb-3">
+          <div className="flex items-baseline gap-1 mb-1">
             <p className="text-white font-bold text-xl truncate flex-1">
               {post.title.length > 35 ? post.title.substring(0, 35) : post.title}
             </p>
@@ -309,14 +312,16 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
         {/* Username with View Count, Follow, and Menu */}
         <div className="flex items-center justify-between">
-          {post.username && (
-            <p className="text-white/60 text-xs">@{post.username}</p>
-          )}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {post.username && (
+              <p className="text-white/60 text-xs">@{post.username}</p>
+            )}
             <span className="flex items-center gap-1 text-white/60 text-xs">
               <Eye size={14} />
               {views || 0}
             </span>
+          </div>
+          <div className="flex items-center gap-3">
             {!isFollowing && (
               <button
                 onClick={handleFollow}
@@ -369,10 +374,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <button className="flex items-center gap-1 hover:text-amber-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Reposts - ${reposts || 0} reposts`}>
             <Repeat2 size={18} />
             <span className="text-xs font-medium">{reposts || 0}</span>
-          </button>
-          <button className="flex items-center gap-1 hover:text-green-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Views - ${views || 0} views`}>
-            <Eye size={18} />
-            <span className="text-xs font-medium">{views || 0}</span>
           </button>
           <button className="flex items-center gap-1 hover:text-blue-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label={`Comments - ${comments || 0} comments`}>
             <MessageCircle size={18} />
