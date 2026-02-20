@@ -152,38 +152,20 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   }
 
   return (
-    <div className="fixed inset-0 bg-black z-50">
-      {/* Mobile Native Header */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-4 lg:hidden">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={onClose}
-            className="w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-            aria-label="Close video"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <div className="flex items-center gap-2">
-            <button className="w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors" aria-label="More options">
-              <MoreHorizontal size={20} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop Header */}
-      <div className="hidden lg:block absolute top-0 left-0 right-0 z-20 p-4">
+    <div className="fixed inset-0 bg-black z-50 flex flex-col">
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 z-20 p-4 bg-gradient-to-b from-black/80 to-transparent">
         <button
           onClick={onClose}
-          className="w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+          className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors"
           aria-label="Close video"
         >
           <ArrowLeft size={20} />
         </button>
       </div>
 
-      {/* Video Container - Full Width, Reduced Height Mobile */}
-      <div className="w-full h-3/4 flex items-center justify-center relative">
+      {/* Video Player Container */}
+      <div className="flex-1 flex items-center justify-center bg-black relative">
         <video
           ref={videoRef}
           src={post.mediaUrls && post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls && post.mediaUrls[0]}
@@ -195,9 +177,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           preload="auto"
         />
 
-        {/* Controls Overlay */}
+        {/* YouTube-Style Controls Overlay */}
         <div
-          className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 transition-opacity duration-300 ${
+          className={`absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent transition-opacity duration-300 ${
             showControls ? 'opacity-100' : 'opacity-0'
           }`}
         >
@@ -206,197 +188,106 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <div className="absolute inset-0 flex items-center justify-center">
               <button
                 onClick={togglePlay}
-                className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110"
+                className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center text-white hover:bg-red-700 transition-all transform hover:scale-110 shadow-2xl"
                 aria-label="Play video"
               >
-                <Play size={32} fill="white" />
+                <Play size={40} fill="white" className="ml-1" />
               </button>
             </div>
           )}
 
           {/* Bottom Controls */}
-          <div className="absolute bottom-0 left-0 right-0 p-4">
+          <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
             {/* Progress Bar */}
-            <div className="mb-4">
+            <div
+              className="w-full h-1 bg-white/20 rounded-full cursor-pointer group hover:h-1.5 transition-all"
+              onClick={handleSeek}
+            >
               <div
-                className="w-full h-1 bg-white/30 rounded-full cursor-pointer group"
-                onClick={handleSeek}
+                className="h-full bg-red-600 rounded-full transition-all duration-100 relative"
+                style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
               >
-                <div
-                  className="h-full bg-white rounded-full transition-all duration-100 group-hover:bg-red-500"
-                  style={{ width: duration ? `${(currentTime / duration) * 100}%` : '0%' }}
-                />
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </div>
 
             {/* Controls Row */}
             <div className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={togglePlay}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors"
-                  aria-label={isPlaying ? "Pause video" : "Play video"}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors"
+                  aria-label={isPlaying ? "Pause" : "Play"}
                 >
                   {isPlaying ? <Pause size={24} /> : <Play size={24} fill="white" />}
                 </button>
 
                 <button
                   onClick={toggleMute}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors"
-                  aria-label={isMuted ? "Unmute video" : "Mute video"}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors"
+                  aria-label={isMuted ? "Unmute" : "Mute"}
                 >
-                  {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                  {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
                 </button>
 
                 <span className="text-sm font-medium">
                   {formatTime(currentTime)} / {formatTime(duration)}
                 </span>
               </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  className="w-10 h-10 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors"
-                  aria-label="More options"
-                >
-                  <MoreHorizontal size={20} />
-                </button>
-              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Layout - Horizontal Reactions */}
-      <div className="lg:hidden absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4 z-10">
-        <div className="max-w-md mx-auto">
-          {/* User Info */}
-          <div className="flex items-center gap-3 mb-3">
+      {/* Bottom Section - Reactions & Comments */}
+      <div className="bg-background border-t border-border">
+        {/* Reactions Bar */}
+        <div className="flex items-center justify-around py-3 px-4 border-b border-border">
+          <button
+            onClick={handleLike}
+            className={`flex flex-col items-center gap-1 transition-colors ${liked ? 'text-red-500' : 'text-foreground hover:text-red-500'}`}
+            aria-label={liked ? "Unlike" : "Like"}
+          >
+            <Heart size={24} className={liked ? 'fill-red-500' : ''} />
+            <span className="text-xs font-medium">{likes || 0}</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 text-foreground hover:text-blue-500 transition-colors" aria-label="Comments">
+            <MessageCircle size={24} />
+            <span className="text-xs font-medium">{comments || 0}</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 text-foreground hover:text-green-500 transition-colors" aria-label="Repost">
+            <Repeat2 size={24} />
+            <span className="text-xs font-medium">{reposts || 0}</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 text-foreground hover:text-purple-500 transition-colors" aria-label="Views">
+            <Eye size={24} />
+            <span className="text-xs font-medium">{views || 0}</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 text-foreground hover:text-yellow-500 transition-colors" aria-label="Save">
+            <Bookmark size={24} />
+          </button>
+          <button className="flex flex-col items-center gap-1 text-foreground hover:text-blue-500 transition-colors" aria-label="Share">
+            <Share size={24} />
+          </button>
+        </div>
+
+        {/* Comment Input */}
+        <div className="p-4">
+          <div className="flex items-center gap-3">
             {post.userAvatar ? (
               <img src={post.userAvatar} alt={post.username} className="w-10 h-10 rounded-full object-cover" />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground font-semibold">
                 {(post.username || 'U')[0].toUpperCase()}
               </div>
             )}
-            <div className="min-w-0 flex-1">
-              <span className="text-white font-semibold text-base block truncate">{post.username || 'User'}</span>
-              <span className="text-gray-300 text-xs">{new Date(post.createdAt).toLocaleDateString()}</span>
-            </div>
-          </div>
-
-          {/* Content */}
-          {post.content && (
-            <p className="text-white text-sm leading-relaxed mb-3 line-clamp-2">{post.content}</p>
-          )}
-
-          {/* Horizontal Reactions */}
-          <div className="flex items-center justify-between gap-2">
-            <button
-              onClick={handleLike}
-              className={`flex items-center gap-1 transition-colors ${liked ? 'text-red-500' : 'text-white'}`}
-              aria-label={liked ? "Unlike video" : "Like video"}
-            >
-              <Heart size={20} className={liked ? 'fill-red-500' : ''} />
-              <span className="text-sm font-medium">{likes || 0}</span>
-            </button>
-            <button className="flex items-center gap-1 text-white" aria-label="View comments">
-              <MessageCircle size={20} />
-              <span className="text-sm font-medium">{comments || 0}</span>
-            </button>
-            <button className="flex items-center gap-1 text-white" aria-label="Repost video">
-              <Repeat2 size={20} />
-              <span className="text-sm font-medium">{reposts || 0}</span>
-            </button>
-            <button className="flex items-center gap-1 text-white" aria-label="View count">
-              <Eye size={20} />
-              <span className="text-sm font-medium">{views || 0}</span>
-            </button>
-            <button className="flex items-center gap-1 text-white" aria-label="Impressions">
-              <BarChart2 size={20} />
-              <span className="text-sm font-medium">{impressions || 0}</span>
-            </button>
-            <button className="text-white" aria-label="Save video">
-              <Bookmark size={20} />
-            </button>
-            <button className="text-white" aria-label="Share video">
-              <Share size={20} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop Layout */}
-      <div className="hidden lg:block absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-6">
-        <div className="max-w-4xl mx-auto">
-          {/* User Info */}
-          <div className="flex items-center gap-3 mb-4">
-            {post.userAvatar ? (
-              <img src={post.userAvatar} alt={post.username} className="w-12 h-12 rounded-full object-cover" />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold">
-                {(post.username || 'U')[0].toUpperCase()}
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <span className="text-white font-semibold text-lg block truncate">{post.username || 'User'}</span>
-              <span className="text-gray-300 text-sm">{new Date(post.createdAt).toLocaleDateString()}</span>
-            </div>
-          </div>
-
-          {/* Content */}
-          {post.content && (
-            <p className="text-white text-base leading-relaxed mb-4 line-clamp-2">{post.content}</p>
-          )}
-
-          {/* Horizontal Reactions */}
-          <div className="flex items-center gap-6">
-            <button
-              onClick={handleLike}
-              className={`flex items-center gap-2 transition-colors ${liked ? 'text-red-500' : 'text-white hover:text-red-400'}`}
-              aria-label={liked ? "Unlike video" : "Like video"}
-            >
-              <Heart size={24} className={liked ? 'fill-red-500' : ''} />
-              <span className="text-base font-medium">{likes || 0}</span>
-            </button>
-            <button
-              className="flex items-center gap-2 text-white hover:text-blue-400 transition-colors"
-              aria-label="View comments"
-            >
-              <MessageCircle size={24} />
-              <span className="text-base font-medium">{comments || 0}</span>
-            </button>
-            <button
-              className="flex items-center gap-2 text-white hover:text-green-400 transition-colors"
-              aria-label="Repost video"
-            >
-              <Repeat2 size={24} />
-              <span className="text-base font-medium">{reposts || 0}</span>
-            </button>
-            <button
-              className="flex items-center gap-2 text-white hover:text-purple-400 transition-colors"
-              aria-label="View count"
-            >
-              <Eye size={24} />
-              <span className="text-base font-medium">{views || 0}</span>
-            </button>
-            <button
-              className="flex items-center gap-2 text-white hover:text-indigo-400 transition-colors"
-              aria-label="Impressions"
-            >
-              <BarChart2 size={24} />
-              <span className="text-base font-medium">{impressions || 0}</span>
-            </button>
-            <button
-              className="flex items-center gap-2 text-white hover:text-yellow-400 transition-colors"
-              aria-label="Save video"
-            >
-              <Bookmark size={24} />
-            </button>
-            <button
-              className="flex items-center gap-2 text-white hover:text-blue-400 transition-colors"
-              aria-label="Share video"
-            >
-              <Share size={24} />
+            <input
+              type="text"
+              placeholder="Add a comment..."
+              className="flex-1 bg-muted rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <button className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-colors">
+              Post
             </button>
           </div>
         </div>
