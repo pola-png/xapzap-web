@@ -401,18 +401,18 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       {/* Bottom Section - Reactions & Comments */}
       <div className="flex-1 bg-background flex flex-col">
         {/* Reactions Bar */}
-        <div className="flex items-center justify-between gap-1 py-3 px-4 bg-muted/50 border-t border-border/30">
-          <button onClick={handleSave} className={`flex items-center justify-center transition-colors p-2 rounded-xl ${saved ? 'text-yellow-500' : 'text-foreground hover:text-yellow-500'} hover:bg-background/50`} aria-label="Save">
+        <div className="flex items-center justify-between gap-1 py-3 px-4 bg-muted border-t border-border/30">
+          <button onClick={handleSave} className={`flex items-center justify-center transition-colors p-2 rounded-lg ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400 hover:text-yellow-500'}`} aria-label="Save">
             <Bookmark size={22} className={saved ? 'fill-yellow-500' : ''} />
           </button>
-          <button className="flex items-center justify-center hover:text-blue-500 transition-colors p-2 rounded-xl text-foreground hover:bg-background/50" aria-label="Share">
+          <button className="flex items-center justify-center hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400" aria-label="Share">
             <Share size={22} />
           </button>
-          <button onClick={handleRepost} className={`flex items-center gap-1 transition-colors p-2 rounded-xl ${reposted ? 'text-amber-500' : 'text-foreground hover:text-amber-500'} hover:bg-background/50`} aria-label={`Reposts - ${reposts || 0} reposts`}>
-            <Repeat2 size={22} className={reposted ? 'fill-amber-500' : ''} />
+          <button onClick={handleRepost} className={`flex items-center gap-2 transition-colors p-2 rounded-lg ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400 hover:text-green-500'}`} aria-label={`Reposts - ${reposts || 0} reposts`}>
+            <Repeat2 size={22} className={reposted ? 'fill-green-500' : ''} />
             <span className="text-sm font-medium">{reposts || 0}</span>
           </button>
-          <button className="flex items-center gap-1 hover:text-blue-500 transition-colors p-2 rounded-xl text-foreground hover:bg-background/50" aria-label={`Comments - ${comments || 0} comments`}>
+          <button className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400" aria-label={`Comments - ${comments || 0} comments`}>
             <MessageCircle size={22} />
             <span className="text-sm font-medium">{comments || 0}</span>
           </button>
@@ -426,7 +426,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           )}
           <button
             onClick={handleLike}
-            className={`flex items-center gap-1 transition-colors p-2 rounded-xl ${liked ? 'text-red-500' : 'text-foreground hover:text-red-500'} hover:bg-background/50`}
+            className={`flex items-center gap-2 transition-colors p-2 rounded-lg ${liked ? 'text-red-500' : 'text-gray-500 dark:text-gray-400 hover:text-red-500'}`}
             aria-label={`Like - ${likes || 0} likes`}
           >
             <Heart size={22} className={liked ? 'fill-red-500' : ''} />
@@ -439,7 +439,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
 
         {/* Comment Input - Fixed at Bottom */}
-        <div className="p-3 pb-20 bg-muted/50 border-t border-border/30">
+        <div className="p-3 pb-20 bg-muted border-t border-border/30">
           <div className="flex items-center gap-3">
             {post.userAvatar ? (
               <img src={post.userAvatar} alt={post.displayName} className="w-8 h-8 rounded-full object-cover" />
