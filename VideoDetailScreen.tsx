@@ -178,28 +178,28 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   }
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
+    <div className="fixed inset-0 bg-background z-50 flex flex-col">
       {/* Header - Outside video */}
-      <div className="bg-black/90 backdrop-blur-sm p-4 z-20 flex items-center justify-between">
+      <div className="bg-background/90 backdrop-blur-sm p-4 z-20 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {post.userAvatar ? (
             <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover" />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-semibold">
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground font-semibold">
               {(post.displayName || 'U')[0].toUpperCase()}
             </div>
           )}
           <div>
-            <h3 className="text-white font-semibold text-base">{post.displayName || 'User'}</h3>
-            <span className="text-white/60 text-xs">{new Date(post.createdAt).toLocaleDateString()}</span>
+            <h3 className="text-foreground font-semibold text-base">{post.displayName || 'User'}</h3>
+            <span className="text-muted-foreground text-xs">{new Date(post.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
         <button
-          onClick={onClose}
-          className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors"
-          aria-label="Close video"
+          onClick={() => setShowMenu(!showMenu)}
+          className="w-8 h-8 flex items-center justify-center text-foreground hover:bg-muted rounded-full transition-colors"
+          aria-label="More options"
         >
-          <ArrowLeft size={20} />
+          <MoreHorizontal size={20} />
         </button>
       </div>
 
@@ -297,53 +297,34 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       </div>
 
       {/* Controls Below Video */}
-      <div className="bg-black px-4 py-1">
+      <div className="bg-background px-4 pb-0">
         {/* Title with Username and View Count */}
         {post.title && (
-          <div className="mb-2">
+          <div>
             <div className="flex items-baseline gap-1 mb-1">
-              <p className="text-white font-bold text-xl truncate flex-1">
+              <p className="text-foreground font-bold text-xl truncate flex-1">
                 {post.title.length > 35 ? post.title.substring(0, 35) : post.title}
               </p>
               {post.title.length > 35 && (
-                <button onClick={() => setShowDescription(true)} className="text-white/90 text-xs whitespace-nowrap flex-shrink-0">...more</button>
+                <button onClick={() => setShowDescription(true)} className="text-muted-foreground text-xs whitespace-nowrap flex-shrink-0">...more</button>
               )}
             </div>
             <div className="flex items-center gap-2">
               {post.username && (
-                <p className="text-white/60 text-xs">@{post.username}</p>
+                <p className="text-muted-foreground text-xs">@{post.username}</p>
               )}
-              <span className="flex items-center gap-1 text-white/60 text-xs">
+              <span className="flex items-center gap-1 text-muted-foreground text-xs">
                 <Eye size={14} />
                 {views || 0}
               </span>
             </div>
           </div>
         )}
-
-        {/* Follow and Menu */}
-        <div className="flex items-center justify-end gap-3">
-          {!isFollowing && (
-            <button
-              onClick={handleFollow}
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:bg-primary/90 transition-colors"
-            >
-              Follow
-            </button>
-          )}
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors"
-            aria-label="More options"
-          >
-            <MoreHorizontal size={20} />
-          </button>
-        </div>
       </div>
 
       {/* Menu Dropdown */}
       {showMenu && (
-        <div className="absolute top-[240px] right-4 bg-background border border-border rounded-lg shadow-lg z-50 min-w-[150px]">
+        <div className="absolute top-16 right-4 bg-background border border-border rounded-lg shadow-lg z-50 min-w-[150px]">
           <button className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-2">
             <span>Report</span>
           </button>
@@ -364,7 +345,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       {/* Bottom Section - Reactions & Comments */}
       <div className="flex-1 bg-background flex flex-col">
         {/* Reactions Bar */}
-        <div className="flex items-center justify-between gap-1 py-4 px-4 bg-muted/50 rounded-t-xl">
+        <div className="flex items-center justify-between gap-1 py-4 px-4 bg-muted rounded-t-xl border-t border-border">
           <button className="flex items-center justify-center hover:text-yellow-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label="Save">
             <Bookmark size={22} />
           </button>
@@ -379,6 +360,14 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <MessageCircle size={22} />
             <span className="text-sm font-medium">{comments || 0}</span>
           </button>
+          {!isFollowing && (
+            <button
+              onClick={handleFollow}
+              className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/90 transition-colors"
+            >
+              Follow
+            </button>
+          )}
           <button
             onClick={handleLike}
             className={`flex items-center gap-1 hover:text-red-500 transition-colors p-1.5 rounded-lg ${liked ? 'text-red-500' : 'text-foreground'}`}
@@ -390,12 +379,12 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
 
         {/* Comments Section - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-4 bg-muted/20">
+        <div className="flex-1 overflow-y-auto p-4 bg-background">
           <p className="text-muted-foreground text-sm">No comments yet</p>
         </div>
 
         {/* Comment Input - Fixed at Bottom */}
-        <div className="p-4 bg-muted/50 rounded-b-xl shadow-lg">
+        <div className="p-4 bg-muted rounded-b-xl border-t border-border">
           <div className="flex items-center gap-3">
             {post.userAvatar ? (
               <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover" />
