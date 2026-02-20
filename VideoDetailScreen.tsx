@@ -298,9 +298,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Controls Below Video */}
       <div className="bg-black px-4 py-1">
-        {/* Title */}
+        {/* Title with Username and View Count */}
         {post.title && (
-          <div className="flex items-baseline gap-1">
+          <div className="flex items-baseline gap-1 mb-1">
             <p className="text-white font-bold text-xl truncate flex-1">
               {post.title.length > 35 ? post.title.substring(0, 35) : post.title}
             </p>
@@ -309,8 +309,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             )}
           </div>
         )}
-
-        {/* Username with View Count, Follow, and Menu */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {post.username && (
@@ -364,7 +362,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       {/* Bottom Section - Reactions & Comments */}
       <div className="flex-1 bg-background flex flex-col">
         {/* Reactions Bar */}
-        <div className="flex items-center justify-between gap-1 py-3 px-2 border-b border-border">
+        <div className="flex items-center justify-between gap-1 py-4 px-2">
           <button className="flex items-center justify-center hover:text-yellow-500 transition-colors p-1.5 rounded-lg text-foreground" aria-label="Save">
             <Bookmark size={22} />
           </button>
@@ -390,12 +388,12 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
 
         {/* Comments Section - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 bg-muted/30">
           <p className="text-muted-foreground text-sm">No comments yet</p>
         </div>
 
         {/* Comment Input - Fixed at Bottom */}
-        <div className="p-4 border-t border-border bg-background">
+        <div className="p-4 bg-background">
           <div className="flex items-center gap-3">
             {post.userAvatar ? (
               <img src={post.userAvatar} alt={post.displayName} className="w-10 h-10 rounded-full object-cover" />
