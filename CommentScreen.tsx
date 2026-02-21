@@ -133,7 +133,13 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction }:
 
   const CommentItem = ({ comment, isReply = false }: { comment: Comment; isReply?: boolean }) => (
     <div className={cn("flex space-x-3 py-3", isReply && "ml-12")}>
-      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+      <div 
+        className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation()
+          window.location.href = `/profile/${comment.userId}`
+        }}
+      >
         {comment.userAvatar ? (
           <img
             src={comment.userAvatar}
@@ -161,7 +167,13 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction }:
           onClick={() => handleLikeComment(comment.id)}
         >
           <div className="flex items-center space-x-2 mb-1">
-            <span className="font-medium text-sm">{comment.username}</span>
+            <span 
+              className="font-medium text-sm cursor-pointer hover:underline"
+              onClick={(e) => {
+                e.stopPropagation()
+                window.location.href = `/profile/${comment.userId}`
+              }}
+            >{comment.username}</span>
             <span className="text-xs text-muted-foreground">
               {formatTimeAgo(comment.timestamp)}
             </span>

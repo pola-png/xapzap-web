@@ -1068,6 +1068,23 @@ class AppwriteService {
     } catch {}
   }
 
+  async isCommentLikedBy(userId: string, commentId: string) {
+    try {
+      const result = await this.databases.listDocuments(
+        this.databaseId,
+        this.collections.commentLikes,
+        [
+          Query.equal('userId', userId),
+          Query.equal('commentId', commentId),
+          Query.limit(1)
+        ]
+      )
+      return result.documents.length > 0
+    } catch {
+      return false
+    }
+  }
+
   private async incrementCommentField(commentId: string, field: string, delta: number) {
     try {
       const comment = await this.databases.getDocument(

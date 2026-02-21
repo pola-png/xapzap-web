@@ -45,18 +45,30 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
     try {
       const result = await appwriteService.fetchComments(post.id)
       const user = await appwriteService.getCurrentUser()
-      const commentsData = result.documents.slice(0, 3).map((doc: any) => ({
-        id: doc.$id,
-        postId: doc.postId,
-        userId: doc.userId,
-        username: doc.username || 'User',
-        userAvatar: doc.userAvatar || '',
-        content: doc.content || '',
-        likes: doc.likes || 0,
-        replies: doc.replies || 0,
-        timestamp: new Date(doc.timestamp || doc.createdAt || doc.$createdAt),
-        isLiked: false
-      }))
+      
+      // Check which comments the user has liked
+      const commentsData = await Promise.all(
+        result.documents.slice(0, 3).map(async (doc: any) => {
+          let isLiked = false
+          if (user) {
+            isLiked = await appwriteService.isCommentLikedBy(user.$id, doc.$id)
+          }
+          
+          return {
+            id: doc.$id,
+            postId: doc.postId,
+            userId: doc.userId,
+            username: doc.username || 'User',
+            userAvatar: doc.userAvatar || '',
+            content: doc.content || '',
+            likes: doc.likes || 0,
+            replies: doc.replies || 0,
+            timestamp: new Date(doc.timestamp || doc.createdAt || doc.$createdAt),
+            isLiked
+          }
+        })
+      )
+      
       setComments(commentsData)
     } catch (error) {
       console.error('Failed to load comments:', error)
@@ -173,13 +185,15 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                 key={comment.id} 
                 className="flex gap-3"
               >
-                {comment.userAvatar ? (
-                  <img src={comment.userAvatar} alt={comment.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-medium">{comment.username[0]?.toUpperCase() || 'U'}</span>
-                  </div>
-                )}
+                <img 
+                  src={comment.userAvatar || ''} 
+                  alt={comment.username} 
+                  className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer" 
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    router.push(`/profile/${comment.userId}`)
+                  }}
+                />
                 <div className="flex-1 min-w-0">
                   <div 
                     className="bg-muted rounded-2xl px-3 py-2 cursor-pointer"
@@ -195,7 +209,13 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                     onClick={() => handleLikeComment(comment.id)}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-sm">{comment.username}</span>
+                      <span 
+                        className="font-medium text-sm cursor-pointer hover:underline"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          router.push(`/profile/${comment.userId}`)
+                        }}
+                      >{comment.username}</span>
                       <span className="text-xs text-muted-foreground">{formatTimeAgo(comment.timestamp)}</span>
                     </div>
                     <p className="text-sm">{comment.content.split(' ').map((word, i) => 
