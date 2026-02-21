@@ -26,9 +26,10 @@ interface CommentScreenProps {
   onClose: () => void
   isGuest?: boolean
   onGuestAction?: () => void
+  parentComment?: Comment
 }
 
-export function CommentScreen({ post, onClose, isGuest = false, onGuestAction }: CommentScreenProps) {
+export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, parentComment }: CommentScreenProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [newComment, setNewComment] = useState('')
@@ -55,20 +56,34 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction }:
       setIsLoading(true)
       const result = await appwriteService.fetchComments(post.id)
       const user = await appwriteService.getCurrentUser()
-      const commentsData = result.documents.map((doc: any) => ({
-        id: doc.$id,
-        postId: doc.postId,
-        userId: doc.userId,
-        username: doc.username || 'User',
-        userAvatar: doc.userAvatar || '',
-        content: doc.content || '',
-        voiceUrl: doc.voiceUrl,
-        parentCommentId: doc.parentCommentId,
-        likes: doc.likes || 0,
-        replies: doc.replies || 0,
-        timestamp: new Date(doc.timestamp || doc.createdAt || doc.$createdAt),
-        isLiked: false
-      }))
+      
+      let commentsData = await Promise.all(
+        result.documents.map(async (doc: any) => {
+          let isLiked = false
+          if (user) {
+            isLiked = await appwriteService.isCommentLikedBy(user.$id, doc.$id)
+          }
+          return {
+            id: doc.$id,
+            postId: doc.postId,
+            userId: doc.userId,
+            username: doc.username || 'User',
+            userAvatar: doc.userAvatar || '',
+            content: doc.content || '',
+            voiceUrl: doc.voiceUrl,
+            parentCommentId: doc.parentCommentId,
+            likes: doc.likes || 0,
+            replies: doc.replies || 0,
+            timestamp: new Date(doc.timestamp || doc.createdAt || doc.$createdAt),
+            isLiked
+          }
+        })
+      )
+      
+      if (parentComment) {
+        commentsData = commentsData.filter(c => c.parentCommentId === parentComment.id)
+      }
+      
       setComments(commentsData)
     } catch (error) {
       console.error('Failed to load comments:', error)
@@ -264,19 +279,19 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction }:
           </div>
         ) : (
           <div className="px-4">
-            {rootComments.length === 0 ? (
+            {parentComment && (
+              <div className="border-b border-border pb-4 mb-4">
+                <CommentItem comment={parentComment} />
+              </div>
+            )}
+            {comments.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">No comments yet</p>
-                <p className="text-sm text-muted-foreground mt-1">Be the first to comment!</p>
+                <p className="text-muted-foreground">No {parentComment ? 'replies' : 'comments'} yet</p>
+                <p className="text-sm text-muted-foreground mt-1">Be the first to {parentComment ? 'reply' : 'comment'}!</p>
               </div>
             ) : (
-              rootComments.map(comment => (
-                <div key={comment.id}>
-                  <CommentItem comment={comment} />
-                  {getReplies(comment.id).map(reply => (
-                    <CommentItem key={reply.id} comment={reply} isReply />
-                  ))}
-                </div>
+              comments.map(comment => (
+                <CommentItem key={comment.id} comment={comment} />
               ))
             )}
           </div>
