@@ -220,7 +220,7 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                   </div>
                 </div>
               </div>
-            ))}}
+            ))}
           </div>
         )}
       </div>
