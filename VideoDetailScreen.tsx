@@ -113,7 +113,12 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     setLoadingComments(true)
     try {
       const result = await appwriteService.fetchComments(post.id)
-      setCommentsList(result.documents)
+      const user = await appwriteService.getCurrentUser()
+      const commentsData = result.documents.map((doc: any) => ({
+        ...doc,
+        isLiked: false
+      }))
+      setCommentsList(commentsData)
     } catch (error) {
       console.error('Failed to load comments:', error)
     } finally {
@@ -822,7 +827,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                         }}
                         className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                       >
-                        <Heart size={12} />
+                        <Heart size={16} />
                         <span>Like</span>
                       </button>
                       <button
@@ -833,22 +838,22 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                         }}
                         className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                       >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                         </svg>
                         <span>Reply</span>
                       </button>
                       <div className="flex items-center gap-3 ml-auto">
                         {comment.isLiked && (comment.likes || 0) > 0 && (
                           <span className="flex items-center gap-1 text-xs text-red-500">
-                            <Heart size={12} className="fill-red-500" />
+                            <Heart size={16} className="fill-red-500" />
                             <span>{comment.likes}</span>
                           </span>
                         )}
                         {(comment.replies || 0) > 0 && (
                           <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                             </svg>
                             <span>{comment.replies}</span>
                           </span>
