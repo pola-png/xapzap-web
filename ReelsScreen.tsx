@@ -234,7 +234,7 @@ export function ReelsScreen() {
       `}</style>
       <div 
         ref={containerRef}
-        className="reels-fullscreen fixed inset-0 bg-black overflow-hidden z-50"
+        className="reels-fullscreen fixed inset-0 bg-black overflow-hidden"
         onWheel={handleWheel}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
