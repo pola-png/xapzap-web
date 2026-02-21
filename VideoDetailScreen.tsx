@@ -396,9 +396,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             </div>
             <div className="flex items-center gap-2 text-xs">
               {post.username && (
-                <p className="text-muted-foreground/60">@{post.username}</p>
+                <p className="text-muted-foreground/40">@{post.username}</p>
               )}
-              <span className="flex items-center gap-1 text-muted-foreground/60">
+              <span className="flex items-center gap-1 text-muted-foreground/40">
                 <Eye size={14} />
                 {views || 0}
               </span>
@@ -419,21 +419,18 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </>
       )}
 
-      {/* Description Modal */}
-      {showDescription && (
-        <div className="absolute bottom-0 left-0 right-0 z-[60]" style={{ top: 'calc(var(--video-height, 56.25vw) + 60px)' }}>
-          <div className="h-full bg-background overflow-y-auto">
-            <div className="p-6 pt-4">
+      {/* Bottom Section - Reactions & Comments */}
+      <div className="flex-1 bg-background flex flex-col min-h-0 relative">
+        {/* Description Modal */}
+        {showDescription && (
+          <div className="absolute inset-0 bg-white dark:bg-gray-950 z-[60] flex flex-col">
+            <div className="flex-1 overflow-y-auto pt-4 px-6 pb-6">
               <div className="w-12 h-1.5 bg-border rounded-full mx-auto mb-4 cursor-pointer hover:bg-border/70 transition-colors" onClick={() => setShowDescription(false)} />
               {post.title && <h3 className="text-foreground font-bold text-2xl mb-4 leading-tight">{post.title}</h3>}
               {post.content && <p className="text-muted-foreground text-base leading-relaxed whitespace-pre-wrap">{post.content}</p>}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Bottom Section - Reactions & Comments */}
-      <div className="flex-1 bg-background flex flex-col min-h-0">
+        )}
         {/* Reactions Bar */}
         <div className="flex items-center justify-between gap-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-muted/30 flex-wrap">
           <button onClick={handleSave} className={`flex items-center justify-center transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400 hover:text-yellow-500'}`} aria-label="Save">
