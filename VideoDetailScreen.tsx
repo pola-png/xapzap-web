@@ -844,7 +844,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                         <span>Reply</span>
                       </button>
                       <div className="flex items-center gap-3 ml-auto">
-                        {comment.isLiked && (comment.likes || 0) > 0 && (
+                        {comment.isLiked && (
                           <span className="flex items-center gap-1 text-xs text-red-500">
                             <Heart size={16} className="fill-red-500" />
                             <span>{comment.likes}</span>
