@@ -1030,6 +1030,9 @@ class AppwriteService {
     const user = await this.getCurrentUser()
     if (!user) throw new Error('User must be signed in')
 
+    const isAlreadyLiked = await this.isCommentLikedBy(user.$id, commentId)
+    if (isAlreadyLiked) return
+
     await this.databases.createDocument(
       this.databaseId,
       this.collections.commentLikes,
@@ -1102,7 +1105,10 @@ class AppwriteService {
         commentId,
         { [field]: newValue }
       )
-    } catch {}
+    } catch (error) {
+      console.error(`Failed to increment comment field ${field}:`, error)
+      throw error
+    }
   }
   async incrementPostField(postId: string, field: string, delta: number) {
     try {

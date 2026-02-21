@@ -115,8 +115,9 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
     
     setIsSubmitting(true)
     try {
-      await appwriteService.createComment(post.id, commentText.trim())
+      await appwriteService.createComment(post.id, commentText.trim(), replyTo || undefined)
       setCommentText('')
+      setReplyTo(null)
       setCommentInputFocused(false)
       await loadComments()
     } catch (error) {
