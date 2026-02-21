@@ -91,17 +91,18 @@ export function ReelsScreen() {
       const user = await appwriteService.getCurrentUser()
       
       for (const d of result.documents) {
-        const profile = await appwriteService.getProfileByUserId(d.userId)
+        const doc: any = d
+        const profile = await appwriteService.getProfileByUserId(doc.userId)
         const interactions = user ? await Promise.all([
-          appwriteService.isPostLikedBy(user.$id, d.$id),
-          appwriteService.isPostSavedBy(user.$id, d.$id),
-          appwriteService.isPostRepostedBy(user.$id, d.$id)
+          appwriteService.isPostLikedBy(user.$id, doc.$id),
+          appwriteService.isPostSavedBy(user.$id, doc.$id),
+          appwriteService.isPostRepostedBy(user.$id, doc.$id)
         ]) : [false, false, false]
         
         const enrichedPost = {
-          ...d,
-          id: d.$id,
-          timestamp: new Date(d.$createdAt || d.createdAt),
+          ...doc,
+          id: doc.$id,
+          timestamp: new Date(doc.$createdAt || doc.createdAt),
           displayName: profile?.displayName || 'User',
           avatarUrl: profile?.avatarUrl || '',
           isLiked: interactions[0],
