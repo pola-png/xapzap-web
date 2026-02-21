@@ -113,7 +113,7 @@ export function ReelsScreen() {
         setPosts(prev => [...prev, enrichedPost as Post])
       }
       
-      feedCache.set('reels', result.documents)
+      feedCache.set('reels', posts)
     } catch (error) {
       console.error('Failed to load reels:', error)
     } finally {
@@ -217,13 +217,20 @@ export function ReelsScreen() {
   }
 
   return (
-    <div 
-      ref={containerRef}
-      className="fixed inset-0 bg-black overflow-hidden"
-      onWheel={handleWheel}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
+    <>
+      <style jsx global>{`
+        body:has(.reels-fullscreen) nav,
+        body:has(.reels-fullscreen) .safe-area-inset-bottom {
+          display: none !important;
+        }
+      `}</style>
+      <div 
+        ref={containerRef}
+        className="reels-fullscreen fixed inset-0 bg-black overflow-hidden z-50"
+        onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
       <div 
         className="h-full transition-transform duration-300 ease-out"
         style={{ transform: `translateY(-${currentIndex * 100}vh)` }}
@@ -381,6 +388,6 @@ export function ReelsScreen() {
           onClose={() => setCommentModalPost(null)}
         />
       )}
-    </div>
+    </>
   )
 }
