@@ -70,19 +70,27 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
       const comment = comments.find(c => c.id === commentId)
       if (!comment) return
 
+      // Optimistic update
+      setComments(prev => prev.map(c => 
+        c.id === commentId 
+          ? { ...c, isLiked: !c.isLiked, likes: c.isLiked ? Math.max(0, c.likes - 1) : c.likes + 1 }
+          : c
+      ))
+
+      // Update backend
       if (comment.isLiked) {
         await appwriteService.unlikeComment(commentId)
       } else {
         await appwriteService.likeComment(commentId)
       }
-
-      setComments(prev => prev.map(c => 
-        c.id === commentId 
-          ? { ...c, isLiked: !c.isLiked, likes: c.isLiked ? c.likes - 1 : c.likes + 1 }
-          : c
-      ))
     } catch (error) {
       console.error('Failed to like comment:', error)
+      // Revert on error
+      setComments(prev => prev.map(c => 
+        c.id === commentId 
+          ? { ...c, isLiked: !c.isLiked, likes: c.isLiked ? c.likes + 1 : Math.max(0, c.likes - 1) }
+          : c
+      ))
     }
   }
 
@@ -190,7 +198,13 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                       <span className="font-medium text-sm">{comment.username}</span>
                       <span className="text-xs text-muted-foreground">{formatTimeAgo(comment.timestamp)}</span>
                     </div>
-                    <p className="text-sm">{comment.content}</p>
+                    <p className="text-sm">{comment.content.split(' ').map((word, i) => 
+                      word.startsWith('@') ? (
+                        <span key={i} className="text-blue-500">{word} </span>
+                      ) : (
+                        word + ' '
+                      )
+                    )}</p>
                   </div>
                   <div className="flex items-center gap-3 mt-1 ml-3">
                     <button

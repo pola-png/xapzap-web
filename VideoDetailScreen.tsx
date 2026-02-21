@@ -131,19 +131,27 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       const comment = commentsList.find(c => c.$id === commentId)
       if (!comment) return
 
+      // Optimistic update
+      setCommentsList(prev => prev.map(c => 
+        c.$id === commentId 
+          ? { ...c, isLiked: !c.isLiked, likes: c.isLiked ? Math.max(0, (c.likes || 1) - 1) : (c.likes || 0) + 1 }
+          : c
+      ))
+
+      // Update backend
       if (comment.isLiked) {
         await appwriteService.unlikeComment(commentId)
       } else {
         await appwriteService.likeComment(commentId)
       }
-
-      setCommentsList(prev => prev.map(c => 
-        c.$id === commentId 
-          ? { ...c, isLiked: !c.isLiked, likes: c.isLiked ? (c.likes || 1) - 1 : (c.likes || 0) + 1 }
-          : c
-      ))
     } catch (error) {
       console.error('Failed to like comment:', error)
+      // Revert on error
+      setCommentsList(prev => prev.map(c => 
+        c.$id === commentId 
+          ? { ...c, isLiked: !c.isLiked, likes: c.isLiked ? (c.likes || 0) + 1 : Math.max(0, (c.likes || 1) - 1) }
+          : c
+      ))
     }
   }
 
@@ -657,7 +665,13 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                           <span className="font-medium text-sm">{comment.username}</span>
                           <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(comment.createdAt || comment.$createdAt))}</span>
                         </div>
-                        <p className="text-sm">{comment.content}</p>
+                        <p className="text-sm">{comment.content.split(' ').map((word: string, i: number) => 
+                          word.startsWith('@') ? (
+                            <span key={i} className="text-blue-500">{word} </span>
+                          ) : (
+                            word + ' '
+                          )
+                        )}</p>
                       </div>
                       <div className="flex items-center gap-3 mt-1 ml-3">
                         <button
@@ -817,7 +831,13 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                         <span className="font-medium text-sm">{comment.username}</span>
                         <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(comment.createdAt || comment.$createdAt))}</span>
                       </div>
-                      <p className="text-sm">{comment.content}</p>
+                      <p className="text-sm">{comment.content.split(' ').map((word: string, i: number) => 
+                        word.startsWith('@') ? (
+                          <span key={i} className="text-blue-500">{word} </span>
+                        ) : (
+                          word + ' '
+                        )
+                      )}</p>
                     </div>
                     <div className="flex items-center gap-3 mt-1 ml-3">
                       <button
