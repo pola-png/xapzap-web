@@ -147,26 +147,16 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
   const getReplies = (commentId: string) => comments.filter(c => c.parentCommentId === commentId)
 
   const CommentItem = ({ comment, isReply = false }: { comment: Comment; isReply?: boolean }) => (
-    <div className={cn("flex space-x-3 py-3", isReply && "ml-12")}>
-      <div 
-        className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 cursor-pointer"
+    <div className={cn("flex gap-3", isReply && "ml-12")}>
+      <img 
+        src={comment.userAvatar || ''} 
+        alt={comment.username} 
+        className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer" 
         onClick={(e) => {
           e.stopPropagation()
           window.location.href = `/profile/${comment.userId}`
         }}
-      >
-        {comment.userAvatar ? (
-          <img
-            src={comment.userAvatar}
-            alt={comment.username}
-            className="w-full h-full rounded-full object-cover"
-          />
-        ) : (
-          <span className="text-xs font-medium">
-            {comment.username[0]?.toUpperCase() || 'U'}
-          </span>
-        )}
-      </div>
+      />
       
       <div className="flex-1 min-w-0">
         <div 
@@ -176,12 +166,12 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
             const swipeEndX = e.changedTouches[0].clientX
             if (swipeStartX - swipeEndX > 50) {
               setReplyTo(comment.id)
-              setNewComment(`@${comment.username} `)
+              setNewComment(`${comment.username} `)
             }
           }}
           onClick={() => handleLikeComment(comment.id)}
         >
-          <div className="flex items-center space-x-2 mb-1">
+          <div className="flex items-center gap-2 mb-1">
             <span 
               className="font-medium text-sm cursor-pointer hover:underline"
               onClick={(e) => {
@@ -212,40 +202,40 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
           )}
         </div>
         
-        <div className="flex items-center space-x-4 mt-1 ml-3">
+        <div className="flex items-center gap-4 mt-2 ml-3">
           <button
             onClick={(e) => {
               e.stopPropagation()
               handleLikeComment(comment.id)
             }}
-            className="flex items-center space-x-1 text-xs text-muted-foreground hover:text-foreground"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
-            <Heart size={16} />
+            <Heart size={18} />
             <span>Like</span>
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation()
               setReplyTo(comment.id)
-              setNewComment(`@${comment.username} `)
+              setNewComment(`${comment.username} `)
             }}
-            className="flex items-center space-x-1 text-xs text-muted-foreground hover:text-foreground"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
             </svg>
             <span>Reply</span>
           </button>
-          <div className="flex items-center space-x-3 ml-auto">
+          <div className="flex items-center gap-4 ml-auto">
             {comment.isLiked && (
-              <span className="flex items-center space-x-1 text-xs text-red-500">
-                <Heart size={16} className="fill-red-500" />
+              <span className="flex items-center gap-1.5 text-sm text-red-500">
+                <Heart size={18} className="fill-red-500" />
                 <span>{comment.likes}</span>
               </span>
             )}
             {comment.replies > 0 && (
-              <span className="flex items-center space-x-1 text-xs text-muted-foreground">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                 </svg>
                 <span>{comment.replies}</span>

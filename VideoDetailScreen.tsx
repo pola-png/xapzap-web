@@ -639,14 +639,17 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             ) : (
               <div className="space-y-4">
                 {commentsList.map((comment) => (
-                  <div key={comment.$id} className="flex gap-3">
-                    {comment.userAvatar ? (
-                      <img src={comment.userAvatar} alt={comment.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-medium">{comment.username[0]?.toUpperCase() || 'U'}</span>
-                      </div>
-                    )}
+                  <div key={comment.$id}>
+                    <div className="flex gap-3">
+                    <img 
+                      src={comment.userAvatar || ''} 
+                      alt={comment.username} 
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer" 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        window.location.href = `/profile/${comment.userId}`
+                      }}
+                    />
                     <div className="flex-1 min-w-0">
                       <div 
                         className="bg-muted rounded-2xl px-3 py-2 cursor-pointer"
@@ -655,14 +658,20 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                           const swipeEndX = e.changedTouches[0].clientX
                           if (swipeStartX - swipeEndX > 50) {
                             setReplyTo(comment.$id)
-                            setCommentText(`@${comment.username} `)
+                            setCommentText(`${comment.username} `)
                             setCommentInputFocused(true)
                           }
                         }}
                         onClick={() => handleLikeComment(comment.$id)}
                       >
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-sm">{comment.username}</span>
+                          <span 
+                            className="font-medium text-sm cursor-pointer hover:underline"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              window.location.href = `/profile/${comment.userId}`
+                            }}
+                          >{comment.username}</span>
                           <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(comment.createdAt || comment.$createdAt))}</span>
                         </div>
                         <p className="text-sm">{comment.content.split(' ').map((word: string, i: number) => 
@@ -673,48 +682,49 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                           )
                         )}</p>
                       </div>
-                      <div className="flex items-center gap-3 mt-1 ml-3">
+                      <div className="flex items-center gap-4 mt-2 ml-3">
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
                             handleLikeComment(comment.$id)
                           }}
-                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                         >
-                          <Heart size={12} />
+                          <Heart size={18} />
                           <span>Like</span>
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
                             setReplyTo(comment.$id)
-                            setCommentText(`@${comment.username} `)
+                            setCommentText(`${comment.username} `)
                             setCommentInputFocused(true)
                           }}
-                          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                         >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                           </svg>
                           <span>Reply</span>
                         </button>
-                        <div className="flex items-center gap-3 ml-auto">
-                          {comment.isLiked && (comment.likes || 0) > 0 && (
-                            <span className="flex items-center gap-1 text-xs text-red-500">
-                              <Heart size={12} className="fill-red-500" />
+                        <div className="flex items-center gap-4 ml-auto">
+                          {comment.isLiked && (
+                            <span className="flex items-center gap-1.5 text-sm text-red-500">
+                              <Heart size={18} className="fill-red-500" />
                               <span>{comment.likes}</span>
                             </span>
                           )}
                           {(comment.replies || 0) > 0 && (
-                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                               </svg>
                               <span>{comment.replies}</span>
                             </span>
                           )}
                         </div>
                       </div>
+                    </div>
                     </div>
                   </div>
                 ))}
@@ -804,16 +814,18 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <div className="space-y-4">
               {commentsList.map((comment) => (
                 <div 
-                  key={comment.$id} 
-                  className="flex gap-3"
+                  key={comment.$id}
                 >
-                  {comment.userAvatar ? (
-                    <img src={comment.userAvatar} alt={comment.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-medium">{comment.username[0]?.toUpperCase() || 'U'}</span>
-                    </div>
-                  )}
+                  <div className="flex gap-3">
+                  <img 
+                    src={comment.userAvatar || ''} 
+                    alt={comment.username} 
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer" 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      window.location.href = `/profile/${comment.userId}`
+                    }}
+                  />
                   <div className="flex-1 min-w-0">
                     <div 
                       className="bg-muted rounded-2xl px-3 py-2 cursor-pointer"
@@ -822,13 +834,19 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                         const swipeEndX = e.changedTouches[0].clientX
                         if (swipeStartX - swipeEndX > 50) {
                           setReplyTo(comment.$id)
-                          setCommentText(`@${comment.username} `)
+                          setCommentText(`${comment.username} `)
                         }
                       }}
                       onClick={() => handleLikeComment(comment.$id)}
                     >
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-sm">{comment.username}</span>
+                        <span 
+                          className="font-medium text-sm cursor-pointer hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            window.location.href = `/profile/${comment.userId}`
+                          }}
+                        >{comment.username}</span>
                         <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(comment.createdAt || comment.$createdAt))}</span>
                       </div>
                       <p className="text-sm">{comment.content.split(' ').map((word: string, i: number) => 
@@ -839,40 +857,40 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                         )
                       )}</p>
                     </div>
-                    <div className="flex items-center gap-3 mt-1 ml-3">
+                    <div className="flex items-center gap-4 mt-2 ml-3">
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           handleLikeComment(comment.$id)
                         }}
-                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                       >
-                        <Heart size={16} />
+                        <Heart size={18} />
                         <span>Like</span>
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           setReplyTo(comment.$id)
-                          setCommentText(`@${comment.username} `)
+                          setCommentText(`${comment.username} `)
                         }}
-                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                         </svg>
                         <span>Reply</span>
                       </button>
-                      <div className="flex items-center gap-3 ml-auto">
+                      <div className="flex items-center gap-4 ml-auto">
                         {comment.isLiked && (
-                          <span className="flex items-center gap-1 text-xs text-red-500">
-                            <Heart size={16} className="fill-red-500" />
+                          <span className="flex items-center gap-1.5 text-sm text-red-500">
+                            <Heart size={18} className="fill-red-500" />
                             <span>{comment.likes}</span>
                           </span>
                         )}
                         {(comment.replies || 0) > 0 && (
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                             </svg>
                             <span>{comment.replies}</span>
@@ -880,6 +898,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                         )}
                       </div>
                     </div>
+                  </div>
                   </div>
                 </div>
               ))}
