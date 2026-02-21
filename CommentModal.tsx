@@ -24,6 +24,9 @@ interface Comment {
   replies: number
   timestamp: Date
   isLiked: boolean
+  parentCommentId?: string
+  repliesExpanded?: boolean
+  replyComments?: Comment[]
 }
 
 export function CommentModal({ post, onClose }: CommentModalProps) {
@@ -47,7 +50,7 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
       const user = await appwriteService.getCurrentUser()
       
       const commentsData = await Promise.all(
-        result.documents.slice(0, 3).map(async (doc: any) => {
+        result.documents.slice(0, 3).filter((doc: any) => !doc.parentCommentId).map(async (doc: any) => {
           let isLiked = false
           if (user) {
             isLiked = await appwriteService.isCommentLikedBy(user.$id, doc.$id)
@@ -63,7 +66,9 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
             likes: doc.likes || 0,
             replies: doc.replies || 0,
             timestamp: new Date(doc.timestamp || doc.createdAt || doc.$createdAt),
-            isLiked
+            isLiked,
+            repliesExpanded: false,
+            replyComments: []
           }
         })
       )
@@ -107,6 +112,44 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
           ? { ...c, isLiked: wasLiked, likes: prevLikes }
           : c
       ))
+    }
+  }
+
+  const toggleReplies = async (commentId: string) => {
+    const comment = comments.find(c => c.id === commentId)
+    if (!comment) return
+
+    if (comment.repliesExpanded) {
+      setComments(prev => prev.map(c => c.id === commentId ? { ...c, repliesExpanded: false } : c))
+      return
+    }
+
+    try {
+      const result = await appwriteService.fetchComments(post.id)
+      const user = await appwriteService.getCurrentUser()
+      const replies = await Promise.all(
+        result.documents.filter((doc: any) => doc.parentCommentId === commentId).map(async (doc: any) => {
+          let isLiked = false
+          if (user) {
+            isLiked = await appwriteService.isCommentLikedBy(user.$id, doc.$id)
+          }
+          return {
+            id: doc.$id,
+            postId: doc.postId,
+            userId: doc.userId,
+            username: doc.username || 'User',
+            userAvatar: doc.userAvatar || '',
+            content: doc.content || '',
+            likes: doc.likes || 0,
+            replies: 0,
+            timestamp: new Date(doc.timestamp || doc.createdAt || doc.$createdAt),
+            isLiked
+          }
+        })
+      )
+      setComments(prev => prev.map(c => c.id === commentId ? { ...c, repliesExpanded: true, replyComments: replies } : c))
+    } catch (error) {
+      console.error('Failed to load replies:', error)
     }
   }
 
@@ -207,7 +250,7 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                       const swipeEndX = e.changedTouches[0].clientX
                       if (swipeStartX - swipeEndX > 50) {
                         setReplyTo(comment.id)
-                        setCommentText(`@${comment.username} `)
+                        setCommentText(`${comment.username} `)
                         setCommentInputFocused(true)
                       }
                     }}
@@ -231,50 +274,109 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                       )
                     )}</p>
                   </div>
-                  <div className="flex items-center gap-3 mt-1 ml-3">
+                  <div className="flex items-center gap-4 mt-2 ml-3">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         handleLikeComment(comment.id)
                       }}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                      className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                     >
-                      <Heart size={16} />
+                      <Heart size={18} />
                       <span>Like</span>
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         setReplyTo(comment.id)
-                        setCommentText(`@${comment.username} `)
+                        setCommentText(`${comment.username} `)
                         setCommentInputFocused(true)
                       }}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                      className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                       </svg>
                       <span>Reply</span>
                     </button>
-                    <div className="flex items-center gap-3 ml-auto">
+                    <div className="flex items-center gap-4 ml-auto">
                       {comment.isLiked && (
-                        <span className="flex items-center gap-1 text-xs text-red-500">
-                          <Heart size={16} className="fill-red-500" />
+                        <span className="flex items-center gap-1.5 text-sm text-red-500">
+                          <Heart size={18} className="fill-red-500" />
                           <span>{comment.likes}</span>
                         </span>
                       )}
                       {comment.replies > 0 && (
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleReplies(comment.id)
+                          }}
+                          className="flex items-center gap-1.5 text-sm text-blue-500 hover:text-blue-600 font-medium"
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                           </svg>
-                          <span>{comment.replies}</span>
-                        </span>
+                          <span>{comment.repliesExpanded ? 'Hide' : 'View'} {comment.replies} {comment.replies === 1 ? 'reply' : 'replies'}</span>
+                        </button>
                       )}
                     </div>
                   </div>
                 </div>
               </div>
+              {comment.repliesExpanded && comment.replyComments && comment.replyComments.map((reply) => (
+                <div key={reply.id} className="flex gap-3 ml-11 mt-3">
+                  <img 
+                    src={reply.userAvatar || ''} 
+                    alt={reply.username} 
+                    className="w-9 h-9 rounded-full object-cover flex-shrink-0 cursor-pointer" 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      router.push(`/profile/${reply.userId}`)
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="bg-muted rounded-2xl px-4 py-3">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span 
+                          className="font-semibold text-base cursor-pointer hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            router.push(`/profile/${reply.userId}`)
+                          }}
+                        >{reply.username}</span>
+                        <span className="text-sm text-muted-foreground">{formatTimeAgo(reply.timestamp)}</span>
+                      </div>
+                      <p className="text-base leading-relaxed">
+                        {reply.content.startsWith(comment.username) && (
+                          <span className="text-blue-500 font-medium">{comment.username} </span>
+                        )}
+                        {reply.content.replace(new RegExp(`^${comment.username}\\s*`), '')}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 mt-2 ml-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleLikeComment(reply.id)
+                        }}
+                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        <Heart size={18} />
+                        <span>Like</span>
+                      </button>
+                      <div className="flex items-center gap-3 ml-auto">
+                        {reply.isLiked && (
+                          <span className="flex items-center gap-1.5 text-sm text-red-500">
+                            <Heart size={18} className="fill-red-500" />
+                            <span>{reply.likes}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             ))}
           </div>
         )}

@@ -21,7 +21,7 @@ class AppwriteService {
     profiles: 'profiles',
     follows: 'follows',
     likes: 'likes',
-    commentLikes: 'comment_likes',
+    commentLikes: 'commentLikes',
     reposts: 'reposts',
     reports: 'reports',
     saves: 'saves',
