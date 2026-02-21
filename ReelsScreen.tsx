@@ -388,7 +388,7 @@ export function ReelsScreen() {
           onClose={() => setCommentModalPost(null)}
         />
       )}
+      </div>
     </div>
   )
-}
 }
