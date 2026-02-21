@@ -514,9 +514,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                   placeholder="Add a comment..."
                   className="flex-1 bg-background border border-border rounded-full px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   autoFocus
-                  onBlur={() => setCommentInputFocused(false)}
                 />
                 <button 
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setCommentInputFocused(false)}
                   className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md"
                 >
@@ -544,7 +544,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                   className="flex-1 bg-background border border-border rounded-full px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   onFocus={() => setCommentInputFocused(true)}
                 />
-                <button className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md">
+                <button 
+                  onMouseDown={(e) => e.preventDefault()}
+                  className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md">
                   Post
                 </button>
               </div>
@@ -616,7 +618,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 setCommentInputFocused(true)
               }}
             />
-            <button className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md">
+            <button 
+              onMouseDown={(e) => e.preventDefault()}
+              className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md">
               Post
             </button>
           </div>

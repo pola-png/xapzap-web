@@ -249,6 +249,7 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction }:
             />
             
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={handleSubmitComment}
               disabled={!newComment.trim()}
               className="p-2 text-xapzap-blue hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

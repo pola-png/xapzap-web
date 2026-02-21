@@ -109,9 +109,9 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
               onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
               className="flex-1 bg-background border border-border rounded-full px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               autoFocus
-              onBlur={() => setCommentInputFocused(false)}
             />
             <button 
+              onMouseDown={(e) => e.preventDefault()}
               onClick={handleSubmit}
               disabled={!commentText.trim() || isSubmitting}
               className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
@@ -180,6 +180,7 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
               onFocus={() => setCommentInputFocused(true)}
             />
             <button 
+              onMouseDown={(e) => e.preventDefault()}
               onClick={handleSubmit}
               disabled={!commentText.trim() || isSubmitting}
               className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
