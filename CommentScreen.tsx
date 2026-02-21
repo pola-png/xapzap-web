@@ -174,26 +174,26 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction }:
         </div>
         
         <div className="flex items-center space-x-4 mt-1 ml-3">
-          <button
-            onClick={() => handleLikeComment(comment.id)}
-            className={cn(
-              "flex items-center space-x-1 text-xs font-medium",
-              comment.isLiked ? "text-red-500" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Heart size={12} className={comment.isLiked ? "fill-current" : ""} />
-            {comment.likes > 0 && <span>{comment.likes}</span>}
-            <span>Like</span>
-          </button>
-          
-          <button
-            onClick={() => setReplyTo(comment.id)}
-            className="flex items-center space-x-1 text-xs font-medium text-muted-foreground hover:text-foreground"
-          >
-            <Reply size={12} />
-            <span>Reply</span>
-            {comment.replies > 0 && <span>({comment.replies})</span>}
-          </button>
+          {comment.likes > 0 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                handleLikeComment(comment.id)
+              }}
+              className="flex items-center space-x-1 text-xs text-red-500"
+            >
+              <Heart size={12} className="fill-red-500" />
+              <span>{comment.likes}</span>
+            </button>
+          )}
+          {comment.replies > 0 && (
+            <button className="flex items-center space-x-1 text-xs text-muted-foreground">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+              </svg>
+              <span>{comment.replies}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

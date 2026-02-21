@@ -69,62 +69,61 @@ export function HomeScreen() {
   }, [hasLoaded])
 
   const loadPosts = async () => {
-    const isInitialLoad = posts.length === 0
-    if (isInitialLoad) setLoading(true)
-    
     try {
       const user = await appwriteService.getCurrentUser()
       if (user) {
         setCurrentUserId(user.$id)
         const result = await appwriteService.fetchForYouFeed(user.$id)
         
-        // Enrich posts with profile data and user interactions
-        const enrichedPosts = await Promise.all(
-          result.documents.map(async (d: any) => {
-            const profile = await appwriteService.getProfileByUserId(d.userId)
-            const [isLiked, isSaved, isReposted] = await Promise.all([
-              appwriteService.isPostLikedBy(user.$id, d.$id),
-              appwriteService.isPostSavedBy(user.$id, d.$id),
-              appwriteService.isPostRepostedBy(user.$id, d.$id)
-            ])
-            
-            return {
-              ...d,
-              id: d.$id,
-              timestamp: new Date(d.$createdAt || d.createdAt),
-              displayName: profile?.displayName,
-              avatarUrl: profile?.avatarUrl,
-              isLiked,
-              isSaved,
-              isReposted
-            }
+        // Show posts one by one
+        for (let i = 0; i < result.documents.length; i++) {
+          const d = result.documents[i]
+          const profile = await appwriteService.getProfileByUserId(d.userId)
+          const [isLiked, isSaved, isReposted] = await Promise.all([
+            appwriteService.isPostLikedBy(user.$id, d.$id),
+            appwriteService.isPostSavedBy(user.$id, d.$id),
+            appwriteService.isPostRepostedBy(user.$id, d.$id)
+          ])
+          
+          const enrichedPost = {
+            ...d,
+            id: d.$id,
+            timestamp: new Date(d.$createdAt || d.createdAt),
+            displayName: profile?.displayName,
+            avatarUrl: profile?.avatarUrl,
+            isLiked,
+            isSaved,
+            isReposted
+          }
+          
+          setPosts(prev => {
+            const updated = [...prev, enrichedPost]
+            feedCache.set('home', updated)
+            return updated
           })
-        )
-        
-        setPosts(enrichedPosts as Post[])
-        feedCache.set('home', enrichedPosts as Post[])
+        }
       } else {
         const result = await appwriteService.fetchPosts()
-        const enrichedPosts = await Promise.all(
-          result.documents.map(async (d: any) => {
-            const profile = await appwriteService.getProfileByUserId(d.userId)
-            return {
-              ...d,
-              id: d.$id,
-              timestamp: new Date(d.$createdAt || d.createdAt),
-              displayName: profile?.displayName,
-              avatarUrl: profile?.avatarUrl
-            }
+        for (let i = 0; i < result.documents.length; i++) {
+          const d = result.documents[i]
+          const profile = await appwriteService.getProfileByUserId(d.userId)
+          const enrichedPost = {
+            ...d,
+            id: d.$id,
+            timestamp: new Date(d.$createdAt || d.createdAt),
+            displayName: profile?.displayName,
+            avatarUrl: profile?.avatarUrl
+          }
+          setPosts(prev => {
+            const updated = [...prev, enrichedPost]
+            feedCache.set('home', updated)
+            return updated
           })
-        )
-        setPosts(enrichedPosts as Post[])
-        feedCache.set('home', enrichedPosts as Post[])
+        }
       }
       setHasLoaded(true)
     } catch (error) {
       console.error('Failed to load posts:', error)
-    } finally {
-      if (isInitialLoad) setLoading(false)
     }
   }
 

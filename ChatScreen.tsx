@@ -47,8 +47,16 @@ function ChatList({ chats, onChatSelect, loading }: ChatListProps) {
       
       <div className="flex-1 overflow-y-auto">
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="p-4 space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center space-x-3 animate-pulse">
+                <div className="w-12 h-12 rounded-full bg-muted"></div>
+                <div className="flex-1">
+                  <div className="h-4 bg-muted rounded w-1/3 mb-2"></div>
+                  <div className="h-3 bg-muted rounded w-2/3"></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredChats.length === 0 ? (
           <div className="text-center py-12">
@@ -264,23 +272,23 @@ export function ChatScreen() {
         return
       }
       const result = await appwriteService.fetchChatsForUser(user.$id)
-      const mappedChats = result.documents.map((doc: any) => {
-        // Stub parse partner from memberIds
+      const mappedChats = await Promise.all(result.documents.map(async (doc: any) => {
         const memberIds = doc.memberIds.split(',').map((id: string) => id.trim())
         const partnerId = memberIds.find((id: string) => id !== user.$id) || 'unknown'
+        const partnerProfile = await appwriteService.getProfileByUserId(partnerId)
         return {
           id: doc.$id,
           chatId: doc.chatId,
           memberIds: doc.memberIds,
           partnerId,
-          partnerName: doc.partnerName || partnerId.slice(0,8),
-          partnerAvatar: doc.partnerAvatar || '',
+          partnerName: partnerProfile?.displayName || partnerId.slice(0,8),
+          partnerAvatar: partnerProfile?.avatarUrl || '',
           lastMessage: doc.lastMessage || 'No messages',
-          timestamp: new Date(doc.timestamp || doc.createdAt),
+          timestamp: new Date(doc.lastMessageAt || doc.timestamp || doc.createdAt || doc.$createdAt),
           unreadCount: doc.unreadCount || 0,
           isOnline: false,
         } as Chat
-      })
+      }))
       setChats(mappedChats)
     } catch (error) {
       console.error('Failed to load chats:', error)

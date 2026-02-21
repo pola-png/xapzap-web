@@ -992,7 +992,7 @@ class AppwriteService {
     )
   }
 
-  async createComment(postId: string, content: string) {
+  async createComment(postId: string, content: string, parentCommentId?: string) {
     const user = await this.getCurrentUser()
     if (!user) throw new Error('User must be signed in')
 
@@ -1014,11 +1014,15 @@ class AppwriteService {
         timestamp: new Date().toISOString(),
         likes: 0,
         replies: 0,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        ...(parentCommentId && { parentCommentId })
       }
     )
     
     await this.incrementPostField(postId, 'comments', 1)
+    if (parentCommentId) {
+      await this.incrementCommentField(parentCommentId, 'replies', 1)
+    }
     return comment
   }
 

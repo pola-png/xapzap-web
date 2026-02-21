@@ -20,6 +20,7 @@ interface Comment {
   userAvatar: string
   content: string
   likes: number
+  replies: number
   timestamp: Date
   isLiked: boolean
 }
@@ -49,6 +50,7 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
         userAvatar: doc.userAvatar || '',
         content: doc.content || '',
         likes: doc.likes || 0,
+        replies: doc.replies || 0,
         timestamp: new Date(doc.timestamp || doc.createdAt || doc.$createdAt),
         isLiked: false
       }))
@@ -57,6 +59,27 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
       console.error('Failed to load comments:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleLikeComment = async (commentId: string) => {
+    try {
+      const comment = comments.find(c => c.id === commentId)
+      if (!comment) return
+
+      if (comment.isLiked) {
+        await appwriteService.unlikeComment(commentId)
+      } else {
+        await appwriteService.likeComment(commentId)
+      }
+
+      setComments(prev => prev.map(c => 
+        c.id === commentId 
+          ? { ...c, isLiked: !c.isLiked, likes: c.isLiked ? c.likes - 1 : c.likes + 1 }
+          : c
+      ))
+    } catch (error) {
+      console.error('Failed to like comment:', error)
     }
   }
 
@@ -167,22 +190,26 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                     <p className="text-sm">{comment.content}</p>
                   </div>
                   <div className="flex items-center gap-3 mt-1 ml-3">
-                    <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                      <Heart size={12} />
-                      {comment.likes > 0 && <span>{comment.likes}</span>}
-                      <span>Like</span>
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setReplyTo(comment.id)
-                        setCommentText(`@${comment.username} `)
-                        setCommentInputFocused(true)
-                      }}
-                      className="text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      Reply
-                    </button>
+                    {comment.likes > 0 && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleLikeComment(comment.id)
+                        }}
+                        className="flex items-center gap-1 text-xs text-red-500"
+                      >
+                        <Heart size={12} className="fill-red-500" />
+                        <span>{comment.likes}</span>
+                      </button>
+                    )}
+                    {comment.replies > 0 && (
+                      <button className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                        </svg>
+                        <span>{comment.replies}</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
