@@ -421,8 +421,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Description Modal */}
       {showDescription && (
-        <div className="absolute inset-0 z-[60] flex flex-col" style={{ top: 'var(--title-top, 0)' }}>
-          <div className="flex-1 bg-background overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute bottom-0 left-0 right-0 z-[60]" style={{ top: 'calc(var(--video-height, 56.25vw) + 60px)' }}>
+          <div className="h-full bg-background overflow-y-auto">
             <div className="p-6 pt-4">
               <div className="w-12 h-1.5 bg-border rounded-full mx-auto mb-4 cursor-pointer hover:bg-border/70 transition-colors" onClick={() => setShowDescription(false)} />
               {post.title && <h3 className="text-foreground font-bold text-2xl mb-4 leading-tight">{post.title}</h3>}
