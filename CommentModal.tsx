@@ -46,7 +46,6 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
       const result = await appwriteService.fetchComments(post.id)
       const user = await appwriteService.getCurrentUser()
       
-      // Check which comments the user has liked
       const commentsData = await Promise.all(
         result.documents.slice(0, 3).map(async (doc: any) => {
           let isLiked = false
@@ -78,19 +77,24 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
   }
 
   const handleLikeComment = async (commentId: string) => {
+    const user = await appwriteService.getCurrentUser()
+    if (!user) return
+
+    const comment = comments.find(c => c.id === commentId)
+    if (!comment) return
+
+    const wasLiked = comment.isLiked
+    const prevLikes = comment.likes
+
+    // Optimistic update
+    setComments(prev => prev.map(c => 
+      c.id === commentId 
+        ? { ...c, isLiked: !wasLiked, likes: wasLiked ? Math.max(0, prevLikes - 1) : prevLikes + 1 }
+        : c
+    ))
+
     try {
-      const comment = comments.find(c => c.id === commentId)
-      if (!comment) return
-
-      // Optimistic update
-      setComments(prev => prev.map(c => 
-        c.id === commentId 
-          ? { ...c, isLiked: !c.isLiked, likes: c.isLiked ? Math.max(0, c.likes - 1) : c.likes + 1 }
-          : c
-      ))
-
-      // Update backend
-      if (comment.isLiked) {
+      if (wasLiked) {
         await appwriteService.unlikeComment(commentId)
       } else {
         await appwriteService.likeComment(commentId)
@@ -100,7 +104,7 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
       // Revert on error
       setComments(prev => prev.map(c => 
         c.id === commentId 
-          ? { ...c, isLiked: !c.isLiked, likes: c.isLiked ? c.likes + 1 : Math.max(0, c.likes - 1) }
+          ? { ...c, isLiked: wasLiked, likes: prevLikes }
           : c
       ))
     }
