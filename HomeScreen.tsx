@@ -69,6 +69,7 @@ export function HomeScreen() {
   }, [hasLoaded])
 
   const loadPosts = async () => {
+    setLoading(true)
     try {
       const user = await appwriteService.getCurrentUser()
       if (user) {
@@ -124,6 +125,8 @@ export function HomeScreen() {
       setHasLoaded(true)
     } catch (error) {
       console.error('Failed to load posts:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -208,23 +211,16 @@ export function HomeScreen() {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
       <StoryBar />
       <div className="space-y-4 pb-20 sm:pb-24">
-        {posts.length === 0 && !loading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No posts yet</p>
-            <p className="text-sm text-muted-foreground mt-2">Be the first to share something!</p>
-          </div>
-        ) : (
-          posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              currentUserId={currentUserId}
-              feedType="home"
-              onCommentClick={() => handleCommentClick(post)}
-            />
-          ))
-        )}
-        {loading && posts.length === 0 && (
+        {posts.map((post) => (
+          <PostCard
+            key={post.id}
+            post={post}
+            currentUserId={currentUserId}
+            feedType="home"
+            onCommentClick={() => handleCommentClick(post)}
+          />
+        ))}
+        {loading && (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
