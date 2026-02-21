@@ -396,9 +396,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             </div>
             <div className="flex items-center gap-2 text-xs">
               {post.username && (
-                <p className="text-muted-foreground">@{post.username}</p>
+                <p className="text-muted-foreground/60">@{post.username}</p>
               )}
-              <span className="flex items-center gap-1 text-muted-foreground">
+              <span className="flex items-center gap-1 text-muted-foreground/60">
                 <Eye size={14} />
                 {views || 0}
               </span>
@@ -421,22 +421,21 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Description Modal */}
       {showDescription && (
-        <>
-          <div className="fixed inset-0 bg-black/50 z-[60] animate-in fade-in duration-200" onClick={() => setShowDescription(false)} />
-          <div className="fixed inset-x-0 bottom-0 z-[61] animate-in slide-in-from-bottom duration-300">
-            <div className="bg-background w-full max-h-[80vh] rounded-t-3xl p-6 overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              <div className="w-12 h-1.5 bg-border/50 rounded-full mx-auto mb-6 cursor-pointer hover:bg-border transition-colors" onClick={() => setShowDescription(false)} />
+        <div className="absolute inset-0 z-[60] flex flex-col" style={{ top: 'var(--title-top, 0)' }}>
+          <div className="flex-1 bg-background overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="w-12 h-1.5 bg-border rounded-full mx-auto mb-6 cursor-pointer hover:bg-border/70 transition-colors" onClick={() => setShowDescription(false)} />
               {post.title && <h3 className="text-foreground font-bold text-2xl mb-4 leading-tight">{post.title}</h3>}
               {post.content && <p className="text-muted-foreground text-base leading-relaxed whitespace-pre-wrap">{post.content}</p>}
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* Bottom Section - Reactions & Comments */}
       <div className="flex-1 bg-background flex flex-col min-h-0">
         {/* Reactions Bar */}
-        <div className="flex items-center justify-between gap-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-muted/50 border-t border-border/30 flex-wrap">
+        <div className="flex items-center justify-between gap-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-muted/30 flex-wrap">
           <button onClick={handleSave} className={`flex items-center justify-center transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400 hover:text-yellow-500'}`} aria-label="Save">
             <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
           </button>
@@ -474,7 +473,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
 
         {/* Comment Input - Fixed at Bottom */}
-        <div className="p-3 pb-20 sm:pb-20 bg-muted/30 border-t border-border/30">
+        <div className="p-3 bg-muted/30 border-t border-border/30">
           <div className="flex items-center gap-2 sm:gap-3">
             {post.userAvatar ? (
               <img src={post.userAvatar} alt={post.displayName} className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
