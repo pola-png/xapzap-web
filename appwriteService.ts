@@ -197,12 +197,12 @@ class AppwriteService {
   // For You feed - personalized mix
   async fetchForYouFeed(userId?: string, limit = 20, cursor?: string) {
     try {
-      // Get posts from last 7 days for freshness
-      const sevenDaysAgo = new Date()
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      // Get posts from last 9 months for variety
+      const nineMonthsAgo = new Date()
+      nineMonthsAgo.setMonth(nineMonthsAgo.getMonth() - 9)
 
       let queries: any[] = [
-        Query.greaterThanEqual('$createdAt', sevenDaysAgo.toISOString()),
+        Query.greaterThanEqual('$createdAt', nineMonthsAgo.toISOString()),
         Query.limit(limit * 2) // Get more to filter/score
       ]
       if (cursor) queries.push(Query.cursorAfter(cursor))
@@ -217,7 +217,7 @@ class AppwriteService {
       const scoredPosts = result.documents.map(post => {
         const ageInHours = (Date.now() - new Date(post.$createdAt).getTime()) / (1000 * 60 * 60)
         const engagement = (post.likes || 0) + (post.comments || 0) * 2 + (post.reposts || 0) * 3 + (post.views || 0) * 0.1
-        const recencyScore = Math.max(0, 24 - ageInHours) // Higher score for newer posts
+        const recencyScore = Math.max(0, 168 - ageInHours) // Higher score for posts within 7 days
         const totalScore = engagement + recencyScore
 
         return { ...post, score: totalScore }
