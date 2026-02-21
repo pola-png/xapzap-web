@@ -114,10 +114,18 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     try {
       const result = await appwriteService.fetchComments(post.id)
       const user = await appwriteService.getCurrentUser()
-      const commentsData = result.documents.map((doc: any) => ({
-        ...doc,
-        isLiked: false
-      }))
+      const commentsData = await Promise.all(
+        result.documents.map(async (doc: any) => {
+          let isLiked = false
+          if (user) {
+            isLiked = await appwriteService.isCommentLikedBy(user.$id, doc.$id)
+          }
+          return {
+            ...doc,
+            isLiked
+          }
+        })
+      )
       setCommentsList(commentsData)
     } catch (error) {
       console.error('Failed to load comments:', error)
@@ -127,29 +135,32 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   }
 
   const handleLikeComment = async (commentId: string) => {
+    const user = await appwriteService.getCurrentUser()
+    if (!user) return
+
+    const comment = commentsList.find(c => c.$id === commentId)
+    if (!comment) return
+
+    const wasLiked = comment.isLiked
+    const prevLikes = comment.likes || 0
+
+    setCommentsList(prev => prev.map(c => 
+      c.$id === commentId 
+        ? { ...c, isLiked: !wasLiked, likes: wasLiked ? Math.max(0, prevLikes - 1) : prevLikes + 1 }
+        : c
+    ))
+
     try {
-      const comment = commentsList.find(c => c.$id === commentId)
-      if (!comment) return
-
-      // Optimistic update
-      setCommentsList(prev => prev.map(c => 
-        c.$id === commentId 
-          ? { ...c, isLiked: !c.isLiked, likes: c.isLiked ? Math.max(0, (c.likes || 1) - 1) : (c.likes || 0) + 1 }
-          : c
-      ))
-
-      // Update backend
-      if (comment.isLiked) {
+      if (wasLiked) {
         await appwriteService.unlikeComment(commentId)
       } else {
         await appwriteService.likeComment(commentId)
       }
     } catch (error) {
       console.error('Failed to like comment:', error)
-      // Revert on error
       setCommentsList(prev => prev.map(c => 
         c.$id === commentId 
-          ? { ...c, isLiked: !c.isLiked, likes: c.isLiked ? (c.likes || 0) + 1 : Math.max(0, (c.likes || 1) - 1) }
+          ? { ...c, isLiked: wasLiked, likes: prevLikes }
           : c
       ))
     }
@@ -715,12 +726,18 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                             </span>
                           )}
                           {(comment.replies || 0) > 0 && (
-                            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                window.location.href = `/comments/${post.id}?parent=${comment.$id}`
+                              }}
+                              className="flex items-center gap-1.5 text-sm text-blue-500 hover:text-blue-600 font-medium"
+                            >
                               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                               </svg>
-                              <span>{comment.replies}</span>
-                            </span>
+                              <span>View {comment.replies} {comment.replies === 1 ? 'reply' : 'replies'}</span>
+                            </button>
                           )}
                         </div>
                       </div>
@@ -889,12 +906,18 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                           </span>
                         )}
                         {(comment.replies || 0) > 0 && (
-                          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              window.location.href = `/comments/${post.id}?parent=${comment.$id}`
+                            }}
+                            className="flex items-center gap-1.5 text-sm text-blue-500 hover:text-blue-600 font-medium"
+                          >
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                             </svg>
-                            <span>{comment.replies}</span>
-                          </span>
+                            <span>View {comment.replies} {comment.replies === 1 ? 'reply' : 'replies'}</span>
+                          </button>
                         )}
                       </div>
                     </div>

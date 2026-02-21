@@ -15,12 +15,14 @@ export function ReelsScreen() {
   const [posts, setPosts] = useState<Post[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [showNav, setShowNav] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
   const touchStartY = useRef(0)
   const impressionTracked = useRef<Set<string>>(new Set())
   const hasCountedView = useRef<Map<string, boolean>>(new Map())
   const hasEnded = useRef<Map<string, boolean>>(new Map())
+  const navTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const [commentModalPost, setCommentModalPost] = useState<Post | null>(null)
 
@@ -81,6 +83,12 @@ export function ReelsScreen() {
   const handleVideoEnded = (postId: string) => {
     hasEnded.current.set(postId, true)
     hasCountedView.current.set(postId, false)
+  }
+
+  const handleScreenTap = () => {
+    setShowNav(true)
+    if (navTimeoutRef.current) clearTimeout(navTimeoutRef.current)
+    navTimeoutRef.current = setTimeout(() => setShowNav(false), 2000)
   }
 
   const loadReels = async () => {
@@ -221,7 +229,7 @@ export function ReelsScreen() {
       <style jsx global>{`
         body:has(.reels-fullscreen) nav,
         body:has(.reels-fullscreen) .safe-area-inset-bottom {
-          display: none !important;
+          display: ${showNav ? 'block' : 'none'} !important;
         }
       `}</style>
       <div 
@@ -230,6 +238,7 @@ export function ReelsScreen() {
         onWheel={handleWheel}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        onClick={handleScreenTap}
       >
       <div 
         className="h-full transition-transform duration-300 ease-out"
