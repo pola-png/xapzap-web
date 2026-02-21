@@ -43,6 +43,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [loadingComments, setLoadingComments] = useState(false)
   const [, forceUpdate] = useState(0)
   const [hasEnded, setHasEnded] = useState(false)
+  const [replyTo, setReplyTo] = useState<string | null>(null)
+  const [swipeStartX, setSwipeStartX] = useState(0)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
@@ -94,6 +96,11 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
     return unsubscribe
   }, [post.id])
+
+  // Load comments on mount
+  useEffect(() => {
+    loadComments()
+  }, [])
 
   // Load comments when modal opens
   useEffect(() => {
@@ -459,7 +466,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 {isPlaying ? (
                   <Pause size={36} fill="white" />
                 ) : hasEnded ? (
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                     <path d="M3 3v5h5" />
                   </svg>
@@ -693,7 +700,52 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
         {/* Comments Section - Scrollable */}
         <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-background">
-          <p className="text-muted-foreground text-sm text-center py-8">No comments yet</p>
+          {loadingComments ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            </div>
+          ) : commentsList.length === 0 ? (
+            <p className="text-muted-foreground text-sm text-center py-8">No comments yet</p>
+          ) : (
+            <div className="space-y-4">
+              {commentsList.map((comment) => (
+                <div 
+                  key={comment.$id} 
+                  className="flex gap-3 cursor-pointer"
+                  onTouchStart={(e) => setSwipeStartX(e.touches[0].clientX)}
+                  onTouchEnd={(e) => {
+                    const swipeEndX = e.changedTouches[0].clientX
+                    if (swipeStartX - swipeEndX > 50) {
+                      setReplyTo(comment.$id)
+                      setCommentText(`@${comment.username} `)
+                    }
+                  }}
+                  onClick={() => {
+                    setReplyTo(comment.$id)
+                    setCommentText(`@${comment.username} `)
+                  }}
+                >
+                  {comment.userAvatar ? (
+                    <img src={comment.userAvatar} alt={comment.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-medium">{comment.username[0]?.toUpperCase() || 'U'}</span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="bg-muted rounded-2xl px-3 py-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm">{comment.username}</span>
+                        <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(comment.createdAt || comment.$createdAt))}</span>
+                      </div>
+                      <p className="text-sm">{comment.content}</p>
+                    </div>
+                    <button className="text-xs text-muted-foreground mt-1 ml-3">Reply</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Comment Input - Fixed at Bottom */}
