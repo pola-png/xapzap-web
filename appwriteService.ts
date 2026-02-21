@@ -1000,7 +1000,7 @@ class AppwriteService {
     const username = profile?.displayName || profile?.username || user.name || 'User'
     const avatar = profile?.avatarUrl || ''
 
-    return await this.databases.createDocument(
+    const comment = await this.databases.createDocument(
       this.databaseId,
       this.collections.comments,
       ID.unique(),
@@ -1015,6 +1015,9 @@ class AppwriteService {
         createdAt: new Date().toISOString()
       }
     )
+    
+    await this.incrementPostField(postId, 'comments', 1)
+    return comment
   }
 
   async likeComment(commentId: string) {
