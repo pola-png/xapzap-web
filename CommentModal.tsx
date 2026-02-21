@@ -326,59 +326,7 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                     </div>
                   </div>
                 </div>
-                {comment.repliesExpanded && comment.replyComments && comment.replyComments.map((reply) => (
-                <div key={reply.id} className="flex gap-3 ml-11 mt-3">
-                  <img 
-                    src={reply.userAvatar || ''} 
-                    alt={reply.username} 
-                    className="w-9 h-9 rounded-full object-cover flex-shrink-0 cursor-pointer" 
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      router.push(`/profile/${reply.userId}`)
-                    }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="bg-muted rounded-2xl px-4 py-3">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span 
-                          className="font-semibold text-base cursor-pointer hover:underline"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            router.push(`/profile/${reply.userId}`)
-                          }}
-                        >{reply.username}</span>
-                        <span className="text-sm text-muted-foreground">{formatTimeAgo(reply.timestamp)}</span>
-                      </div>
-                      <p className="text-base leading-relaxed">
-                        {reply.content.startsWith(comment.username) && (
-                          <span className="text-blue-500 font-medium">{comment.username} </span>
-                        )}
-                        {reply.content.replace(new RegExp(`^${comment.username}\\s*`), '')}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3 mt-2 ml-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleLikeComment(reply.id)
-                        }}
-                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-                      >
-                        <Heart size={18} />
-                        <span>Like</span>
-                      </button>
-                      <div className="flex items-center gap-3 ml-auto">
-                        {reply.isLiked && (
-                          <span className="flex items-center gap-1.5 text-sm text-red-500">
-                            <Heart size={18} className="fill-red-500" />
-                            <span>{reply.likes}</span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              ))}
               </div>
             ))}
           </div>
