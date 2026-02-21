@@ -1010,6 +1010,8 @@ class AppwriteService {
         username,
         userAvatar: avatar,
         content,
+        type: 'text',
+        timestamp: new Date().toISOString(),
         likes: 0,
         replies: 0,
         createdAt: new Date().toISOString()
