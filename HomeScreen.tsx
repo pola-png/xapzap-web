@@ -24,7 +24,7 @@ export function HomeScreen() {
     const postId = searchParams.get('post')
     const comments = searchParams.get('comments')
     
-    if (postId && comments === 'true') {
+    if (postId && comments) {
       const post = posts.find(p => p.id === postId)
       if (post) {
         setSelectedPost(post)
@@ -141,6 +141,30 @@ export function HomeScreen() {
   }
 
   if (showComments && selectedPost) {
+    const isFullscreen = searchParams.get('comments') === 'fullscreen'
+    
+    if (isFullscreen) {
+      return (
+        <div className="fixed inset-0 bg-background z-50 flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <button
+              onClick={handleCloseComments}
+              className="p-2 hover:bg-accent rounded-full transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+            </button>
+            <h1 className="text-lg font-semibold">Comments</h1>
+            <div className="w-10" />
+          </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            <p className="text-muted-foreground text-sm text-center py-8">Full screen comments</p>
+          </div>
+        </div>
+      )
+    }
+    
     return (
       <>
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -45,9 +45,9 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
         userId: doc.userId,
         username: doc.username || 'User',
         userAvatar: doc.userAvatar || '',
-        content: doc.content || '',
+        content: doc.text || doc.content || '',
         likes: doc.likes || 0,
-        timestamp: new Date(doc.createdAt || doc.$createdAt),
+        timestamp: new Date(doc.timestamp || doc.createdAt || doc.$createdAt),
         isLiked: false
       }))
       setComments(commentsData)
@@ -76,7 +76,8 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
 
   const handleViewAll = () => {
     onClose()
-    router.push(`/?post=${post.id}&comments=true&fullscreen=true`)
+    // Navigate to full screen comment view
+    router.push(`/?post=${post.id}&comments=fullscreen`)
   }
 
   return (

@@ -59,13 +59,13 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction }:
         userId: doc.userId,
         username: doc.username || 'User',
         userAvatar: doc.userAvatar || '',
-        content: doc.content || '',
+        content: doc.text || doc.content || '',
         voiceUrl: doc.voiceUrl,
         parentCommentId: doc.parentCommentId,
         likes: doc.likes || 0,
         replies: doc.replies || 0,
-        timestamp: new Date(doc.createdAt || doc.$createdAt),
-        isLiked: false // TODO: Check if current user liked this comment
+        timestamp: new Date(doc.timestamp || doc.createdAt || doc.$createdAt),
+        isLiked: false
       }))
       setComments(commentsData)
     } catch (error) {
