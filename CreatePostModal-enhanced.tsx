@@ -83,8 +83,8 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-background rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-background rounded-t-3xl sm:rounded-2xl w-full sm:max-w-lg max-h-[70vh] sm:max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 duration-300">
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold">
             {step === 'select' ? 'Create' : `Create ${uploadTypes.find(t => t.type === uploadType)?.label}`}
