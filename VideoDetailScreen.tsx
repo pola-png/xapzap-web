@@ -419,20 +419,23 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </>
       )}
 
+      {/* Description Modal */}
+      {showDescription && (
+        <div className="fixed inset-x-0 bottom-0 bg-white dark:bg-gray-950 z-[60] flex flex-col" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
+          <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer" onClick={() => setShowDescription(false)}>
+            <div className="w-12 h-1 bg-border rounded-full" />
+          </div>
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            {post.title && <h3 className="text-foreground font-bold text-2xl mb-4 leading-tight">{post.title}</h3>}
+            {post.content && <p className="text-muted-foreground text-base leading-relaxed whitespace-pre-wrap">{post.content}</p>}
+          </div>
+        </div>
+      )}
+
       {/* Bottom Section - Reactions & Comments */}
       <div className="flex-1 bg-background flex flex-col min-h-0 relative">
-        {/* Description Modal */}
-        {showDescription && (
-          <div className="absolute inset-0 bg-white dark:bg-gray-950 z-[60] flex flex-col">
-            <div className="flex-1 overflow-y-auto pt-4 px-6 pb-6">
-              <div className="w-12 h-1.5 bg-border rounded-full mx-auto mb-4 cursor-pointer hover:bg-border/70 transition-colors" onClick={() => setShowDescription(false)} />
-              {post.title && <h3 className="text-foreground font-bold text-2xl mb-4 leading-tight">{post.title}</h3>}
-              {post.content && <p className="text-muted-foreground text-base leading-relaxed whitespace-pre-wrap">{post.content}</p>}
-            </div>
-          </div>
-        )}
         {/* Reactions Bar */}
-        <div className="flex items-center justify-between gap-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-muted/30 flex-wrap">
+        <div className="flex items-center justify-between gap-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-muted flex-wrap">
           <button onClick={handleSave} className={`flex items-center justify-center transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400 hover:text-yellow-500'}`} aria-label="Save">
             <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
           </button>
