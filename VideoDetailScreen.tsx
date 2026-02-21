@@ -38,10 +38,15 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [isBuffering, setIsBuffering] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [commentInputFocused, setCommentInputFocused] = useState(false)
+  const [commentText, setCommentText] = useState('')
+  const [commentsList, setCommentsList] = useState<any[]>([])
+  const [loadingComments, setLoadingComments] = useState(false)
   const [, forceUpdate] = useState(0)
+  const [hasEnded, setHasEnded] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+  const hasCountedView = useRef(false)
 
   // Listen for theme changes
   useEffect(() => {
@@ -90,6 +95,36 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     return unsubscribe
   }, [post.id])
 
+  // Load comments when modal opens
+  useEffect(() => {
+    if (showComments) {
+      loadComments()
+    }
+  }, [showComments])
+
+  const loadComments = async () => {
+    setLoadingComments(true)
+    try {
+      const result = await appwriteService.fetchComments(post.id)
+      setCommentsList(result.documents)
+    } catch (error) {
+      console.error('Failed to load comments:', error)
+    } finally {
+      setLoadingComments(false)
+    }
+  }
+
+  const handleSubmitComment = async () => {
+    if (!commentText.trim()) return
+    try {
+      await appwriteService.createComment(post.id, commentText.trim())
+      setCommentText('')
+      await loadComments()
+    } catch (error) {
+      console.error('Failed to post comment:', error)
+    }
+  }
+
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
@@ -103,15 +138,23 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       setIsPlaying(true)
       setShowControls(false)
       setIsBuffering(false)
-      try {
-        await appwriteService.incrementPostField(post.id, 'views', 1)
-      } catch (error) {
-        console.error('Failed to track view:', error)
+      if (!hasCountedView.current) {
+        hasCountedView.current = true
+        try {
+          await appwriteService.incrementPostField(post.id, 'views', 1)
+        } catch (error) {
+          console.error('Failed to track view:', error)
+        }
       }
     }
     const handlePause = () => setIsPlaying(false)
     const handleWaiting = () => setIsBuffering(true)
     const handleCanPlay = () => setIsBuffering(false)
+    const handleEnded = () => {
+      setHasEnded(true)
+      setIsPlaying(false)
+      hasCountedView.current = false
+    }
 
     video.addEventListener('loadedmetadata', handleLoadedMetadata)
     video.addEventListener('timeupdate', handleTimeUpdate)
@@ -119,6 +162,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     video.addEventListener('pause', handlePause)
     video.addEventListener('waiting', handleWaiting)
     video.addEventListener('canplay', handleCanPlay)
+    video.addEventListener('ended', handleEnded)
 
     // Setup media session for device controls
     if ('mediaSession' in navigator) {
@@ -150,6 +194,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       video.removeEventListener('pause', handlePause)
       video.removeEventListener('waiting', handleWaiting)
       video.removeEventListener('canplay', handleCanPlay)
+      video.removeEventListener('ended', handleEnded)
       if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', null)
         navigator.mediaSession.setActionHandler('pause', null)
@@ -163,6 +208,11 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     const video = videoRef.current
     if (!video) return
 
+    if (hasEnded) {
+      video.currentTime = 0
+      setHasEnded(false)
+    }
+    
     if (isPlaying) {
       video.pause()
     } else {
@@ -404,9 +454,18 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                   togglePlay()
                 }}
                 className="w-16 h-16 sm:w-20 sm:h-20 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/60 transition-all transform hover:scale-110 active:scale-95 shadow-2xl"
-                aria-label={isPlaying ? "Pause video" : "Play video"}
+                aria-label={isPlaying ? "Pause video" : hasEnded ? "Rewatch video" : "Play video"}
               >
-                {isPlaying ? <Pause size={36} fill="white" /> : <Play size={36} fill="white" className="ml-1" />}
+                {isPlaying ? (
+                  <Pause size={36} fill="white" />
+                ) : hasEnded ? (
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                    <path d="M3 3v5h5" />
+                  </svg>
+                ) : (
+                  <Play size={36} fill="white" className="ml-1" />
+                )}
               </button>
               <button
                 onClick={(e) => {
@@ -512,13 +571,17 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 <input
                   type="text"
                   placeholder="Add a comment..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSubmitComment()}
                   className="flex-1 bg-background border border-border rounded-full px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   autoFocus
                 />
                 <button 
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => setCommentInputFocused(false)}
-                  className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md"
+                  onClick={handleSubmitComment}
+                  disabled={!commentText.trim()}
+                  className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md disabled:opacity-50"
                 >
                   Post
                 </button>
@@ -526,7 +589,36 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             </div>
           )}
           <div className="flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 pb-20">
-            <p className="text-muted-foreground text-sm text-center py-8">No comments yet</p>
+            {loadingComments ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              </div>
+            ) : commentsList.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-8">No comments yet</p>
+            ) : (
+              <div className="space-y-4">
+                {commentsList.map((comment) => (
+                  <div key={comment.$id} className="flex gap-3">
+                    {comment.userAvatar ? (
+                      <img src={comment.userAvatar} alt={comment.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-medium">{comment.username[0]?.toUpperCase() || 'U'}</span>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="bg-muted rounded-2xl px-3 py-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-sm">{comment.username}</span>
+                          <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(comment.createdAt || comment.$createdAt))}</span>
+                        </div>
+                        <p className="text-sm">{comment.content}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           {!commentInputFocused && (
             <div className="absolute bottom-0 inset-x-0 p-3 bg-background border-t border-border">
@@ -541,12 +633,17 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 <input
                   type="text"
                   placeholder="Add a comment..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSubmitComment()}
                   className="flex-1 bg-background border border-border rounded-full px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   onFocus={() => setCommentInputFocused(true)}
                 />
                 <button 
                   onMouseDown={(e) => e.preventDefault()}
-                  className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md">
+                  onClick={handleSubmitComment}
+                  disabled={!commentText.trim()}
+                  className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md disabled:opacity-50">
                   Post
                 </button>
               </div>
