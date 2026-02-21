@@ -1040,7 +1040,8 @@ class AppwriteService {
       {
         commentId,
         userId: user.$id,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        isActive: true
       }
     )
     await this.incrementCommentField(commentId, 'likes', 1)
