@@ -119,6 +119,24 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     video.addEventListener('waiting', handleWaiting)
     video.addEventListener('canplay', handleCanPlay)
 
+    // Setup media session for device controls
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: post.title || 'Video',
+        artist: post.displayName || 'User',
+        artwork: post.thumbnailUrl ? [{ src: post.thumbnailUrl }] : []
+      })
+
+      navigator.mediaSession.setActionHandler('play', () => video.play())
+      navigator.mediaSession.setActionHandler('pause', () => video.pause())
+      navigator.mediaSession.setActionHandler('seekbackward', () => {
+        video.currentTime = Math.max(0, video.currentTime - 10)
+      })
+      navigator.mediaSession.setActionHandler('seekforward', () => {
+        video.currentTime = Math.min(video.duration, video.currentTime + 10)
+      })
+    }
+
     // Auto-play when component mounts
     video.play().catch(() => {
       // Handle autoplay failure silently
@@ -131,6 +149,12 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       video.removeEventListener('pause', handlePause)
       video.removeEventListener('waiting', handleWaiting)
       video.removeEventListener('canplay', handleCanPlay)
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', null)
+        navigator.mediaSession.setActionHandler('pause', null)
+        navigator.mediaSession.setActionHandler('seekbackward', null)
+        navigator.mediaSession.setActionHandler('seekforward', null)
+      }
     }
   }, [])
 

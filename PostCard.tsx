@@ -224,6 +224,24 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
     }
   }
 
+  const handleShare = async () => {
+    try {
+      const postUrl = post.postType === 'reel' 
+        ? `${window.location.origin}/reels/${generateSlug(post.title || post.content?.substring(0, 30) || 'reel', post.id)}`
+        : `${window.location.origin}/watch/${generateSlug(post.title || 'video', post.id)}`
+      
+      if (navigator.share) {
+        await navigator.share({
+          title: post.title || post.content || 'Check this out',
+          text: post.content || '',
+          url: postUrl
+        })
+      }
+    } catch (error) {
+      console.error('Failed to share:', error)
+    }
+  }
+
   // Render media content
   const renderMedia = () => {
     if (!post.mediaUrls || post.mediaUrls.length === 0) return null
@@ -443,7 +461,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
             <button onClick={handleSave} className={`flex items-center justify-center hover:text-yellow-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400 ${saved ? 'text-yellow-500' : ''}`} aria-label={`Save post - ${saved ? 'saved' : 'not saved'}`}>
               <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
             </button>
-            <button className={`flex items-center justify-center hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label="Share post">
+            <button onClick={handleShare} className={`flex items-center justify-center hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label="Share post">
               <Share size={20} />
             </button>
             <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 rounded-lg ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label={`Repost - ${reposts || 0} reposts`}>

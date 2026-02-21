@@ -14,7 +14,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     
     const title = `${post.caption || post.title || 'Video'} by ${profile?.displayName || 'User'}`
     const description = post.content || post.caption || `Watch ${profile?.displayName || 'User'}'s video on XapZap. ${post.views || 0} views, ${post.likes || 0} likes.`
-    const thumbnail = post.thumbnailUrl || '/og-image.jpg'
+    const thumbnailUrl = post.thumbnailUrl?.startsWith('http') 
+      ? post.thumbnailUrl 
+      : post.thumbnailUrl?.startsWith('/media/') 
+      ? `${process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'}/api/image-proxy?path=${post.thumbnailUrl.substring(1)}`
+      : `${process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'}/og-image.jpg`
     const url = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'}/watch/${params.id}`
 
     return {
@@ -29,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         siteName: 'XapZap',
         images: [
           {
-            url: thumbnail,
+            url: thumbnailUrl,
             width: 1200,
             height: 630,
             alt: title,
@@ -49,7 +53,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         card: 'player',
         title,
         description,
-        images: [thumbnail],
+        images: [thumbnailUrl],
         players: {
           playerUrl: url,
           streamUrl: post.mediaUrl || (post.mediaUrls && post.mediaUrls[0]) || '',
