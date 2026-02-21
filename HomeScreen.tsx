@@ -36,12 +36,9 @@ export function HomeScreen() {
   useEffect(() => {
     // Check cache first
     const cached = feedCache.get('home')
-    if (cached) {
+    if (cached && cached.length > 0) {
       setPosts(cached)
       setHasLoaded(true)
-      
-      // Load fresh data in background
-      loadPosts()
       return
     }
 
@@ -70,13 +67,14 @@ export function HomeScreen() {
 
   const loadPosts = async () => {
     setLoading(true)
+    setPosts([])
     try {
       const user = await appwriteService.getCurrentUser()
       if (user) {
         setCurrentUserId(user.$id)
         const result = await appwriteService.fetchForYouFeed(user.$id)
         
-        // Show posts one by one
+        const allPosts: Post[] = []
         for (let i = 0; i < result.documents.length; i++) {
           const d: any = result.documents[i]
           const profile = await appwriteService.getProfileByUserId(d.userId)
@@ -97,14 +95,13 @@ export function HomeScreen() {
             isReposted
           }
           
-          setPosts(prev => {
-            const updated = [...prev, enrichedPost]
-            feedCache.set('home', updated)
-            return updated
-          })
+          allPosts.push(enrichedPost)
+          setPosts([...allPosts])
         }
+        feedCache.set('home', allPosts)
       } else {
         const result = await appwriteService.fetchPosts()
+        const allPosts: Post[] = []
         for (let i = 0; i < result.documents.length; i++) {
           const d: any = result.documents[i]
           const profile = await appwriteService.getProfileByUserId(d.userId)
@@ -115,12 +112,10 @@ export function HomeScreen() {
             displayName: profile?.displayName,
             avatarUrl: profile?.avatarUrl
           }
-          setPosts(prev => {
-            const updated = [...prev, enrichedPost]
-            feedCache.set('home', updated)
-            return updated
-          })
+          allPosts.push(enrichedPost)
+          setPosts([...allPosts])
         }
+        feedCache.set('home', allPosts)
       }
       setHasLoaded(true)
     } catch (error) {
