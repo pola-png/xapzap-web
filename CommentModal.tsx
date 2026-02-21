@@ -45,7 +45,7 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
         userId: doc.userId,
         username: doc.username || 'User',
         userAvatar: doc.userAvatar || '',
-        content: doc.text || doc.content || '',
+        content: doc.content || '',
         likes: doc.likes || 0,
         timestamp: new Date(doc.timestamp || doc.createdAt || doc.$createdAt),
         isLiked: false

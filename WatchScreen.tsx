@@ -134,6 +134,25 @@ export function WatchScreen() {
           <div className="flex-1 overflow-y-auto p-4">
             <p className="text-muted-foreground text-sm text-center py-8">Full screen comments</p>
           </div>
+          <div className="border-t border-border p-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {selectedPost.avatarUrl ? (
+                <img src={selectedPost.avatarUrl} alt={selectedPost.displayName} className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
+                  {(selectedPost.displayName || 'U')[0].toUpperCase()}
+                </div>
+              )}
+              <input
+                type="text"
+                placeholder="Add a comment..."
+                className="flex-1 bg-background border border-border rounded-full px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+              />
+              <button className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md">
+                Post
+              </button>
+            </div>
+          </div>
         </div>
       )
     }

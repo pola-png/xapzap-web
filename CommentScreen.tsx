@@ -59,7 +59,7 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction }:
         userId: doc.userId,
         username: doc.username || 'User',
         userAvatar: doc.userAvatar || '',
-        content: doc.text || doc.content || '',
+        content: doc.content || '',
         voiceUrl: doc.voiceUrl,
         parentCommentId: doc.parentCommentId,
         likes: doc.likes || 0,
