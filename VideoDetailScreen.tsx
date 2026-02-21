@@ -98,10 +98,15 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       setIsLoading(false)
     }
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
-    const handlePlay = () => {
+    const handlePlay = async () => {
       setIsPlaying(true)
       setShowControls(false)
       setIsBuffering(false)
+      try {
+        await appwriteService.incrementPostField(post.id, 'views', 1)
+      } catch (error) {
+        console.error('Failed to track view:', error)
+      }
     }
     const handlePause = () => setIsPlaying(false)
     const handleWaiting = () => setIsBuffering(true)
@@ -114,19 +119,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     video.addEventListener('waiting', handleWaiting)
     video.addEventListener('canplay', handleCanPlay)
 
-    // Track view when video starts playing
-    const trackView = async () => {
-      try {
-        await appwriteService.incrementPostField(post.id, 'views', 1)
-      } catch (error) {
-        console.error('Failed to track view:', error)
-      }
-    }
-
     // Auto-play when component mounts
-    video.play().then(() => {
-      trackView()
-    }).catch(() => {
+    video.play().catch(() => {
       // Handle autoplay failure silently
     })
 
@@ -254,6 +248,35 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     } catch (error) {
       console.error('Failed to toggle follow:', error)
       setIsFollowing(wasFollowing)
+    }
+  }
+
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        const shareData: any = {
+          title: post.title || 'Check out this video',
+          text: post.content || '',
+          url: window.location.href
+        }
+        
+        if (post.thumbnailUrl && navigator.canShare) {
+          try {
+            const response = await fetch(post.thumbnailUrl.startsWith('/media/') ? `/api/image-proxy?path=${post.thumbnailUrl.substring(1)}` : post.thumbnailUrl)
+            const blob = await response.blob()
+            const file = new File([blob], 'thumbnail.jpg', { type: blob.type })
+            shareData.files = [file]
+            if (navigator.canShare(shareData)) {
+              await navigator.share(shareData)
+              return
+            }
+          } catch {}
+        }
+        
+        await navigator.share(shareData)
+      }
+    } catch (error) {
+      console.error('Failed to share:', error)
     }
   }
 
@@ -511,14 +534,14 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <button onClick={handleSave} className={`flex items-center justify-center transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400 hover:text-yellow-500'}`} aria-label="Save">
             <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
           </button>
-          <button className="flex items-center justify-center hover:text-blue-500 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label="Share">
+          <button onClick={handleShare} className="flex items-center justify-center hover:text-blue-500 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label="Share">
             <Share size={20} />
           </button>
           <button onClick={handleRepost} className={`flex items-center gap-1.5 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400 hover:text-green-500'}`} aria-label={`Reposts - ${reposts || 0} reposts`}>
-            <Repeat2 size={20} className={reposted ? 'fill-green-500' : ''} />
+            <Repeat2 size={20} />
             <span className="text-xs sm:text-sm font-medium">{reposts || 0}</span>
           </button>
-          <button className="flex items-center gap-1.5 hover:text-blue-500 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label={`Comments - ${comments || 0} comments`}>
+          <button onClick={() => setShowComments(true)} className="flex items-center gap-1.5 hover:text-blue-500 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label={`Comments - ${comments || 0} comments`}>
             <MessageCircle size={20} />
             <span className="text-xs sm:text-sm font-medium">{comments || 0}</span>
           </button>
@@ -562,7 +585,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
               type="text"
               placeholder="Add a comment..."
               className="flex-1 bg-background border border-border rounded-full px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-              onFocus={() => setShowComments(true)}
+              onFocus={() => {
+                setShowComments(true)
+                setCommentInputFocused(true)
+              }}
             />
             <button className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md">
               Post
