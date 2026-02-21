@@ -152,21 +152,21 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
           <h1 className="text-xl font-bold text-[rgb(var(--text-primary))]">XapZap</h1>
           
           <div className="flex items-center gap-8">
-            <button onClick={() => handleTabChange(0)} className={cn("p-2 rounded-lg transition-all duration-[10ms]", currentTab === 0 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Home">
+            <button onClick={() => handleTabChange(0)} className={cn("p-2 rounded-lg transition-all duration-[1ms]", currentTab === 0 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Home">
               <Home size={24} />
             </button>
-            <button onClick={() => handleTabChange(1)} className={cn("p-2 rounded-lg transition-all duration-[10ms] relative", currentTab === 1 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Chat">
+            <button onClick={() => handleTabChange(1)} className={cn("p-2 rounded-lg transition-all duration-[1ms] relative", currentTab === 1 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Chat">
               <MessageCircle size={24} />
               {unreadChats > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadChats}</span>}
             </button>
-            <button onClick={handleCreateClick} className="p-2 rounded-lg transition-all duration-[10ms] text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]" aria-label="Create">
+            <button onClick={handleCreateClick} className="p-2 rounded-lg transition-all duration-[1ms] text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]" aria-label="Create">
               <PlusSquare size={24} />
             </button>
-            <button onClick={() => handleTabChange(3)} className={cn("p-2 rounded-lg transition-all duration-[10ms] relative", currentTab === 3 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Notifications">
+            <button onClick={() => handleTabChange(3)} className={cn("p-2 rounded-lg transition-all duration-[1ms] relative", currentTab === 3 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Notifications">
               <Bell size={24} />
               {unreadNotifications > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadNotifications}</span>}
             </button>
-            <button onClick={() => handleTabChange(4)} className={cn("p-2 rounded-lg transition-all duration-[10ms]", currentTab === 4 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Profile">
+            <button onClick={() => handleTabChange(4)} className={cn("p-2 rounded-lg transition-all duration-[1ms]", currentTab === 4 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Profile">
               <User size={24} />
             </button>
           </div>
@@ -198,7 +198,7 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
                     key={item.index}
                     onClick={() => handleTabChange(item.index)}
                     className={cn(
-                      "w-full flex items-center gap-3 px-6 py-3 transition-all duration-[10ms]",
+                      "w-full flex items-center gap-3 px-6 py-3 transition-all duration-[1ms]",
                       isActive ? "text-[#1DA1F2] bg-[#1DA1F2]/10" : "text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-secondary))]"
                     )}
                   >
@@ -238,7 +238,7 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
                     key={item.index}
                     onClick={() => handleTabChange(item.index)}
                     className={cn(
-                      "px-3 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-all duration-[10ms] flex-shrink-0",
+                      "px-3 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-all duration-[1ms] flex-shrink-0",
                       currentTab === item.index
                         ? "border-[#1DA1F2] text-[#1DA1F2]"
                         : "border-transparent text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--text-primary))]/50 hover:text-[rgb(var(--text-primary))]"
