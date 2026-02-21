@@ -77,7 +77,7 @@ export function HomeScreen() {
         
         // Show posts one by one
         for (let i = 0; i < result.documents.length; i++) {
-          const d = result.documents[i]
+          const d: any = result.documents[i]
           const profile = await appwriteService.getProfileByUserId(d.userId)
           const [isLiked, isSaved, isReposted] = await Promise.all([
             appwriteService.isPostLikedBy(user.$id, d.$id),
@@ -105,7 +105,7 @@ export function HomeScreen() {
       } else {
         const result = await appwriteService.fetchPosts()
         for (let i = 0; i < result.documents.length; i++) {
-          const d = result.documents[i]
+          const d: any = result.documents[i]
           const profile = await appwriteService.getProfileByUserId(d.userId)
           const enrichedPost = {
             ...d,

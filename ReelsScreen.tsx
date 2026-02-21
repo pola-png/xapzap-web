@@ -8,6 +8,8 @@ import { Heart, MessageCircle, Share2, Bookmark, MoreVertical, Repeat2 } from 'l
 import { OptimizedImage } from './components/OptimizedImage'
 import { useRouter } from 'next/navigation'
 import { generateSlug } from './lib/slug'
+import { CommentModal } from './CommentModal'
+import { formatTimeAgo } from './utils'
 
 export function ReelsScreen() {
   const [posts, setPosts] = useState<Post[]>([])
@@ -17,8 +19,10 @@ export function ReelsScreen() {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
   const touchStartY = useRef(0)
   const impressionTracked = useRef<Set<string>>(new Set())
-  const viewTracked = useRef<Set<string>>(new Set())
+  const hasCountedView = useRef<Map<string, boolean>>(new Map())
+  const hasEnded = useRef<Map<string, boolean>>(new Map())
   const router = useRouter()
+  const [commentModalPost, setCommentModalPost] = useState<Post | null>(null)
 
   useEffect(() => {
     const cached = feedCache.get('reels')
@@ -58,9 +62,6 @@ export function ReelsScreen() {
             setTimeout(() => {
               appwriteService.incrementPostField(post.id, 'impressions', 1)
               impressionTracked.current.add(post.id)
-              setPosts(prev => prev.map(p => 
-                p.id === post.id ? { ...p, impressions: (p.impressions || 0) + 1 } : p
-              ))
             }, 1000)
           }
         } else {
@@ -70,47 +71,48 @@ export function ReelsScreen() {
     })
   }, [currentIndex, posts])
 
-  const handleVideoPlay = (postId: string) => {
-    if (!viewTracked.current.has(postId)) {
-      appwriteService.incrementPostField(postId, 'views', 1)
-      viewTracked.current.add(postId)
-      setPosts(prev => prev.map(p => 
-        p.id === postId ? { ...p, views: (p.views || 0) + 1 } : p
-      ))
+  const handleVideoPlay = async (postId: string) => {
+    if (!hasCountedView.current.get(postId)) {
+      hasCountedView.current.set(postId, true)
+      await appwriteService.incrementPostField(postId, 'views', 1)
     }
+  }
+
+  const handleVideoEnded = (postId: string) => {
+    hasEnded.current.set(postId, true)
+    hasCountedView.current.set(postId, false)
   }
 
   const loadReels = async () => {
     const isInitialLoad = posts.length === 0
     if (isInitialLoad) setLoading(true)
     try {
-      const result = await appwriteService.fetchReelsFeed()
+      const result = await appwriteService.fetchReelsFeed(20)
       const user = await appwriteService.getCurrentUser()
       
-      const enrichedPosts = await Promise.all(
-        result.documents.map(async (d: any) => {
-          const profile = await appwriteService.getProfileByUserId(d.userId)
-          const interactions = user ? await Promise.all([
-            appwriteService.isPostLikedBy(user.$id, d.$id),
-            appwriteService.isPostSavedBy(user.$id, d.$id),
-            appwriteService.isPostRepostedBy(user.$id, d.$id)
-          ]) : [false, false, false]
-          
-          return {
-            ...d,
-            id: d.$id,
-            timestamp: new Date(d.$createdAt || d.createdAt),
-            displayName: profile?.displayName || 'User',
-            avatarUrl: profile?.avatarUrl || '',
-            isLiked: interactions[0],
-            isSaved: interactions[1],
-            isReposted: interactions[2]
-          }
-        })
-      )
+      for (const d of result.documents) {
+        const profile = await appwriteService.getProfileByUserId(d.userId)
+        const interactions = user ? await Promise.all([
+          appwriteService.isPostLikedBy(user.$id, d.$id),
+          appwriteService.isPostSavedBy(user.$id, d.$id),
+          appwriteService.isPostRepostedBy(user.$id, d.$id)
+        ]) : [false, false, false]
+        
+        const enrichedPost = {
+          ...d,
+          id: d.$id,
+          timestamp: new Date(d.$createdAt || d.createdAt),
+          displayName: profile?.displayName || 'User',
+          avatarUrl: profile?.avatarUrl || '',
+          isLiked: interactions[0],
+          isSaved: interactions[1],
+          isReposted: interactions[2]
+        }
+        
+        setPosts(prev => [...prev, enrichedPost as Post])
+      }
       
-      setPosts(enrichedPosts as Post[])
-      feedCache.set('reels', enrichedPosts as Post[])
+      feedCache.set('reels', result.documents)
     } catch (error) {
       console.error('Failed to load reels:', error)
     } finally {
@@ -171,7 +173,7 @@ export function ReelsScreen() {
           p.id === postId ? { ...p, isSaved: !p.isSaved } : p
         ))
       } else if (action === 'comment') {
-        router.push(`/reels/${generateSlug(post.content || 'reel', postId)}`)
+        setCommentModalPost(post)
       } else if (action === 'repost') {
         await appwriteService.repostPost(postId)
         setPosts(prev => prev.map(p => 
@@ -235,6 +237,7 @@ export function ReelsScreen() {
               playsInline
               muted={false}
               onPlay={() => handleVideoPlay(post.id)}
+              onEnded={() => handleVideoEnded(post.id)}
               onClick={(e) => {
                 const video = e.currentTarget
                 if (video.paused) {
@@ -371,6 +374,12 @@ export function ReelsScreen() {
           </div>
         ))}
       </div>
+      {commentModalPost && (
+        <CommentModal
+          post={commentModalPost}
+          onClose={() => setCommentModalPost(null)}
+        />
+      )}
     </div>
   )
 }
