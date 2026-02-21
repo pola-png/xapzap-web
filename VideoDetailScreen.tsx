@@ -34,6 +34,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isBuffering, setIsBuffering] = useState(false)
+  const [showComments, setShowComments] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
@@ -420,7 +421,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       )}
 
       {/* Description Modal */}
-      {showDescription && (
+      {showDescription && !showComments && (
         <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
           <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer" onClick={() => setShowDescription(false)}>
             <div className="w-12 h-1 bg-border rounded-full" />
@@ -428,6 +429,38 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <div className="flex-1 overflow-y-auto px-6 py-4">
             {post.title && <h3 className="text-foreground font-bold text-2xl mb-4 leading-tight">{post.title}</h3>}
             {post.content && <p className="text-muted-foreground text-base leading-relaxed whitespace-pre-wrap">{post.content}</p>}
+          </div>
+        </div>
+      )}
+
+      {/* Comments Modal */}
+      {showComments && (
+        <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
+          <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer" onClick={() => setShowComments(false)}>
+            <div className="w-12 h-1 bg-border rounded-full" />
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+            <p className="text-muted-foreground text-sm text-center py-8">No comments yet</p>
+          </div>
+          <div className="p-3 bg-muted/30 border-t border-border/30">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {post.userAvatar ? (
+                <img src={post.userAvatar} alt={post.displayName} className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
+                  {(post.displayName || 'U')[0].toUpperCase()}
+                </div>
+              )}
+              <input
+                type="text"
+                placeholder="Add a comment..."
+                className="flex-1 bg-background border border-border rounded-full px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                autoFocus
+              />
+              <button className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md">
+                Post
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -490,6 +523,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
               type="text"
               placeholder="Add a comment..."
               className="flex-1 bg-background border border-border rounded-full px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+              onFocus={() => setShowComments(true)}
             />
             <button className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md">
               Post
