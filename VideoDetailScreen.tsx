@@ -385,7 +385,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       <div className="bg-background px-3 sm:px-4 pb-1 pt-2">
         {/* Title with Username and View Count */}
         {post.title && (
-          <div className="space-y-1">
+          <div>
             <div className="flex items-baseline gap-1">
               <p className="text-foreground font-bold text-lg sm:text-xl truncate flex-1">
                 {post.title.length > 35 ? post.title.substring(0, 35) : post.title}
@@ -396,9 +396,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             </div>
             <div className="flex items-center gap-2 text-xs">
               {post.username && (
-                <p className="text-muted-foreground/40">@{post.username}</p>
+                <p className="text-muted-foreground/30">@{post.username}</p>
               )}
-              <span className="flex items-center gap-1 text-muted-foreground/40">
+              <span className="flex items-center gap-1 text-muted-foreground/30">
                 <Eye size={14} />
                 {views || 0}
               </span>
@@ -421,7 +421,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Description Modal */}
       {showDescription && (
-        <div className="fixed inset-x-0 bottom-0 bg-white dark:bg-gray-950 z-[60] flex flex-col" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
+        <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
           <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer" onClick={() => setShowDescription(false)}>
             <div className="w-12 h-1 bg-border rounded-full" />
           </div>
@@ -435,7 +435,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       {/* Bottom Section - Reactions & Comments */}
       <div className="flex-1 bg-background flex flex-col min-h-0 relative">
         {/* Reactions Bar */}
-        <div className="flex items-center justify-between gap-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-muted flex-wrap">
+        <div className="flex items-center justify-between gap-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-primary/10 flex-wrap">
           <button onClick={handleSave} className={`flex items-center justify-center transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400 hover:text-yellow-500'}`} aria-label="Save">
             <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
           </button>
