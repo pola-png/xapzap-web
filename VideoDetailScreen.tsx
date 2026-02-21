@@ -740,7 +740,13 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                       </div>
                       <p className="text-sm">{comment.content}</p>
                     </div>
-                    <button className="text-xs text-muted-foreground mt-1 ml-3">Reply</button>
+                    <div className="flex items-center gap-3 mt-1 ml-3">
+                      <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                        <Heart size={12} />
+                        <span>Like</span>
+                      </button>
+                      <button className="text-xs text-muted-foreground hover:text-foreground">Reply</button>
+                    </div>
                   </div>
                 </div>
               ))}

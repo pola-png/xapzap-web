@@ -72,27 +72,27 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
           <h1 className="text-xl font-bold text-[rgb(var(--text-primary))]">XapZap</h1>
           
           <div className="flex items-center gap-8">
-            <button onClick={() => router.push('/')} className={cn("p-2 rounded-lg transition-all duration-[1ms]", pathname === '/' ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Home">
+            <button onClick={() => router.push('/')} className={cn("p-2 rounded-lg", pathname === '/' ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Home">
               <Home size={24} />
             </button>
-            <button onClick={() => handleNavClick('/chat')} className={cn("p-2 rounded-lg transition-all duration-[1ms] relative", pathname === '/chat' ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Chat">
+            <button onClick={() => handleNavClick('/chat')} className={cn("p-2 rounded-lg relative", pathname === '/chat' ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Chat">
               <MessageCircle size={24} />
               {unreadChats > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadChats}</span>}
             </button>
-            <button onClick={handleCreateClick} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2] transition-all duration-[1ms]" aria-label="Create">
+            <button onClick={handleCreateClick} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]" aria-label="Create">
               <PlusSquare size={24} />
             </button>
-            <button onClick={() => handleNavClick('/notifications')} className={cn("p-2 rounded-lg transition-all duration-[1ms] relative", pathname === '/notifications' ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Notifications">
+            <button onClick={() => handleNavClick('/notifications')} className={cn("p-2 rounded-lg relative", pathname === '/notifications' ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Notifications">
               <Bell size={24} />
               {unreadNotifications > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadNotifications}</span>}
             </button>
-            <button onClick={() => handleNavClick('/profile')} className={cn("p-2 rounded-lg transition-all duration-[1ms]", pathname.startsWith('/profile') ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Profile">
+            <button onClick={() => handleNavClick('/profile')} className={cn("p-2 rounded-lg", pathname.startsWith('/profile') ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Profile">
               <User size={24} />
             </button>
           </div>
 
           <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/search')} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2] transition-all duration-[1ms]" aria-label="Search">
+            <button onClick={() => router.push('/search')} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]" aria-label="Search">
               <Search size={24} />
             </button>
             {userAvatar ? (
@@ -118,7 +118,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
                     key={item.path}
                     onClick={() => router.push(item.path)}
                     className={cn(
-                      "w-full flex items-center gap-3 px-6 py-3 transition-all duration-[1ms]",
+                      "w-full flex items-center gap-3 px-6 py-3",
                       isActive ? "text-[#1DA1F2] bg-[#1DA1F2]/10" : "text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-secondary))]"
                     )}
                   >
@@ -158,7 +158,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
                     key={item.path}
                     onClick={() => router.push(item.path)}
                     className={cn(
-                      "px-3 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-all duration-[1ms] flex-shrink-0",
+                      "px-3 py-4 text-sm font-semibold whitespace-nowrap border-b-2 flex-shrink-0",
                       pathname === item.path
                         ? "border-[#1DA1F2] text-[#1DA1F2]"
                         : "border-transparent text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--text-primary))]/50 hover:text-[rgb(var(--text-primary))]"
@@ -188,7 +188,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
                   key={item.path}
                   onClick={item.onClick || (() => handleNavClick(item.path))}
                   className={cn(
-                    "p-3 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-lg transition-all duration-[1ms] relative",
+                    "p-3 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-lg relative",
                     pathname === item.path ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-secondary))]"
                   )}
                   aria-label={item.label}

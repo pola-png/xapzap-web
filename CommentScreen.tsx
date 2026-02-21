@@ -34,6 +34,7 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction }:
   const [newComment, setNewComment] = useState('')
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [swipeStartX, setSwipeStartX] = useState(0)
 
   useEffect(() => {
     loadComments()
@@ -122,7 +123,21 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction }:
   const getReplies = (commentId: string) => comments.filter(c => c.parentCommentId === commentId)
 
   const CommentItem = ({ comment, isReply = false }: { comment: Comment; isReply?: boolean }) => (
-    <div className={cn("flex space-x-3 py-3", isReply && "ml-12")}>
+    <div 
+      className={cn("flex space-x-3 py-3 cursor-pointer", isReply && "ml-12")}
+      onTouchStart={(e) => setSwipeStartX(e.touches[0].clientX)}
+      onTouchEnd={(e) => {
+        const swipeEndX = e.changedTouches[0].clientX
+        if (swipeStartX - swipeEndX > 50) {
+          setReplyTo(comment.id)
+          setNewComment(`@${comment.username} `)
+        }
+      }}
+      onClick={() => {
+        setReplyTo(comment.id)
+        setNewComment(`@${comment.username} `)
+      }}
+    >
       <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
         {comment.userAvatar ? (
           <img

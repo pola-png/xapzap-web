@@ -31,6 +31,8 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [comments, setComments] = useState<Comment[]>([])
   const [loading, setLoading] = useState(true)
+  const [replyTo, setReplyTo] = useState<string | null>(null)
+  const [swipeStartX, setSwipeStartX] = useState(0)
 
   useEffect(() => {
     loadComments()
@@ -131,7 +133,24 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
         ) : (
           <div className="space-y-4">
             {comments.map((comment) => (
-              <div key={comment.id} className="flex gap-3">
+              <div 
+                key={comment.id} 
+                className="flex gap-3 cursor-pointer"
+                onTouchStart={(e) => setSwipeStartX(e.touches[0].clientX)}
+                onTouchEnd={(e) => {
+                  const swipeEndX = e.changedTouches[0].clientX
+                  if (swipeStartX - swipeEndX > 50) {
+                    setReplyTo(comment.id)
+                    setCommentText(`@${comment.username} `)
+                    setCommentInputFocused(true)
+                  }
+                }}
+                onClick={() => {
+                  setReplyTo(comment.id)
+                  setCommentText(`@${comment.username} `)
+                  setCommentInputFocused(true)
+                }}
+              >
                 {comment.userAvatar ? (
                   <img src={comment.userAvatar} alt={comment.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                 ) : (
@@ -152,6 +171,17 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                       <Heart size={12} />
                       {comment.likes > 0 && <span>{comment.likes}</span>}
                       <span>Like</span>
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setReplyTo(comment.id)
+                        setCommentText(`@${comment.username} `)
+                        setCommentInputFocused(true)
+                      }}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Reply
                     </button>
                   </div>
                 </div>
