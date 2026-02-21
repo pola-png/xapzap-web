@@ -76,11 +76,17 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              if (localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark')
-              } else {
-                document.documentElement.classList.remove('dark')
-              }
+              (function() {
+                function updateTheme() {
+                  if (localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark')
+                  } else {
+                    document.documentElement.classList.remove('dark')
+                  }
+                }
+                updateTheme()
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateTheme)
+              })()
             `,
           }}
         />
