@@ -423,9 +423,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <div>
             <div className="flex items-baseline gap-1">
               <p className="text-foreground font-bold text-lg sm:text-xl truncate flex-1">
-                {post.title.length > 35 ? post.title.substring(0, 35) : post.title}
+                {post.title.length > 39 ? post.title.substring(0, 39) : post.title}
               </p>
-              {post.title.length > 35 && (
+              {post.title.length > 39 && (
                 <button onClick={() => setShowDescription(true)} className="text-primary text-xs whitespace-nowrap flex-shrink-0 hover:underline transition-all">...more</button>
               )}
             </div>
