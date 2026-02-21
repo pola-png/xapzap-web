@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { ArrowLeft, Heart, Reply, Mic, Send, MoreHorizontal } from 'lucide-react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
-import { cn } from './utils'
+import { cn, formatTimeAgo } from './utils'
 
 interface Comment {
   id: string
@@ -120,19 +120,6 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction }:
 
   const rootComments = comments.filter(c => !c.parentCommentId)
   const getReplies = (commentId: string) => comments.filter(c => c.parentCommentId === commentId)
-
-  const formatTimeAgo = (date: Date) => {
-    const now = new Date()
-    const diff = now.getTime() - date.getTime()
-    const minutes = Math.floor(diff / 60000)
-    const hours = Math.floor(diff / 3600000)
-    const days = Math.floor(diff / 86400000)
-
-    if (minutes < 1) return 'Just now'
-    if (minutes < 60) return `${minutes}m`
-    if (hours < 24) return `${hours}h`
-    return `${days}d`
-  }
 
   const CommentItem = ({ comment, isReply = false }: { comment: Comment; isReply?: boolean }) => (
     <div className={cn("flex space-x-3 py-3", isReply && "ml-12")}>

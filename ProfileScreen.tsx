@@ -5,7 +5,7 @@ import { BarChart3, DollarSign, Settings, MapPin, Calendar, Link as LinkIcon, Mo
 import { PostCard } from './PostCard'
 import { Post } from './types'
 import appwriteService from './appwriteService'
-import { cn } from './utils'
+import { cn, formatTimeAgo } from './utils'
 
 interface Profile {
   userId: string

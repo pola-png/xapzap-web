@@ -10,6 +10,7 @@ import { normalizeWasabiImageArray, normalizeWasabiImage } from './lib/wasabi'
 import { feedCache } from './lib/cache'
 import { generateSlug } from './lib/slug'
 import { parseHashtags } from './lib/hashtag'
+import { formatTimeAgo } from './utils'
 
 interface PostCardProps {
   post: Post
@@ -393,7 +394,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
             >
               {userProfile?.displayName || 'User'}
             </button>
-            <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">{new Date(post.createdAt).toLocaleDateString()}</span>
+            <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">{formatTimeAgo(post.createdAt)}</span>
           </div>
         </div>
         <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white p-1" aria-label="More options">

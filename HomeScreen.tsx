@@ -4,8 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { StoryBar } from "./StoryBar"
 import { PostCard } from "./PostCard"
-import { VideoDetailScreen } from "./VideoDetailScreen"
-import { CommentScreen } from "./CommentScreen"
+import { CommentModal } from "./CommentModal"
 import { Post } from "./types"
 import appwriteService from "./appwriteService"
 import { feedCache } from "./lib/cache"
@@ -143,10 +142,23 @@ export function HomeScreen() {
 
   if (showComments && selectedPost) {
     return (
-      <CommentScreen
-        post={selectedPost}
-        onClose={handleCloseComments}
-      />
+      <>
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <StoryBar />
+          <div className="space-y-4 pb-20 sm:pb-24">
+            {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                currentUserId={currentUserId}
+                feedType="home"
+                onCommentClick={() => handleCommentClick(post)}
+              />
+            ))}
+          </div>
+        </div>
+        <CommentModal post={selectedPost} onClose={handleCloseComments} />
+      </>
     )
   }
 
