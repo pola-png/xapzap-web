@@ -8,6 +8,7 @@ const nextConfig = {
       bodySizeLimit: '100mb'
     }
   },
+  reactStrictMode: false,
   async headers() {
     return [
       {
@@ -15,7 +16,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate',
+            value: 'no-store, must-revalidate',
           },
         ],
       },
