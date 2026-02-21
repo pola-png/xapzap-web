@@ -217,7 +217,7 @@ export function ReelsScreen() {
   }
 
   return (
-    <>
+    <div>
       <style jsx global>{`
         body:has(.reels-fullscreen) nav,
         body:has(.reels-fullscreen) .safe-area-inset-bottom {
@@ -388,6 +388,6 @@ export function ReelsScreen() {
           onClose={() => setCommentModalPost(null)}
         />
       )}
-    </>
+    </div>
   )
 }

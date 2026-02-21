@@ -229,11 +229,8 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
         ) : (
           <div className="space-y-4">
             {comments.map((comment) => (
-              <>
-                <div 
-                  key={comment.id} 
-                  className="flex gap-3"
-                >
+              <div key={comment.id}>
+                <div className="flex gap-3">
                 <img 
                   src={comment.userAvatar || ''} 
                   alt={comment.username} 
@@ -377,7 +374,7 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                   </div>
                 </div>
               ))}
-              </>
+              </div>
             ))}
           </div>
         )}
