@@ -450,7 +450,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           </div>
         )}
         {/* Reactions Bar */}
-        <div className="flex items-center justify-between gap-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-primary/10 flex-wrap rounded-xl mx-3 my-2">
+        <div className="flex items-center justify-between gap-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-primary/10 flex-wrap rounded-lg">
           <button onClick={handleSave} className={`flex items-center justify-center transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400 hover:text-yellow-500'}`} aria-label="Save">
             <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
           </button>
