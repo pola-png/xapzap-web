@@ -35,9 +35,18 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [isLoading, setIsLoading] = useState(true)
   const [isBuffering, setIsBuffering] = useState(false)
   const [showComments, setShowComments] = useState(false)
+  const [, forceUpdate] = useState(0)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+
+  // Listen for theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleChange = () => forceUpdate(prev => prev + 1)
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
 
   // Get current user ID and check if following
   useEffect(() => {
