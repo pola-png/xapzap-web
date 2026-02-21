@@ -203,7 +203,7 @@ class AppwriteService {
 
       let queries: any[] = [
         Query.greaterThanEqual('$createdAt', nineMonthsAgo.toISOString()),
-        Query.limit(limit * 2) // Get more to filter/score
+        Query.limit(limit * 3) // Get more to filter/score
       ]
       if (cursor) queries.push(Query.cursorAfter(cursor))
 
@@ -213,12 +213,30 @@ class AppwriteService {
         queries
       )
 
-      // Score posts based on engagement and recency
+      // Get creator follower counts for small creator boost
+      const creatorFollowerCounts = new Map<string, number>()
+      for (const post of result.documents) {
+        if (!creatorFollowerCounts.has(post.userId)) {
+          const count = await this.getFollowerCount(post.userId)
+          creatorFollowerCounts.set(post.userId, count)
+        }
+      }
+
+      // Score posts based on engagement, recency, and creator size
       const scoredPosts = result.documents.map(post => {
         const ageInHours = (Date.now() - new Date(post.$createdAt).getTime()) / (1000 * 60 * 60)
-        const engagement = (post.likes || 0) + (post.comments || 0) * 2 + (post.reposts || 0) * 3 + (post.views || 0) * 0.1
+        const engagement = (post.reposts || 0) * 10 + (post.views || 0) * 9.5 + (post.comments || 0) * 9.0 + (post.likes || 0) * 8.8
         const recencyScore = Math.max(0, 168 - ageInHours) // Higher score for posts within 7 days
-        const totalScore = engagement + recencyScore
+        
+        // Small creator boost: creators with <10000 followers get 6x boost
+        const followerCount = creatorFollowerCounts.get(post.userId) || 0
+        const smallCreatorBoost = followerCount < 10000 ? engagement * 5.0 : 0
+        
+        // Hashtag boost: posts with hashtags get visibility boost
+        const hashtagCount = (post.content?.match(/#\w+/g) || []).length
+        const hashtagBoost = hashtagCount * 50
+        
+        const totalScore = engagement + recencyScore + smallCreatorBoost + hashtagBoost
 
         return { ...post, score: totalScore }
       })
