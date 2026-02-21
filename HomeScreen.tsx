@@ -1,18 +1,38 @@
 'use client'
 
 import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { StoryBar } from "./StoryBar"
 import { PostCard } from "./PostCard"
 import { VideoDetailScreen } from "./VideoDetailScreen"
+import { CommentScreen } from "./CommentScreen"
 import { Post } from "./types"
 import appwriteService from "./appwriteService"
 import { feedCache } from "./lib/cache"
 
 export function HomeScreen() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [currentUserId, setCurrentUserId] = useState<string>('')
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
   const [hasLoaded, setHasLoaded] = useState(false)
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+  const [showComments, setShowComments] = useState(false)
+
+  useEffect(() => {
+    // Handle URL params for comment modal
+    const postId = searchParams.get('post')
+    const comments = searchParams.get('comments')
+    
+    if (postId && comments === 'true') {
+      const post = posts.find(p => p.id === postId)
+      if (post) {
+        setSelectedPost(post)
+        setShowComments(true)
+      }
+    }
+  }, [searchParams, posts])
 
   useEffect(() => {
     // Check cache first
@@ -109,6 +129,27 @@ export function HomeScreen() {
     }
   }
 
+  const handleCommentClick = (post: Post) => {
+    setSelectedPost(post)
+    setShowComments(true)
+    router.push(`/?post=${post.id}&comments=true`, { scroll: false })
+  }
+
+  const handleCloseComments = () => {
+    setShowComments(false)
+    setSelectedPost(null)
+    router.push('/', { scroll: false })
+  }
+
+  if (showComments && selectedPost) {
+    return (
+      <CommentScreen
+        post={selectedPost}
+        onClose={handleCloseComments}
+      />
+    )
+  }
+
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
       <StoryBar />
@@ -125,6 +166,7 @@ export function HomeScreen() {
               post={post}
               currentUserId={currentUserId}
               feedType="home"
+              onCommentClick={() => handleCommentClick(post)}
             />
           ))
         )}

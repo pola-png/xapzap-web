@@ -18,9 +18,10 @@ interface PostCardProps {
   currentUserId?: string
   feedType?: 'home' | 'watch' | 'following' | 'news' | 'reels'
   onVideoClick?: (post: Post) => void
+  onCommentClick?: () => void
 }
 
-export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick }: PostCardProps) => {
+export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick, onCommentClick }: PostCardProps) => {
   const router = useRouter()
   const [liked, setLiked] = useState(post.isLiked || false)
   const [likes, setLikes] = useState(post.likes || 0)
@@ -472,7 +473,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick 
               <BarChart2 size={20} />
               <span className="text-sm font-medium">{post.impressions || 0}</span>
             </button>
-            <button className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label={`View comments - ${post.comments || 0} comments`}>
+            <button onClick={onCommentClick} className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label={`View comments - ${post.comments || 0} comments`}>
               <MessageCircle size={20} />
               <span className="text-sm font-medium">{post.comments || 0}</span>
             </button>

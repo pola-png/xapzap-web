@@ -2,6 +2,8 @@ import { Metadata } from 'next'
 import appwriteService from '../../../appwriteService'
 import { extractIdFromSlug } from '../../../lib/slug'
 
+export const dynamic = 'force-dynamic'
+
 type Props = {
   params: { id: string }
 }
