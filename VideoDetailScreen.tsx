@@ -36,6 +36,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [isLoading, setIsLoading] = useState(true)
   const [isBuffering, setIsBuffering] = useState(false)
   const [showComments, setShowComments] = useState(false)
+  const [commentInputFocused, setCommentInputFocused] = useState(false)
   const [, forceUpdate] = useState(0)
 
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -449,32 +450,57 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer" onClick={() => setShowComments(false)}>
             <div className="w-12 h-1 bg-border rounded-full" />
           </div>
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+          {commentInputFocused && (
+            <div className="p-3 bg-background border-b border-border">
+              <div className="flex items-center gap-2 sm:gap-3">
+                {post.userAvatar ? (
+                  <img src={post.userAvatar} alt={post.displayName} className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
+                    {(post.displayName || 'U')[0].toUpperCase()}
+                  </div>
+                )}
+                <input
+                  type="text"
+                  placeholder="Add a comment..."
+                  className="flex-1 bg-background border border-border rounded-full px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  autoFocus
+                  onBlur={() => setCommentInputFocused(false)}
+                />
+                <button 
+                  onClick={() => setCommentInputFocused(false)}
+                  className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md"
+                >
+                  Post
+                </button>
+              </div>
+            </div>
+          )}
+          <div className="flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 pb-20">
             <p className="text-muted-foreground text-sm text-center py-8">No comments yet</p>
           </div>
-          <div className="p-3 bg-muted/30 border-t border-border/30">
-            <div className="flex items-center gap-2 sm:gap-3">
-              {post.userAvatar ? (
-                <img src={post.userAvatar} alt={post.displayName} className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
-                  {(post.displayName || 'U')[0].toUpperCase()}
-                </div>
-              )}
-              <input
-                type="text"
-                placeholder="Add a comment..."
-                className="flex-1 bg-background border border-border rounded-full px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                autoFocus
-              />
-              <button 
-                onClick={() => setShowComments(false)}
-                className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md"
-              >
-                Post
-              </button>
+          {!commentInputFocused && (
+            <div className="absolute bottom-0 inset-x-0 p-3 bg-background border-t border-border">
+              <div className="flex items-center gap-2 sm:gap-3">
+                {post.userAvatar ? (
+                  <img src={post.userAvatar} alt={post.displayName} className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
+                    {(post.displayName || 'U')[0].toUpperCase()}
+                  </div>
+                )}
+                <input
+                  type="text"
+                  placeholder="Add a comment..."
+                  className="flex-1 bg-background border border-border rounded-full px-3 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  onFocus={() => setCommentInputFocused(true)}
+                />
+                <button className="px-3 sm:px-4 py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-medium hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md">
+                  Post
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
