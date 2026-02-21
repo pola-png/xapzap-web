@@ -224,11 +224,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     setReposts(wasReposted ? Math.max(0, reposts - 1) : reposts + 1)
 
     try {
-      if (wasReposted) {
-        await appwriteService.unrepostPost(post.id)
-      } else {
-        await appwriteService.repostPost(post.id)
-      }
+      await appwriteService.repostPost(post.id)
     } catch (error) {
       console.error('Failed to toggle repost:', error)
       setReposted(wasReposted)
