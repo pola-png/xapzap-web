@@ -6,6 +6,7 @@ import { Post } from './types'
 import appwriteService from './appwriteService'
 import { normalizeWasabiImage } from './lib/wasabi'
 import { parseHashtags } from './lib/hashtag'
+import { formatTimeAgo } from './utils'
 
 interface VideoDetailScreenProps {
   post: Post
@@ -461,6 +462,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 <Eye size={14} />
                 {views || 0}
               </span>
+              <span className="text-muted-foreground/70">{formatTimeAgo(post.createdAt)}</span>
             </div>
           </div>
         )}
@@ -481,7 +483,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       {/* Description Modal */}
       {showDescription && !showComments && (
         <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
-          <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer" onClick={() => setShowDescription(false)}>
+          <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer rounded-t-3xl" onClick={() => setShowDescription(false)}>
             <div className="w-12 h-1 bg-border rounded-full" />
           </div>
           <div className="flex-1 overflow-y-auto px-6 py-4">
@@ -493,8 +495,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Comments Overlay */}
       {showComments && (
-        <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col animate-in slide-in-from-bottom duration-300" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
-          <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer" onClick={() => setShowComments(false)}>
+        <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col animate-in slide-in-from-bottom duration-300 rounded-t-3xl" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
+          <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer rounded-t-3xl" onClick={() => setShowComments(false)}>
             <div className="w-12 h-1 bg-border rounded-full" />
           </div>
           {commentInputFocused && (
