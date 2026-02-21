@@ -397,9 +397,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             </div>
             <div className="flex items-center gap-2 text-xs">
               {post.username && (
-                <p className="text-muted-foreground/30">@{post.username}</p>
+                <p className="text-muted-foreground/70">@{post.username}</p>
               )}
-              <span className="flex items-center gap-1 text-muted-foreground/30">
+              <span className="flex items-center gap-1 text-muted-foreground/70">
                 <Eye size={14} />
                 {views || 0}
               </span>
@@ -441,7 +441,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           </div>
         )}
         {/* Reactions Bar */}
-        <div className="flex items-center justify-between gap-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-primary/10 flex-wrap">
+        <div className="flex items-center justify-between gap-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-primary/10 flex-wrap rounded-xl mx-3 my-2">
           <button onClick={handleSave} className={`flex items-center justify-center transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400 hover:text-yellow-500'}`} aria-label="Save">
             <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
           </button>
