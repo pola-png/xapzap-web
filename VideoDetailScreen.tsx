@@ -423,8 +423,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       {showDescription && (
         <div className="absolute inset-0 z-[60] flex flex-col" style={{ top: 'var(--title-top, 0)' }}>
           <div className="flex-1 bg-background overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6">
-              <div className="w-12 h-1.5 bg-border rounded-full mx-auto mb-6 cursor-pointer hover:bg-border/70 transition-colors" onClick={() => setShowDescription(false)} />
+            <div className="p-6 pt-4">
+              <div className="w-12 h-1.5 bg-border rounded-full mx-auto mb-4 cursor-pointer hover:bg-border/70 transition-colors" onClick={() => setShowDescription(false)} />
               {post.title && <h3 className="text-foreground font-bold text-2xl mb-4 leading-tight">{post.title}</h3>}
               {post.content && <p className="text-muted-foreground text-base leading-relaxed whitespace-pre-wrap">{post.content}</p>}
             </div>
@@ -450,12 +450,16 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <MessageCircle size={20} />
             <span className="text-xs sm:text-sm font-medium">{comments || 0}</span>
           </button>
-          {!isFollowing && currentUserId && currentUserId !== post.userId && (
+          {currentUserId && currentUserId !== post.userId && (
             <button
               onClick={handleFollow}
-              className="px-4 sm:px-5 py-1.5 sm:py-2 bg-primary text-primary-foreground rounded-full text-xs sm:text-sm font-semibold hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-md"
+              className={`px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all hover:scale-105 active:scale-95 shadow-md ${
+                isFollowing 
+                  ? 'bg-muted text-foreground hover:bg-muted/80' 
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              }`}
             >
-              Follow
+              {isFollowing ? 'Following' : 'Follow'}
             </button>
           )}
           <button
