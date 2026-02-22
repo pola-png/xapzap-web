@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import appwriteService from '../../../appwriteService'
+import { useProfileStore } from '../../../profileStore'
 
 export default function EditProfilePage() {
   const router = useRouter()
+  const profileStore = useProfileStore()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [displayName, setDisplayName] = useState('')
@@ -59,6 +61,7 @@ export default function EditProfilePage() {
         category
       })
 
+      profileStore.clearProfile(user.$id)
       router.push('/profile')
     } catch (error) {
       console.error('Failed to save profile:', error)

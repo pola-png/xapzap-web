@@ -794,18 +794,33 @@ class AppwriteService {
     try {
       const profile = await this.getProfileByUserId(userId)
       if (profile) {
+        // Ensure required fields are present
+        const updateData = {
+          userId: profile.userId,
+          username: profile.username,
+          displayName: profile.displayName,
+          ...data
+        }
         return await this.databases.updateDocument(
           this.databaseId,
           this.collections.profiles,
           profile.$id,
-          data
+          updateData
         )
       } else {
+        // Create new profile with required fields
+        const user = await this.getCurrentUser()
+        const createData = {
+          userId,
+          username: user?.name || 'user',
+          displayName: user?.name || 'User',
+          ...data
+        }
         return await this.databases.createDocument(
           this.databaseId,
           this.collections.profiles,
           ID.unique(),
-          { ...data, userId }
+          createData
         )
       }
     } catch (error) {

@@ -5,15 +5,18 @@ import { PostCard } from './PostCard'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { feedCache } from './lib/cache'
+import { useFeedStore } from './feedStore'
 
 export function NewsScreen() {
+  const feedStore = useFeedStore()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const cached = feedCache.get('news')
-    if (cached) {
-      setPosts(cached)
+    const cached = feedStore.getFeed('news')
+    if (cached && cached.posts.length > 0) {
+      setPosts(cached.posts)
+      setTimeout(() => window.scrollTo(0, cached.scrollPosition), 0)
       return
     }
 
@@ -29,7 +32,7 @@ export function NewsScreen() {
               id: newPost.$id,
               timestamp: new Date(newPost.$createdAt || newPost.createdAt),
             }, ...prev]
-            feedCache.set('news', updated)
+            feedStore.setFeed('news', updated)
             return updated
           })
         }
@@ -37,6 +40,14 @@ export function NewsScreen() {
     })
 
     return unsubscribe
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      feedStore.setScrollPosition('news', window.scrollY)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const loadNews = async () => {
@@ -69,7 +80,7 @@ export function NewsScreen() {
       )
       
       setPosts(enrichedPosts as Post[])
-      feedCache.set('news', enrichedPosts as Post[])
+      feedStore.setFeed('news', enrichedPosts as Post[])
     } catch (error) {
       console.error('Failed to load news:', error)
     } finally {

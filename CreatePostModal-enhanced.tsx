@@ -6,6 +6,7 @@ import { UploadType } from './types'
 import appwriteService from './appwriteService'
 import storageService from './storage'
 import { cn } from './utils'
+import { useProfileStore } from './profileStore'
 
 interface CreatePostModalProps {
   isOpen: boolean
@@ -20,6 +21,7 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const profileStore = useProfileStore()
 
   const uploadTypes = [
     { type: 'standard' as UploadType, icon: Image, label: 'Image / Text', desc: 'Share photos and thoughts' },
@@ -66,6 +68,8 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
       }
 
       await appwriteService.createPost(postData)
+      
+      profileStore.clearProfile(user.$id)
       
       setContent('')
       setTitle('')

@@ -8,10 +8,12 @@ import { CommentModal } from "./CommentModal"
 import { Post } from "./types"
 import appwriteService from "./appwriteService"
 import { feedCache } from "./lib/cache"
+import { useFeedStore } from "./feedStore"
 
 export function HomeScreen() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const feedStore = useFeedStore()
   const [currentUserId, setCurrentUserId] = useState<string>('')
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
@@ -34,11 +36,11 @@ export function HomeScreen() {
   }, [searchParams, posts])
 
   useEffect(() => {
-    // Check cache first
-    const cached = feedCache.get('home')
-    if (cached && cached.length > 0) {
-      setPosts(cached)
+    const cached = feedStore.getFeed('foryou')
+    if (cached && cached.posts.length > 0) {
+      setPosts(cached.posts)
       setHasLoaded(true)
+      setTimeout(() => window.scrollTo(0, cached.scrollPosition), 0)
       return
     }
 
@@ -46,7 +48,6 @@ export function HomeScreen() {
       loadPosts()
     }
 
-    // Subscribe to new posts
     const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
       if (payload.events.includes('databases.*.collections.posts.documents.*.create')) {
         const newPost = payload.payload
@@ -56,7 +57,7 @@ export function HomeScreen() {
             id: newPost.$id,
             timestamp: new Date(newPost.$createdAt || newPost.createdAt),
           }, ...prev]
-          feedCache.set('home', updated)
+          feedStore.setFeed('foryou', updated)
           return updated
         })
       }
@@ -64,6 +65,14 @@ export function HomeScreen() {
 
     return unsubscribe
   }, [hasLoaded])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      feedStore.setScrollPosition('foryou', window.scrollY)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const loadPosts = async () => {
     setLoading(true)
@@ -98,7 +107,7 @@ export function HomeScreen() {
           allPosts.push(enrichedPost)
           setPosts([...allPosts])
         }
-        feedCache.set('home', allPosts)
+        feedStore.setFeed('foryou', allPosts)
       } else {
         const result = await appwriteService.fetchPosts()
         const allPosts: Post[] = []
@@ -115,7 +124,7 @@ export function HomeScreen() {
           allPosts.push(enrichedPost)
           setPosts([...allPosts])
         }
-        feedCache.set('home', allPosts)
+        feedStore.setFeed('foryou', allPosts)
       }
       setHasLoaded(true)
     } catch (error) {

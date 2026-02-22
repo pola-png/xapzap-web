@@ -4,28 +4,48 @@ import { useState, useEffect } from 'react'
 import { PostCard } from './PostCard'
 import { Post } from './types'
 import appwriteService from './appwriteService'
+import { useFeedStore } from './feedStore'
 
 export function FollowingScreen() {
+  const feedStore = useFeedStore()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const cached = feedStore.getFeed('following')
+    if (cached && cached.posts.length > 0) {
+      setPosts(cached.posts)
+      setLoading(false)
+      setTimeout(() => window.scrollTo(0, cached.scrollPosition), 0)
+      return
+    }
+
     loadFollowingPosts()
 
-    // Subscribe to new posts from all users (will be filtered by following list)
     const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
       if (payload.events.includes('databases.*.collections.posts.documents.*.create')) {
         const newPost = payload.payload
-        // Add to feed (will show if from followed user)
-        setPosts(prev => [{
-          ...newPost,
-          id: newPost.$id,
-          timestamp: new Date(newPost.$createdAt || newPost.createdAt),
-        }, ...prev])
+        setPosts(prev => {
+          const updated = [{
+            ...newPost,
+            id: newPost.$id,
+            timestamp: new Date(newPost.$createdAt || newPost.createdAt),
+          }, ...prev]
+          feedStore.setFeed('following', updated)
+          return updated
+        })
       }
     })
 
     return unsubscribe
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      feedStore.setScrollPosition('following', window.scrollY)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const loadFollowingPosts = async () => {
@@ -38,11 +58,13 @@ export function FollowingScreen() {
       }
 
       const result = await appwriteService.fetchFollowingFeed(user.$id)
-      setPosts(result.documents.map((d: any) => ({
+      const postsData = result.documents.map((d: any) => ({
         ...d,
         id: d.$id,
         timestamp: new Date(d.$createdAt || d.createdAt),
-      })) as Post[])
+      })) as Post[]
+      setPosts(postsData)
+      feedStore.setFeed('following', postsData)
     } catch (error) {
       console.error('Failed to load following posts:', error)
       // Fallback to all posts if following feed fails

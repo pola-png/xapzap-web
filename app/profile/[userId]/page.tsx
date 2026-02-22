@@ -6,6 +6,7 @@ import { Calendar, MessageCircle, UserPlus, UserMinus, Share, Settings, BarChart
 import { PostCard } from '../../../PostCard'
 import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
+import { useProfileStore } from '../../../profileStore'
 
 type ProfileData = {
   displayName?: string
@@ -41,11 +42,21 @@ export default function ProfilePage() {
     following: 0
   })
   const [activeTab, setActiveTab] = useState<TabType>('posts')
+  const profileStore = useProfileStore()
 
   const isCurrentUser = currentUserId === userId
 
   useEffect(() => {
-    loadProfile()
+    const cached = profileStore.getProfile(userId)
+    if (cached) {
+      setProfile(cached.profile)
+      setPosts(cached.posts)
+      setStats(cached.stats)
+      setActiveTab(cached.activeTab)
+      setLoading(false)
+    } else {
+      loadProfile()
+    }
   }, [userId])
 
   const loadProfile = async () => {
@@ -73,26 +84,36 @@ export default function ProfilePage() {
 
       // Get posts
       const postsResult = await appwriteService.fetchPostsByUserIds([userId], 50)
-      const postsData = postsResult.documents.map((doc: any) => ({
-        ...doc,
-        id: doc.$id,
-        postId: doc.$id,
-        userId: doc.userId,
-        username: doc.username,
-        userAvatar: doc.userAvatar,
-        content: doc.content,
-        timestamp: new Date(doc.$createdAt || doc.createdAt),
-        createdAt: doc.$createdAt || doc.createdAt,
-        likes: doc.likes || 0,
-        comments: doc.comments || 0,
-        reposts: doc.reposts || 0,
-        impressions: doc.impressions || 0,
-        views: doc.views || 0,
-        isLiked: false,
-        isReposted: false,
-        isSaved: false,
-        isBoosted: false
-      })) as Post[]
+      const postsData = await Promise.all(
+        postsResult.documents.map(async (doc: any) => {
+          const interactions = currentUser ? await Promise.all([
+            appwriteService.isPostLikedBy(currentUser.$id, doc.$id),
+            appwriteService.isPostSavedBy(currentUser.$id, doc.$id),
+            appwriteService.isPostRepostedBy(currentUser.$id, doc.$id)
+          ]) : [false, false, false]
+          
+          return {
+            ...doc,
+            id: doc.$id,
+            postId: doc.$id,
+            userId: doc.userId,
+            username: doc.username,
+            userAvatar: doc.userAvatar,
+            content: doc.content,
+            timestamp: new Date(doc.$createdAt || doc.createdAt),
+            createdAt: doc.$createdAt || doc.createdAt,
+            likes: doc.likes || 0,
+            comments: doc.comments || 0,
+            reposts: doc.reposts || 0,
+            impressions: doc.impressions || 0,
+            views: doc.views || 0,
+            isLiked: interactions[0],
+            isReposted: interactions[1],
+            isSaved: interactions[2],
+            isBoosted: false
+          }
+        })
+      ) as Post[]
 
       setPosts(postsData)
       setStats({
@@ -106,6 +127,28 @@ export default function ProfilePage() {
         const following = await appwriteService.isFollowing(currentUser.$id, userId)
         setIsFollowing(following)
       }
+
+      // Cache the profile data
+      profileStore.setProfile(userId, {
+        userId,
+        profile: {
+          displayName: profileData.displayName || profileData.username,
+          username: profileData.username,
+          bio: profileData.bio,
+          category: profileData.category,
+          avatarUrl: profileData.avatarUrl,
+          coverUrl: profileData.coverUrl,
+          website: profileData.website,
+          joinedAt: profileData.$createdAt
+        },
+        posts: postsData,
+        stats: {
+          posts: postsResult.total,
+          followers: await appwriteService.getFollowerCount(userId),
+          following: await appwriteService.getFollowingCount(userId)
+        },
+        activeTab: 'posts'
+      })
 
     } catch (error) {
       console.error('Failed to load profile:', error)
@@ -348,16 +391,15 @@ export default function ProfilePage() {
             <h1 className="text-2xl font-bold text-white mb-1">
               {profile.displayName}
             </h1>
-            <p className="text-gray-400 mb-2">@{profile.username}</p>
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-gray-400">@{profile.username}</p>
+              {profile.category && (
+                <span className="text-gray-400">• {profile.category}</span>
+              )}
+            </div>
 
             {profile.bio && (
               <p className="text-white mb-2">{profile.bio}</p>
-            )}
-
-            {profile.category && (
-              <span className="inline-block bg-blue-600 text-white text-sm px-3 py-1 rounded-full mb-2">
-                {profile.category}
-              </span>
             )}
 
             {profile.joinedAt && (
@@ -491,7 +533,10 @@ export default function ProfilePage() {
           {(['posts', 'videos', 'news', 'all'] as TabType[]).map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab)
+                profileStore.updateActiveTab(userId, tab)
+              }}
               className={`flex-1 py-3 text-center font-medium transition-colors ${
                 activeTab === tab
                   ? 'text-blue-400 border-b-2 border-blue-400'

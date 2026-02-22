@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { feedCache } from './lib/cache'
+import { useFeedStore } from './feedStore'
 import { Heart, MessageCircle, Share2, Bookmark, MoreVertical, Repeat2 } from 'lucide-react'
 import { OptimizedImage } from './components/OptimizedImage'
 import { useRouter } from 'next/navigation'
@@ -12,6 +13,7 @@ import { CommentModal } from './CommentModal'
 import { formatTimeAgo } from './utils'
 
 export function ReelsScreen() {
+  const feedStore = useFeedStore()
   const [posts, setPosts] = useState<Post[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -27,9 +29,9 @@ export function ReelsScreen() {
   const [commentModalPost, setCommentModalPost] = useState<Post | null>(null)
 
   useEffect(() => {
-    const cached = feedCache.get('reels')
-    if (cached && cached.length > 0) {
-      setPosts(cached)
+    const cached = feedStore.getFeed('reels')
+    if (cached && cached.posts.length > 0) {
+      setPosts(cached.posts)
     }
     loadReels()
 
@@ -43,7 +45,7 @@ export function ReelsScreen() {
               id: newPost.$id,
               timestamp: new Date(newPost.$createdAt || newPost.createdAt),
             }, ...prev]
-            feedCache.set('reels', updated)
+            feedStore.setFeed('reels', updated)
             return updated
           })
         }
@@ -120,7 +122,7 @@ export function ReelsScreen() {
         setPosts(prev => [...prev, enrichedPost as Post])
       }
       
-      feedCache.set('reels', posts)
+      feedStore.setFeed('reels', posts)
     } catch (error) {
       console.error('Failed to load reels:', error)
     } finally {

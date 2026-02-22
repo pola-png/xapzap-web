@@ -7,10 +7,12 @@ import { CommentModal } from './CommentModal'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { feedCache } from './lib/cache'
+import { useFeedStore } from './feedStore'
 
 export function WatchScreen() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const feedStore = useFeedStore()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
   const [hasLoaded, setHasLoaded] = useState(false)
@@ -31,10 +33,11 @@ export function WatchScreen() {
   }, [searchParams, posts])
 
   useEffect(() => {
-    const cached = feedCache.get('watch')
-    if (cached) {
-      setPosts(cached)
+    const cached = feedStore.getFeed('watch')
+    if (cached && cached.posts.length > 0) {
+      setPosts(cached.posts)
       setHasLoaded(true)
+      setTimeout(() => window.scrollTo(0, cached.scrollPosition), 0)
       return
     }
 
@@ -52,7 +55,7 @@ export function WatchScreen() {
               id: newPost.$id,
               timestamp: new Date(newPost.$createdAt || newPost.createdAt),
             }, ...prev]
-            feedCache.set('watch', updated)
+            feedStore.setFeed('watch', updated)
             return updated
           })
         }
@@ -61,6 +64,14 @@ export function WatchScreen() {
 
     return unsubscribe
   }, [hasLoaded])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      feedStore.setScrollPosition('watch', window.scrollY)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const loadVideos = async () => {
     const isInitialLoad = posts.length === 0
@@ -92,7 +103,7 @@ export function WatchScreen() {
       )
       
       setPosts(enrichedPosts as Post[])
-      feedCache.set('watch', enrichedPosts as Post[])
+      feedStore.setFeed('watch', enrichedPosts as Post[])
       setHasLoaded(true)
     } catch (error) {
       console.error('Failed to load videos:', error)
