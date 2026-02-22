@@ -32,6 +32,10 @@ export default function ProfilePage() {
   const [followLoading, setFollowLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [showMenu, setShowMenu] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [uploadingBanner, setUploadingBanner] = useState(false)
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false)
+  const [showBannerMenu, setShowBannerMenu] = useState(false)
   const [stats, setStats] = useState({
     posts: 0,
     followers: 0,
@@ -162,6 +166,41 @@ export default function ProfilePage() {
     }
   }
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !currentUserId) return
+
+    setUploadingAvatar(true)
+    try {
+      const avatarUrl = await appwriteService.uploadProfilePicture(file)
+      await appwriteService.updateProfile(currentUserId, { avatarUrl })
+      setProfile(prev => prev ? { ...prev, avatarUrl } : null)
+      setShowAvatarMenu(false)
+    } catch (error) {
+      console.error('Failed to upload avatar:', error)
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !currentUserId) return
+
+    setUploadingBanner(true)
+    try {
+      const { default: storageService } = await import('../../../storage')
+      const coverUrl = await storageService.uploadFile(file)
+      await appwriteService.updateProfile(currentUserId, { coverUrl })
+      setProfile(prev => prev ? { ...prev, coverUrl } : null)
+      setShowBannerMenu(false)
+    } catch (error) {
+      console.error('Failed to upload banner:', error)
+    } finally {
+      setUploadingBanner(false)
+    }
+  }
+
   const filteredPosts = posts.filter(post => {
     switch (activeTab) {
       case 'posts':
@@ -203,7 +242,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-black">
       {/* Cover Photo */}
-      <div className="relative h-48 bg-gradient-to-br from-blue-600 to-purple-700">
+      <div className="relative h-48 bg-gradient-to-br from-blue-600 to-purple-700 group">
         {profile.coverUrl && (
           <img
             src={profile.coverUrl}
@@ -211,10 +250,51 @@ export default function ProfilePage() {
             className="w-full h-full object-cover"
           />
         )}
+        {isCurrentUser && (
+          <>
+            <button
+              onClick={() => setShowBannerMenu(!showBannerMenu)}
+              className="absolute top-4 right-4 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </button>
+            {showBannerMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowBannerMenu(false)} />
+                <div className="absolute top-16 right-4 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl z-50 min-w-[160px]">
+                  {profile.coverUrl && (
+                    <button
+                      onClick={() => {
+                        window.open(profile.coverUrl, '_blank')
+                        setShowBannerMenu(false)
+                      }}
+                      className="w-full px-4 py-3 text-left text-sm text-white hover:bg-gray-800 transition-colors rounded-t-xl"
+                    >
+                      View Banner
+                    </button>
+                  )}
+                  <label className="w-full px-4 py-3 text-left text-sm text-white hover:bg-gray-800 transition-colors cursor-pointer block rounded-b-xl">
+                    {uploadingBanner ? 'Uploading...' : 'Upload Banner'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBannerUpload}
+                      disabled={uploadingBanner}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </>
+            )}
+          </>
+        )}
 
         {/* Avatar */}
         <div className="absolute -bottom-12 left-4">
-          <div className="w-24 h-24 rounded-full border-4 border-black bg-gray-800 flex items-center justify-center">
+          <div className="w-24 h-24 rounded-full border-4 border-black bg-gray-800 flex items-center justify-center relative group">
             {profile.avatarUrl ? (
               <img
                 src={profile.avatarUrl}
@@ -225,6 +305,47 @@ export default function ProfilePage() {
               <span className="text-2xl text-white font-bold">
                 {(profile.displayName || 'U')[0].toUpperCase()}
               </span>
+            )}
+            {isCurrentUser && (
+              <>
+                <button
+                  onClick={() => setShowAvatarMenu(!showAvatarMenu)}
+                  className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-all shadow-lg"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                </button>
+                {showAvatarMenu && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowAvatarMenu(false)} />
+                    <div className="absolute top-full left-0 mt-2 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl z-50 min-w-[160px]">
+                      {profile.avatarUrl && (
+                        <button
+                          onClick={() => {
+                            window.open(profile.avatarUrl, '_blank')
+                            setShowAvatarMenu(false)
+                          }}
+                          className="w-full px-4 py-3 text-left text-sm text-white hover:bg-gray-800 transition-colors rounded-t-xl"
+                        >
+                          View Avatar
+                        </button>
+                      )}
+                      <label className="w-full px-4 py-3 text-left text-sm text-white hover:bg-gray-800 transition-colors cursor-pointer block rounded-b-xl">
+                        {uploadingAvatar ? 'Uploading...' : 'Upload Avatar'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarUpload}
+                          disabled={uploadingAvatar}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -307,13 +428,13 @@ export default function ProfilePage() {
                   <div className="absolute right-0 top-12 bg-gray-900 border border-gray-800 rounded-lg shadow-xl z-50 min-w-[200px]">
                     <button
                       onClick={() => {
-                        router.push('/settings')
+                        router.push('/profile/menu')
                         setShowMenu(false)
                       }}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-800 text-white transition-colors rounded-t-lg"
                     >
                       <Settings className="w-4 h-4" />
-                      <span>Settings</span>
+                      <span>Menu</span>
                     </button>
                     <button
                       onClick={() => {
