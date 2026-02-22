@@ -36,6 +36,7 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [swipeStartX, setSwipeStartX] = useState(0)
+  const [selectedCommentForReplies, setSelectedCommentForReplies] = useState<Comment | null>(null)
 
   useEffect(() => {
     loadComments()
@@ -237,7 +238,7 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  window.location.href = `/comments/${post.id}?parent=${comment.id}`
+                  setSelectedCommentForReplies(comment)
                 }}
                 className="flex items-center gap-1.5 text-sm text-blue-500 hover:text-blue-600 font-medium"
               >
@@ -252,6 +253,10 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
       </div>
     </div>
   )
+
+  if (selectedCommentForReplies) {
+    return <CommentScreen post={post} onClose={() => setSelectedCommentForReplies(null)} parentComment={selectedCommentForReplies} />
+  }
 
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col">

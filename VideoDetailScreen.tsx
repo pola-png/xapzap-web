@@ -34,8 +34,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [isFollowing, setIsFollowing] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isBuffering, setIsBuffering] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [commentInputFocused, setCommentInputFocused] = useState(false)
   const [commentText, setCommentText] = useState('')
@@ -45,20 +43,12 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [hasEnded, setHasEnded] = useState(false)
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [swipeStartX, setSwipeStartX] = useState(0)
+  const [selectedCommentForReplies, setSelectedCommentForReplies] = useState<any>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const hasCountedView = useRef(false)
 
-  // Listen for theme changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = () => forceUpdate(prev => prev + 1)
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
-
-  // Get current user ID and check if following
   useEffect(() => {
     const loadUser = async () => {
       const user = await appwriteService.getCurrentUser()
@@ -69,14 +59,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       }
     }
     loadUser()
-  }, [])
-
-  // Hide bottom navigation when video detail is open
-  useEffect(() => {
-    document.body.classList.add('hide-bottom-nav')
-    return () => {
-      document.body.classList.remove('hide-bottom-nav')
-    }
   }, [])
 
   // Subscribe to realtime updates for this post
@@ -104,7 +86,34 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   // Load comments when modal opens
   useEffect(() => {
-    if (showComments) {
+    if (selectedCommentForReplies) {
+    return (
+      <div className="fixed inset-x-0 bottom-0 bg-background z-[70] flex flex-col animate-in slide-in-from-bottom duration-300 rounded-t-3xl" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
+        <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer rounded-t-3xl" onClick={() => setSelectedCommentForReplies(null)}>
+          <div className="w-12 h-1 bg-border rounded-full" />
+        </div>
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="border-b border-border pb-4 mb-4">
+            <div className="flex gap-3">
+              <img src={selectedCommentForReplies.userAvatar || ''} alt={selectedCommentForReplies.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+              <div className="flex-1">
+                <div className="bg-muted rounded-2xl px-3 py-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-sm">{selectedCommentForReplies.username}</span>
+                    <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(selectedCommentForReplies.createdAt || selectedCommentForReplies.$createdAt))}</span>
+                  </div>
+                  <p className="text-sm">{selectedCommentForReplies.content}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground text-center py-4">Replies feature coming soon</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (showComments) {
       loadComments()
     }
   }, [showComments])
@@ -181,10 +190,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     const video = videoRef.current
     if (!video) return
 
-    const handleLoadedMetadata = () => {
-      setDuration(video.duration)
-      setIsLoading(false)
-    }
+    const handleLoadedMetadata = () => setDuration(video.duration)
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
     const handlePlay = async () => {
       setIsPlaying(true)
@@ -200,8 +206,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       }
     }
     const handlePause = () => setIsPlaying(false)
-    const handleWaiting = () => setIsBuffering(true)
-    const handleCanPlay = () => setIsBuffering(false)
     const handleEnded = () => {
       setHasEnded(true)
       setIsPlaying(false)
@@ -212,8 +216,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     video.addEventListener('timeupdate', handleTimeUpdate)
     video.addEventListener('play', handlePlay)
     video.addEventListener('pause', handlePause)
-    video.addEventListener('waiting', handleWaiting)
-    video.addEventListener('canplay', handleCanPlay)
     video.addEventListener('ended', handleEnded)
 
     // Setup media session for device controls
@@ -244,8 +246,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       video.removeEventListener('timeupdate', handleTimeUpdate)
       video.removeEventListener('play', handlePlay)
       video.removeEventListener('pause', handlePause)
-      video.removeEventListener('waiting', handleWaiting)
-      video.removeEventListener('canplay', handleCanPlay)
       video.removeEventListener('ended', handleEnded)
       if ('mediaSession' in navigator) {
         navigator.mediaSession.setActionHandler('play', null)
@@ -409,16 +409,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-300">
-      {/* Loading State */}
-      {isLoading && (
-        <div className="absolute inset-0 bg-background z-50 flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto" />
-            <p className="text-muted-foreground text-sm">Loading video...</p>
-          </div>
-        </div>
-      )}
-
       {/* Header - Outside video */}
       <div className="bg-background/95 backdrop-blur-md p-3 sm:p-4 z-20 flex items-center justify-between border-b border-border/50 shadow-sm transition-all">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -456,13 +446,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           preload="auto"
         />
 
-        {/* Buffering Indicator */}
-        {isBuffering && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-20 animate-in fade-in duration-200">
-            <Loader2 className="w-12 h-12 animate-spin text-white" />
-          </div>
-        )}
-
         {/* Speaker Icon - Top Right */}
         {showControls && (
           <button
@@ -482,7 +465,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         )}
 
         {/* Center Play/Controls - Show when paused OR when showControls is true */}
-        {(!isPlaying || showControls) && !isBuffering && (
+        {(!isPlaying || showControls) && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20 animate-in fade-in duration-200">
             <div className="flex items-center gap-3 sm:gap-4">
               <button
@@ -729,7 +712,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
-                                window.location.href = `/comments/${post.id}?parent=${comment.$id}`
+                                setSelectedCommentForReplies(comment)
                               }}
                               className="flex items-center gap-1.5 text-sm text-blue-500 hover:text-blue-600 font-medium"
                             >
@@ -909,7 +892,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
-                              window.location.href = `/comments/${post.id}?parent=${comment.$id}`
+                              setSelectedCommentForReplies(comment)
                             }}
                             className="flex items-center gap-1.5 text-sm text-blue-500 hover:text-blue-600 font-medium"
                           >
