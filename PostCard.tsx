@@ -25,7 +25,7 @@ interface PostCardProps {
   onCommentClick?: () => void
 }
 
-export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick, onCommentClick }: PostCardProps) => {
+export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'home', onVideoClick, onCommentClick }: PostCardProps) => {
   const router = useRouter()
   const [liked, setLiked] = useState(post.isLiked || false)
   const [likes, setLikes] = useState(post.likes || 0)
@@ -37,7 +37,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
   const [showFullComments, setShowFullComments] = useState(false)
   const [showReelDetail, setShowReelDetail] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(propCurrentUserId || null)
 
   useEffect(() => {
     const handlePopState = () => {
