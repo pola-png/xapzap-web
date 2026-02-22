@@ -129,26 +129,28 @@ export default function ProfilePage() {
       }
 
       // Cache the profile data
-      profileStore.setProfile(userId, {
-        userId,
-        profile: {
-          displayName: profileData.displayName || profileData.username,
-          username: profileData.username,
-          bio: profileData.bio,
-          category: profileData.category,
-          avatarUrl: profileData.avatarUrl,
-          coverUrl: profileData.coverUrl,
-          website: profileData.website,
-          joinedAt: profileData.$createdAt
-        },
-        posts: postsData,
-        stats: {
-          posts: postsResult.total,
-          followers: await appwriteService.getFollowerCount(userId),
-          following: await appwriteService.getFollowingCount(userId)
-        },
-        activeTab: 'posts'
-      })
+      if (profileData) {
+        profileStore.setProfile(userId, {
+          userId,
+          profile: {
+            displayName: profileData.displayName || profileData.username,
+            username: profileData.username,
+            bio: profileData.bio,
+            category: profileData.category,
+            avatarUrl: profileData.avatarUrl,
+            coverUrl: profileData.coverUrl,
+            website: profileData.website,
+            joinedAt: profileData.$createdAt
+          },
+          posts: postsData,
+          stats: {
+            posts: postsResult.total,
+            followers: await appwriteService.getFollowerCount(userId),
+            following: await appwriteService.getFollowingCount(userId)
+          },
+          activeTab: 'posts'
+        })
+      }
 
     } catch (error) {
       console.error('Failed to load profile:', error)
