@@ -805,34 +805,6 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-4 space-y-6">
-            {/* Media Preview */}
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className={`aspect-video rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
-                isDark
-                  ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
-                  : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
-              }`}
-            >
-              {previewUrl ? (
-                <div className="relative w-full h-full">
-                  {selectedType === 'image' ? (
-                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover rounded-lg" />
-                  ) : (
-                    <video src={previewUrl} className="w-full h-full object-cover rounded-lg" controls />
-                  )}
-                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                    <p className="text-white text-sm font-medium">Tap to change</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <Upload size={48} className={`mx-auto mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-                  <p className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Tap to select {selectedType}</p>
-                </div>
-              )}
-            </div>
-
             {/* Form Fields */}
             <div className="space-y-4">
               {/* Title (for videos and news) */}
@@ -879,6 +851,37 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                   }`}
                 />
               )}
+            </div>
+
+            {/* Media Preview */}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className={`${selectedType === 'image' ? 'h-[600px]' : 'aspect-video'} rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
+                isDark
+                  ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
+                  : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
+              }`}
+            >
+              {previewUrl ? (
+                <div className="relative w-full h-full">
+                  {selectedType === 'image' ? (
+                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                  ) : (
+                    <video src={previewUrl} className="w-full h-full object-cover rounded-lg" controls />
+                  )}
+                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <p className="text-white text-sm font-medium">Tap to change</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <Upload size={48} className={`mx-auto mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                  <p className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Tap to select {selectedType}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-4">
 
               {/* Thumbnail (for videos/reels) */}
               {(selectedType === 'video' || selectedType === 'reel') && (
