@@ -599,11 +599,14 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
           <div className="absolute top-14 sm:top-16 right-3 sm:right-4 bg-background border border-border rounded-xl shadow-2xl z-50 overflow-x-auto whitespace-nowrap max-w-[calc(100vw-2rem)]">
-            <div className="flex">
+            <div className="flex items-center">
               {currentUserId === post.userId && (
-                <button onClick={handleDelete} className="px-4 py-3 text-sm text-red-600 hover:bg-muted transition-colors">
-                  Delete
-                </button>
+                <>
+                  <button onClick={handleDelete} className="px-4 py-3 text-sm text-red-600 hover:bg-muted transition-colors">
+                    Delete
+                  </button>
+                  <span className="text-border">•</span>
+                </>
               )}
               <button className="px-4 py-3 text-sm text-foreground hover:bg-muted transition-colors">
                 Report

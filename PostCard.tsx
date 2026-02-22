@@ -415,7 +415,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   return (
     <>
       {showComments && <CommentModal post={post} onClose={() => setShowComments(false)} />}
-      <div className="border-b border-gray-200 dark:border-gray-700">
+      <div className="border-b border-gray-200 dark:border-gray-700 relative">
       {/* Header */}
       <div className="flex items-center justify-between py-3">
         <div className="flex items-center gap-3">
@@ -456,11 +456,14 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
           <div className="absolute top-12 right-4 bg-background border border-border rounded-xl shadow-2xl z-50 overflow-x-auto whitespace-nowrap max-w-[calc(100vw-2rem)]">
-            <div className="flex">
+            <div className="flex items-center">
               {currentUserId === post.userId && (
-                <button onClick={handleDelete} className="px-4 py-3 text-sm text-red-600 hover:bg-muted transition-colors">
-                  Delete
-                </button>
+                <>
+                  <button onClick={handleDelete} className="px-4 py-3 text-sm text-red-600 hover:bg-muted transition-colors">
+                    Delete
+                  </button>
+                  <span className="text-border">•</span>
+                </>
               )}
               <button className="px-4 py-3 text-sm text-foreground hover:bg-muted transition-colors">
                 Report
