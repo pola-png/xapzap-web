@@ -30,9 +30,8 @@ export function ReelsScreen() {
     const cached = feedCache.get('reels')
     if (cached && cached.length > 0) {
       setPosts(cached)
-    } else {
-      loadReels()
     }
+    loadReels()
 
     const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
       if (payload.events.includes('databases.*.collections.posts.documents.*.create')) {

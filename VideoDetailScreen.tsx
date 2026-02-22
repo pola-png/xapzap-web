@@ -168,7 +168,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     const handlePlay = async () => {
       setIsPlaying(true)
       setShowControls(false)
-      setIsBuffering(false)
       if (!hasCountedView.current) {
         hasCountedView.current = true
         try {
