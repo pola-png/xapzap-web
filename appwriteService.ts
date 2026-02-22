@@ -814,6 +814,16 @@ class AppwriteService {
     }
   }
 
+  async uploadProfilePicture(file: File) {
+    const user = await this.getCurrentUser()
+    if (!user) throw new Error('User must be signed in')
+
+    // Use storageService to upload to Wasabi
+    const { default: storageService } = await import('./storage')
+    const avatarUrl = await storageService.uploadFile(file)
+    return avatarUrl
+  }
+
   // Real-time subscriptions with mobile optimization
   subscribeToCollection(collectionId: string, callback: (payload: any) => void) {
     const channel = `databases.${this.databaseId}.collections.${collectionId}.documents`;

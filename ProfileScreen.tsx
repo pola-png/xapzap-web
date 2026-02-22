@@ -217,7 +217,7 @@ export function ProfileScreen() {
     setUploadingAvatar(true)
     try {
       const avatarUrl = await appwriteService.uploadProfilePicture(file)
-      await appwriteService.updateProfile({ avatarUrl })
+      await appwriteService.updateProfile(currentUser.$id, { avatarUrl })
       setProfile(prev => prev ? { ...prev, avatarUrl } : null)
     } catch (error) {
       console.error('Failed to upload avatar:', error)
