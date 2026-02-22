@@ -441,26 +441,26 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Header - Outside video */}
-      <div className="bg-background/95 backdrop-blur-md p-3 sm:p-4 z-20 flex items-center justify-between border-b border-border/50 shadow-sm transition-all">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+      <div className="bg-background/95 backdrop-blur-md p-4 sm:p-5 z-20 flex items-center justify-between border-b border-border/50 shadow-sm transition-all">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
           {post.userAvatar ? (
-            <img src={post.userAvatar} alt={post.displayName} className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover ring-2 ring-border transition-transform hover:scale-105" />
+            <img src={post.userAvatar} alt={post.displayName} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover ring-2 ring-border transition-transform hover:scale-105" />
           ) : (
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-sm shadow-md">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-lg shadow-md">
               {(post.displayName || 'U')[0].toUpperCase()}
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <h3 className="text-foreground font-semibold text-sm sm:text-base truncate">{post.displayName || 'User'}</h3>
-            <span className="text-muted-foreground text-xs">{new Date(post.createdAt).toLocaleDateString()}</span>
+            <h3 className="text-foreground font-semibold text-lg sm:text-xl truncate">{post.displayName || 'User'}</h3>
+            <span className="text-muted-foreground text-sm sm:text-base">{new Date(post.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
         <button
           onClick={() => setShowMenu(!showMenu)}
-          className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-foreground hover:bg-muted rounded-full transition-all hover:scale-105 active:scale-95"
+          className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center text-foreground hover:bg-muted rounded-full transition-all hover:scale-105 active:scale-95"
           aria-label="More options"
         >
-          <MoreHorizontal size={20} />
+          <MoreHorizontal size={24} />
         </button>
       </div>
 
@@ -568,24 +568,24 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       </div>
 
       {/* Controls Below Video */}
-      <div className="bg-background px-3 sm:px-4 pb-1 pt-2">
+      <div className="bg-background px-4 sm:px-5 pb-2 pt-3">
         {/* Title with Username and View Count */}
         {post.title && (
           <div>
-            <div className="flex items-baseline gap-1">
-              <p className="text-foreground font-bold text-lg sm:text-xl truncate flex-1">
+            <div className="flex items-baseline gap-2">
+              <p className="text-foreground font-bold text-xl sm:text-2xl truncate flex-1">
                 {post.title.length > 39 ? post.title.substring(0, 39) : post.title}
               </p>
               {post.title.length > 39 && (
-                <button onClick={() => setShowDescription(true)} className="text-primary text-xs whitespace-nowrap flex-shrink-0 hover:underline transition-all">...more</button>
+                <button onClick={() => setShowDescription(true)} className="text-primary text-sm whitespace-nowrap flex-shrink-0 hover:underline transition-all">...more</button>
               )}
             </div>
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-3 text-sm sm:text-base mt-1">
               {post.username && (
                 <p className="text-muted-foreground/70">@{post.username}</p>
               )}
-              <span className="flex items-center gap-1 text-muted-foreground/70">
-                <Eye size={14} />
+              <span className="flex items-center gap-1.5 text-muted-foreground/70">
+                <Eye size={16} />
                 {views || 0}
               </span>
               <span className="text-muted-foreground/70">{formatTimeAgo(post.createdAt)}</span>
@@ -640,39 +640,39 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <h1 className="text-lg font-semibold">Replies</h1>
             <div className="w-10" />
           </div>
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="border-b border-border pb-4 mb-4">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+            <div className="border-b border-border pb-5 mb-5">
               <div className="flex gap-3">
-                <img src={selectedCommentForReplies.userAvatar || ''} alt={selectedCommentForReplies.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                <img src={selectedCommentForReplies.userAvatar || ''} alt={selectedCommentForReplies.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                 <div className="flex-1">
-                  <div className="bg-muted rounded-2xl px-3 py-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-sm">{selectedCommentForReplies.username}</span>
-                      <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(selectedCommentForReplies.createdAt || selectedCommentForReplies.$createdAt))}</span>
+                  <div className="bg-muted rounded-2xl px-4 py-3">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="font-semibold text-base">{selectedCommentForReplies.username}</span>
+                      <span className="text-sm text-muted-foreground">{formatTimeAgo(new Date(selectedCommentForReplies.createdAt || selectedCommentForReplies.$createdAt))}</span>
                     </div>
-                    <p className="text-sm">{selectedCommentForReplies.content}</p>
+                    <p className="text-base leading-relaxed">{selectedCommentForReplies.content}</p>
                   </div>
                 </div>
               </div>
             </div>
             {loadingReplies ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
             ) : repliesList.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No replies yet</p>
+              <p className="text-base text-muted-foreground text-center py-4">No replies yet</p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {repliesList.map((reply: any) => (
                   <div key={reply.$id} className="flex gap-3">
-                    <img src={reply.userAvatar || ''} alt={reply.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                    <img src={reply.userAvatar || ''} alt={reply.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                     <div className="flex-1">
-                      <div className="bg-muted rounded-2xl px-3 py-2">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-sm">{reply.username}</span>
-                          <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(reply.createdAt || reply.$createdAt))}</span>
+                      <div className="bg-muted rounded-2xl px-4 py-3">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="font-semibold text-base">{reply.username}</span>
+                          <span className="text-sm text-muted-foreground">{formatTimeAgo(new Date(reply.createdAt || reply.$createdAt))}</span>
                         </div>
-                        <p className="text-sm">{reply.content}</p>
+                        <p className="text-base leading-relaxed">{reply.content}</p>
                       </div>
                     </div>
                   </div>
@@ -862,30 +862,30 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       {/* Bottom Section - Reactions & Comments */}
       <div className="flex-1 bg-background flex flex-col min-h-0 relative">
         {/* Reactions Bar */}
-        <div className="flex items-center justify-between gap-1 py-2.5 sm:py-3 px-3 sm:px-4 bg-primary/10 flex-wrap rounded-lg">
-          <button onClick={handleSave} className={`flex items-center justify-center transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400 hover:text-yellow-500'}`} aria-label="Save">
-            <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
+        <div className="flex items-center justify-between gap-2 py-3 sm:py-4 px-4 sm:px-5 bg-primary/10 flex-wrap rounded-lg">
+          <button onClick={handleSave} className={`flex items-center justify-center transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400 hover:text-yellow-500'}`} aria-label="Save">
+            <Bookmark size={24} className={saved ? 'fill-yellow-500' : ''} />
           </button>
-          <button onClick={handleShare} className="flex items-center justify-center hover:text-blue-500 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label="Share">
-            <Share size={20} />
+          <button onClick={handleShare} className="flex items-center justify-center hover:text-blue-500 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label="Share">
+            <Share size={24} />
           </button>
-          <button onClick={handleRepost} className={`flex items-center gap-1.5 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400 hover:text-green-500'}`} aria-label={`Reposts - ${reposts || 0} reposts`}>
-            <Repeat2 size={20} />
-            <span className="text-xs sm:text-sm font-medium">{reposts || 0}</span>
+          <button onClick={handleRepost} className={`flex items-center gap-2 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400 hover:text-green-500'}`} aria-label={`Reposts - ${reposts || 0} reposts`}>
+            <Repeat2 size={24} />
+            <span className="text-sm sm:text-base font-medium">{reposts || 0}</span>
           </button>
-          <button onClick={() => setShowComments(true)} className="flex items-center gap-1.5 hover:text-blue-500 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label={`Comments - ${comments || 0} comments`} onClickCapture={() => {
+          <button onClick={() => setShowComments(true)} className="flex items-center gap-2 hover:text-blue-500 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label={`Comments - ${comments || 0} comments`} onClickCapture={() => {
             const video = videoRef.current
             if (video && !video.paused) {
               video.pause()
             }
           }}>
-            <MessageCircle size={20} />
-            <span className="text-xs sm:text-sm font-medium">{comments || 0}</span>
+            <MessageCircle size={24} />
+            <span className="text-sm sm:text-base font-medium">{comments || 0}</span>
           </button>
           {currentUserId && currentUserId !== post.userId && (
             <button
               onClick={handleFollow}
-              className={`px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all hover:scale-105 active:scale-95 shadow-md ${
+              className={`px-5 sm:px-6 py-2 sm:py-2.5 rounded-full text-sm sm:text-base font-semibold transition-all hover:scale-105 active:scale-95 shadow-md ${
                 isFollowing 
                   ? 'bg-muted text-foreground hover:bg-muted/80' 
                   : 'bg-primary text-primary-foreground hover:bg-primary/90'
@@ -896,23 +896,23 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           )}
           <button
             onClick={handleLike}
-            className={`flex items-center gap-1.5 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${liked ? 'text-red-500' : 'text-gray-500 dark:text-gray-400 hover:text-red-500'}`}
+            className={`flex items-center gap-2 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 ${liked ? 'text-red-500' : 'text-gray-500 dark:text-gray-400 hover:text-red-500'}`}
             aria-label={`Like - ${likes || 0} likes`}
           >
-            <Heart size={20} className={liked ? 'fill-red-500' : ''} />
-            <span className="text-xs sm:text-sm font-medium">{likes || 0}</span>
+            <Heart size={24} className={liked ? 'fill-red-500' : ''} />
+            <span className="text-sm sm:text-base font-medium">{likes || 0}</span>
           </button>
         </div>
         {/* Comments Section - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-background">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 bg-background">
           {loadingComments ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : commentsList.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-8">No comments yet</p>
+            <p className="text-muted-foreground text-base text-center py-8">No comments yet</p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {commentsList.map((comment) => (
                 <div 
                   key={comment.$id}
@@ -921,7 +921,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                   <img 
                     src={comment.userAvatar || ''} 
                     alt={comment.username} 
-                    className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer" 
+                    className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer" 
                     onClick={(e) => {
                       e.stopPropagation()
                       window.location.href = `/profile/${comment.userId}`
@@ -929,7 +929,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                   />
                   <div className="flex-1 min-w-0">
                     <div 
-                      className="bg-muted rounded-2xl px-3 py-2 cursor-pointer"
+                      className="bg-muted rounded-2xl px-4 py-3 cursor-pointer"
                       onTouchStart={(e) => setSwipeStartX(e.touches[0].clientX)}
                       onTouchEnd={(e) => {
                         const swipeEndX = e.changedTouches[0].clientX
@@ -940,17 +940,17 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                       }}
                       onClick={() => handleLikeComment(comment.$id)}
                     >
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1.5">
                         <span 
-                          className="font-medium text-sm cursor-pointer hover:underline"
+                          className="font-semibold text-base cursor-pointer hover:underline"
                           onClick={(e) => {
                             e.stopPropagation()
                             window.location.href = `/profile/${comment.userId}`
                           }}
                         >{comment.username}</span>
-                        <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(comment.createdAt || comment.$createdAt))}</span>
+                        <span className="text-sm text-muted-foreground">{formatTimeAgo(new Date(comment.createdAt || comment.$createdAt))}</span>
                       </div>
-                      <p className="text-sm">{comment.content.split(' ').map((word: string, i: number) => 
+                      <p className="text-base leading-relaxed">{comment.content.split(' ').map((word: string, i: number) => 
                         word.startsWith('@') ? (
                           <span key={i} className="text-blue-500">{word} </span>
                         ) : (
@@ -958,15 +958,15 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                         )
                       )}</p>
                     </div>
-                    <div className="flex items-center gap-4 mt-2 ml-3">
+                    <div className="flex items-center gap-5 mt-3 ml-3">
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           handleLikeComment(comment.$id)
                         }}
-                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                        className="flex items-center gap-2 text-base text-muted-foreground hover:text-foreground"
                       >
-                        <Heart size={18} />
+                        <Heart size={20} />
                         <span>Like</span>
                       </button>
                       <button
@@ -975,17 +975,17 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                           setReplyTo(comment.$id)
                           setCommentText(`${comment.username} `)
                         }}
-                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                        className="flex items-center gap-2 text-base text-muted-foreground hover:text-foreground"
                       >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                         </svg>
                         <span>Reply</span>
                       </button>
-                      <div className="flex items-center gap-4 ml-auto">
+                      <div className="flex items-center gap-5 ml-auto">
                         {comment.isLiked && (
-                          <span className="flex items-center gap-1.5 text-sm text-red-500">
-                            <Heart size={18} className="fill-red-500" />
+                          <span className="flex items-center gap-2 text-base text-red-500">
+                            <Heart size={20} className="fill-red-500" />
                             <span>{comment.likes}</span>
                           </span>
                         )}
@@ -995,9 +995,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                               e.stopPropagation()
                               setSelectedCommentForReplies(comment)
                             }}
-                            className="flex items-center gap-1.5 text-sm text-blue-500 hover:text-blue-600 font-medium"
+                            className="flex items-center gap-2 text-base text-blue-500 hover:text-blue-600 font-medium"
                           >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                             </svg>
                             <span>View {comment.replies} {comment.replies === 1 ? 'reply' : 'replies'}</span>
@@ -1335,19 +1335,19 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <div className="max-w-md">
             <div className="flex items-center gap-3 mb-3">
               {post.userAvatar ? (
-                <img src={post.userAvatar} alt={post.displayName} className="w-12 h-12 rounded-full object-cover border-2 border-white" />
+                <img src={post.userAvatar} alt={post.displayName} className="w-14 h-14 rounded-full object-cover border-2 border-white" />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-gray-600 border-2 border-white flex items-center justify-center text-white font-semibold">
+                <div className="w-14 h-14 rounded-full bg-gray-600 border-2 border-white flex items-center justify-center text-white font-semibold text-lg">
                   {(post.displayName || 'U')[0].toUpperCase()}
                 </div>
               )}
               <div>
-                <span className="text-white font-bold text-base block">{post.displayName || 'User'}</span>
-                <span className="text-gray-300 text-xs">{formatTimeAgo(post.createdAt)}</span>
+                <span className="text-white font-bold text-lg block">{post.displayName || 'User'}</span>
+                <span className="text-gray-300 text-sm">{formatTimeAgo(post.createdAt)}</span>
               </div>
             </div>
             {post.content && (
-              <p className="text-white text-sm leading-relaxed line-clamp-3">{post.content}</p>
+              <p className="text-white text-base leading-relaxed line-clamp-3">{post.content}</p>
             )}
           </div>
         </div>

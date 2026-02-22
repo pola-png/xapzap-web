@@ -224,22 +224,22 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
           </div>
         </div>
       )}
-      <div className="flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 pb-20">
+      <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5 pb-20">
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : comments.length === 0 ? (
-          <p className="text-muted-foreground text-sm text-center py-8">No comments yet</p>
+          <p className="text-muted-foreground text-base text-center py-8">No comments yet</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {comments.map((comment) => (
               <div key={comment.id}>
                 <div className="flex gap-3">
                 <img 
                   src={comment.userAvatar || ''} 
                   alt={comment.username} 
-                  className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer" 
+                  className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer" 
                   onClick={(e) => {
                     e.stopPropagation()
                     router.push(`/profile/${comment.userId}`)
@@ -247,7 +247,7 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                 />
                 <div className="flex-1 min-w-0">
                   <div 
-                    className="bg-muted rounded-2xl px-3 py-2 cursor-pointer"
+                    className="bg-muted rounded-2xl px-4 py-3 cursor-pointer"
                     onTouchStart={(e) => setSwipeStartX(e.touches[0].clientX)}
                     onTouchEnd={(e) => {
                       const swipeEndX = e.changedTouches[0].clientX
@@ -259,17 +259,17 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                     }}
                     onClick={() => handleLikeComment(comment.id)}
                   >
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1.5">
                       <span 
-                        className="font-medium text-sm cursor-pointer hover:underline"
+                        className="font-semibold text-base cursor-pointer hover:underline"
                         onClick={(e) => {
                           e.stopPropagation()
                           router.push(`/profile/${comment.userId}`)
                         }}
                       >{comment.username}</span>
-                      <span className="text-xs text-muted-foreground">{formatTimeAgo(comment.timestamp)}</span>
+                      <span className="text-sm text-muted-foreground">{formatTimeAgo(comment.timestamp)}</span>
                     </div>
-                    <p className="text-sm">{comment.content.split(' ').map((word, i) => 
+                    <p className="text-base leading-relaxed">{comment.content.split(' ').map((word, i) => 
                       word.startsWith('@') ? (
                         <span key={i} className="text-blue-500">{word} </span>
                       ) : (
@@ -277,15 +277,15 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                       )
                     )}</p>
                   </div>
-                  <div className="flex items-center gap-4 mt-2 ml-3">
+                  <div className="flex items-center gap-5 mt-3 ml-3">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         handleLikeComment(comment.id)
                       }}
-                      className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                      className="flex items-center gap-2 text-base text-muted-foreground hover:text-foreground"
                     >
-                      <Heart size={18} />
+                      <Heart size={20} />
                       <span>Like</span>
                     </button>
                     <button
@@ -295,17 +295,17 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                         setCommentText(`${comment.username} `)
                         setCommentInputFocused(true)
                       }}
-                      className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                      className="flex items-center gap-2 text-base text-muted-foreground hover:text-foreground"
                     >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                       </svg>
                       <span>Reply</span>
                     </button>
-                    <div className="flex items-center gap-4 ml-auto">
+                    <div className="flex items-center gap-5 ml-auto">
                       {comment.isLiked && (
-                        <span className="flex items-center gap-1.5 text-sm text-red-500">
-                          <Heart size={18} className="fill-red-500" />
+                        <span className="flex items-center gap-2 text-base text-red-500">
+                          <Heart size={20} className="fill-red-500" />
                           <span>{comment.likes}</span>
                         </span>
                       )}
@@ -315,9 +315,9 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                             e.stopPropagation()
                             setSelectedCommentForReplies(comment)
                           }}
-                          className="flex items-center gap-1.5 text-sm text-blue-500 hover:text-blue-600 font-medium"
+                          className="flex items-center gap-2 text-base text-blue-500 hover:text-blue-600 font-medium"
                         >
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M15 7l5 5-5 5M4 6v2a4 4 0 0 0 4 4h12"/>
                           </svg>
                           <span>View {comment.replies} {comment.replies === 1 ? 'reply' : 'replies'}</span>
