@@ -59,12 +59,25 @@ export async function POST(request: NextRequest) {
 
     const { user, databases } = auth
 
+    // Get user profile for displayName
+    const profileResult = await databases.listDocuments(
+      databaseId,
+      'profiles',
+      [
+        { method: 'equal', attribute: 'userId', values: [user.$id] },
+        { method: 'limit', values: [1] }
+      ]
+    )
+    const profile = profileResult.documents[0]
+
     const formData = await request.formData()
     const postData: any = {}
 
     // Extract basic post data
     postData.userId = user.$id
-    postData.username = user.name || 'User'
+    postData.username = profile?.username || user.name || 'User'
+    postData.displayName = profile?.displayName || profile?.username || user.name || 'User'
+    postData.userAvatar = profile?.avatarUrl || ''
     const postTypeValue = formData.get('postType') as string || 'text'
     postData.postType = postTypeValue
     postData.content = formData.get('content') as string || ''

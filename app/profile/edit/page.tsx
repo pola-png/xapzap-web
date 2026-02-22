@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Camera } from 'lucide-react'
 import appwriteService from '../../../appwriteService'
 import { useProfileStore } from '../../../profileStore'
 import { useAuthStore } from '../../../authStore'
@@ -19,6 +19,12 @@ export default function EditProfilePage() {
   const [location, setLocation] = useState('')
   const [website, setWebsite] = useState('')
   const [category, setCategory] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
+  const [coverUrl, setCoverUrl] = useState('')
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+  const coverInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     loadProfile()
@@ -40,6 +46,8 @@ export default function EditProfilePage() {
         setLocation(profile.location || '')
         setWebsite(profile.website || '')
         setCategory(profile.category || '')
+        setAvatarUrl(profile.avatarUrl || '')
+        setCoverUrl(profile.coverUrl || '')
       }
     } catch (error) {
       console.error('Failed to load profile:', error)
@@ -48,19 +56,94 @@ export default function EditProfilePage() {
     }
   }
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file')
+        return
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image must be less than 5MB')
+        return
+      }
+      setAvatarFile(file)
+      setAvatarUrl(URL.createObjectURL(file))
+    }
+  }
+
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file')
+        return
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Image must be less than 10MB')
+        return
+      }
+      setCoverFile(file)
+      setCoverUrl(URL.createObjectURL(file))
+    }
+  }
+
+  const uploadToWasabi = async (file: File): Promise<string> => {
+    const presignedRes = await fetch('/api/presigned-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileName: file.name,
+        fileType: file.type
+      })
+    })
+    
+    if (!presignedRes.ok) throw new Error('Failed to get presigned URL')
+    
+    const { presignedUrl, url } = await presignedRes.json()
+    
+    const uploadRes = await fetch(presignedUrl, {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': file.type }
+    })
+    
+    if (!uploadRes.ok) throw new Error('Upload failed')
+    
+    return url
+  }
+
   const handleSave = async () => {
+    if (!displayName.trim() || !username.trim()) {
+      alert('Display Name and Username are required')
+      return
+    }
+    
     setSaving(true)
     try {
       const user = await appwriteService.getCurrentUser()
       if (!user) return
 
+      let newAvatarUrl = avatarUrl
+      let newCoverUrl = coverUrl
+
+      if (avatarFile) {
+        newAvatarUrl = await uploadToWasabi(avatarFile)
+      }
+
+      if (coverFile) {
+        newCoverUrl = await uploadToWasabi(coverFile)
+      }
+
       await appwriteService.updateProfile(user.$id, {
-        displayName,
-        username,
-        bio,
-        location,
-        website,
-        category
+        displayName: displayName.trim(),
+        username: username.trim(),
+        bio: bio || '',
+        location: location || '',
+        website: website || '',
+        category: category || '',
+        avatarUrl: newAvatarUrl || '',
+        coverUrl: newCoverUrl || ''
       })
 
       authStore.setCurrentUserId(user.$id)
@@ -68,6 +151,7 @@ export default function EditProfilePage() {
       router.push('/profile')
     } catch (error) {
       console.error('Failed to save profile:', error)
+      alert('Failed to save profile. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -103,25 +187,78 @@ export default function EditProfilePage() {
       </div>
 
       <div className="p-4 space-y-6">
+        {/* Cover Image */}
+        <div className="relative">
+          <div 
+            onClick={() => coverInputRef.current?.click()}
+            className="relative h-48 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden cursor-pointer group"
+          >
+            {coverUrl ? (
+              <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Camera size={32} className="text-gray-400" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Camera size={24} className="text-white" />
+            </div>
+          </div>
+          <input
+            ref={coverInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleCoverChange}
+            className="hidden"
+          />
+        </div>
+
+        {/* Avatar */}
+        <div className="relative -mt-20 ml-4">
+          <div 
+            onClick={() => avatarInputRef.current?.click()}
+            className="relative w-32 h-32 rounded-full border-4 border-background bg-gray-200 dark:bg-gray-700 overflow-hidden cursor-pointer group"
+          >
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Camera size={24} className="text-gray-400" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Camera size={20} className="text-white" />
+            </div>
+          </div>
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarChange}
+            className="hidden"
+          />
+        </div>
         <div>
-          <label className="block text-sm font-medium mb-2">Display Name</label>
+          <label className="block text-sm font-medium mb-2">Display Name *</label>
           <input
             type="text"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-xapzap-blue"
             placeholder="Your display name"
+            required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-2">Username</label>
+          <label className="block text-sm font-medium mb-2">Username *</label>
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-xapzap-blue"
             placeholder="@username"
+            required
           />
         </div>
 
