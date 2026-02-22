@@ -62,13 +62,9 @@ export async function POST(request: NextRequest) {
     // Get user profile for displayName
     const profileResult = await databases.listDocuments(
       databaseId,
-      'profiles',
-      [
-        { method: 'equal', attribute: 'userId', values: [user.$id] },
-        { method: 'limit', values: [1] }
-      ]
+      'profiles'
     )
-    const profile = profileResult.documents[0]
+    const profile = profileResult.documents.find((doc: any) => doc.userId === user.$id)
 
     const formData = await request.formData()
     const postData: any = {}
