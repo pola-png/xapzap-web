@@ -13,6 +13,7 @@ import { parseHashtags } from './lib/hashtag'
 import { formatTimeAgo } from './utils'
 import { CommentModal } from './CommentModal'
 import { CommentScreen } from './CommentScreen'
+import { ReelsDetailScreen } from './VideoDetailScreen'
 
 interface PostCardProps {
   post: Post
@@ -34,6 +35,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
   const [userProfile, setUserProfile] = useState<any>(post.displayName ? { displayName: post.displayName, avatarUrl: post.avatarUrl } : null)
   const [showComments, setShowComments] = useState(false)
   const [showFullComments, setShowFullComments] = useState(false)
+  const [showReelDetail, setShowReelDetail] = useState(false)
 
   // Check if current user has liked/saved/reposted - skip if already in post data
   useEffect(() => {
@@ -341,7 +343,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
         return (
           <div
             className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden aspect-square"
-            onClick={() => router.push(`/reels/${generateSlug(post.title || post.content?.substring(0, 30) || 'reel', post.id)}`)}
+            onClick={() => setShowReelDetail(true)}
           >
             <img
               src={thumbnailUrl}
@@ -366,6 +368,10 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
     }
 
     return null
+  }
+
+  if (showReelDetail && post.postType === 'reel') {
+    return <ReelsDetailScreen post={post} onClose={() => setShowReelDetail(false)} />
   }
 
   if (showFullComments) {

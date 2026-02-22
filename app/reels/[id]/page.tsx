@@ -125,11 +125,11 @@ export default function ReelsDetailPage() {
     loadPost()
   }, [params.slug])
 
-  if (error || !post) {
+  if (error) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-white text-center">
-          <p className="text-xl mb-4">{error || 'Reel not found'}</p>
+          <p className="text-xl mb-4">{error}</p>
           <button
             onClick={() => window.history.back()}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
@@ -137,6 +137,14 @@ export default function ReelsDetailPage() {
             Go Back
           </button>
         </div>
+      </div>
+    )
+  }
+
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
       </div>
     )
   }

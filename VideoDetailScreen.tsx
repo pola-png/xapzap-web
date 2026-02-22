@@ -241,10 +241,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       setHasEnded(false)
     }
     
-    if (isPlaying) {
-      video.pause()
-    } else {
+    if (video.paused) {
       video.play()
+    } else {
+      video.pause()
     }
   }
 
@@ -522,7 +522,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         )}
 
         {/* Center Play/Controls - Show when paused OR when showControls is true */}
-        {(!isPlaying || showControls) && !selectedCommentForReplies && (
+        {(!isPlaying || showControls) && !selectedCommentForReplies && !showComments && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20 animate-in fade-in duration-200">
             <div className="flex items-center gap-3 sm:gap-4">
               <button

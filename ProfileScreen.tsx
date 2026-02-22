@@ -33,6 +33,7 @@ export function ProfileScreen() {
   const [followLoaded, setFollowLoaded] = useState(false)
   const [activeTab, setActiveTab] = useState<'posts' | 'videos' | 'news' | 'all'>('posts')
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
   useEffect(() => {
     loadProfile()
@@ -209,6 +210,22 @@ export function ProfileScreen() {
     }
   }
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !currentUser) return
+
+    setUploadingAvatar(true)
+    try {
+      const avatarUrl = await appwriteService.uploadProfilePicture(file)
+      await appwriteService.updateProfile({ avatarUrl })
+      setProfile(prev => prev ? { ...prev, avatarUrl } : null)
+    } catch (error) {
+      console.error('Failed to upload avatar:', error)
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
   const formatJoinDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       month: 'long',
@@ -243,7 +260,7 @@ export function ProfileScreen() {
         
         {/* Profile Picture */}
         <div className="absolute -bottom-16 left-6">
-          <div className="w-32 h-32 rounded-full bg-background p-1 shadow-lg">
+          <div className="w-32 h-32 rounded-full bg-background p-1 shadow-lg relative group">
             {profile.avatarUrl ? (
               <img
                 src={profile.avatarUrl}
@@ -258,6 +275,27 @@ export function ProfileScreen() {
                     : 'U'}
                 </span>
               </div>
+            )}
+            {isOwnProfile && (
+              <>
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="avatar-upload"
+                  className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center"
+                >
+                  {uploadingAvatar ? (
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                  ) : (
+                    <span className="text-white text-sm font-medium">Change</span>
+                  )}
+                </label>
+              </>
             )}
           </div>
         </div>
