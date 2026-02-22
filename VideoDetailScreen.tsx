@@ -7,6 +7,8 @@ import appwriteService from './appwriteService'
 import { normalizeWasabiImage } from './lib/wasabi'
 import { parseHashtags } from './lib/hashtag'
 import { formatTimeAgo } from './utils'
+import { CommentModal } from './CommentModal'
+import { CommentScreen } from './CommentScreen'
 
 interface VideoDetailScreenProps {
   post: Post
@@ -44,6 +46,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [swipeStartX, setSwipeStartX] = useState(0)
   const [selectedCommentForReplies, setSelectedCommentForReplies] = useState<any>(null)
+  const [repliesList, setRepliesList] = useState<any[]>([])
+  const [loadingReplies, setLoadingReplies] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
@@ -380,9 +384,39 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   }
 
   if (selectedCommentForReplies) {
+    const loadReplies = async () => {
+      setLoadingReplies(true)
+      try {
+        const result = await appwriteService.fetchComments(post.id)
+        const user = await appwriteService.getCurrentUser()
+        const replies = await Promise.all(
+          result.documents.filter((doc: any) => doc.parentCommentId === selectedCommentForReplies.$id).map(async (doc: any) => {
+            let isLiked = false
+            if (user) {
+              isLiked = await appwriteService.isCommentLikedBy(user.$id, doc.$id)
+            }
+            return { ...doc, isLiked }
+          })
+        )
+        setRepliesList(replies)
+      } catch (error) {
+        console.error('Failed to load replies:', error)
+      } finally {
+        setLoadingReplies(false)
+      }
+    }
+    
+    if (repliesList.length === 0 && !loadingReplies) {
+      loadReplies()
+    }
+
     return (
-      <div className="fixed inset-x-0 bottom-0 bg-background z-[70] flex flex-col animate-in slide-in-from-bottom duration-300 rounded-t-3xl" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
-        <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer rounded-t-3xl" onClick={() => setSelectedCommentForReplies(null)}>
+      <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col animate-in slide-in-from-bottom duration-300 rounded-t-3xl" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
+        <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer rounded-t-3xl" onClick={() => { 
+          setSelectedCommentForReplies(null)
+          setRepliesList([])
+          setShowControls(false)
+        }}>
           <div className="w-12 h-1 bg-border rounded-full" />
         </div>
         <div className="flex-1 overflow-y-auto p-4">
@@ -400,7 +434,30 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
               </div>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground text-center py-4">Replies feature coming soon</p>
+          {loadingReplies ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            </div>
+          ) : repliesList.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No replies yet</p>
+          ) : (
+            <div className="space-y-4">
+              {repliesList.map((reply: any) => (
+                <div key={reply.$id} className="flex gap-3">
+                  <img src={reply.userAvatar || ''} alt={reply.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                  <div className="flex-1">
+                    <div className="bg-muted rounded-2xl px-3 py-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm">{reply.username}</span>
+                        <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(reply.createdAt || reply.$createdAt))}</span>
+                      </div>
+                      <p className="text-sm">{reply.content}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     )
@@ -442,7 +499,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           onClick={handleVideoClick}
           muted={isMuted}
           playsInline
-          preload="auto"
+          preload="metadata"
+          autoPlay
         />
 
         {/* Speaker Icon - Top Right */}
@@ -464,7 +522,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         )}
 
         {/* Center Play/Controls - Show when paused OR when showControls is true */}
-        {(!isPlaying || showControls) && (
+        {(!isPlaying || showControls) && !selectedCommentForReplies && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20 animate-in fade-in duration-200">
             <div className="flex items-center gap-3 sm:gap-4">
               <button
@@ -776,7 +834,12 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <Repeat2 size={20} />
             <span className="text-xs sm:text-sm font-medium">{reposts || 0}</span>
           </button>
-          <button onClick={() => setShowComments(true)} className="flex items-center gap-1.5 hover:text-blue-500 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label={`Comments - ${comments || 0} comments`}>
+          <button onClick={() => setShowComments(true)} className="flex items-center gap-1.5 hover:text-blue-500 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label={`Comments - ${comments || 0} comments`} onClickCapture={() => {
+            const video = videoRef.current
+            if (video && !video.paused) {
+              video.pause()
+            }
+          }}>
             <MessageCircle size={20} />
             <span className="text-xs sm:text-sm font-medium">{comments || 0}</span>
           </button>
@@ -945,7 +1008,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 // Vertical video detail screen (for Reels)
 export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestAction }: VideoDetailScreenProps) {
   const [isPlaying, setIsPlaying] = useState(false)
-  const [isMuted, setIsMuted] = useState(true) // Reels are typically muted by default
+  const [isMuted, setIsMuted] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [showControls, setShowControls] = useState(false)
@@ -956,6 +1019,8 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [comments, setComments] = useState(post.comments || 0)
   const [saved, setSaved] = useState(post.isSaved || false)
   const [views, setViews] = useState(post.views || 0)
+  const [showComments, setShowComments] = useState(false)
+  const [showFullComments, setShowFullComments] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
@@ -1077,8 +1142,28 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
     }
   }
 
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: post.title || 'Check out this reel',
+          text: post.content || '',
+          url: window.location.href
+        })
+      }
+    } catch (error) {
+      console.error('Failed to share:', error)
+    }
+  }
+
+  if (showFullComments) {
+    return <CommentScreen post={post} onClose={() => setShowFullComments(false)} />
+  }
+
   return (
-    <div className="fixed inset-0 bg-black z-50">
+    <>
+      {showComments && <CommentModal post={post} onClose={() => setShowComments(false)} />}
+      <div className="fixed inset-0 bg-black z-50">
       {/* Full screen vertical video */}
       <div className="relative w-full h-full">
         <video
@@ -1139,6 +1224,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           </button>
 
           <button
+            onClick={() => setShowComments(true)}
             className="flex flex-col items-center gap-1 text-white"
             aria-label="View comments"
           >
@@ -1181,6 +1267,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           </button>
 
           <button
+            onClick={handleShare}
             className="flex flex-col items-center gap-1 text-white"
             aria-label="Share reel"
           >
@@ -1196,15 +1283,15 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <div className="max-w-md">
             <div className="flex items-center gap-3 mb-3">
               {post.userAvatar ? (
-                <img src={post.userAvatar} alt={post.username} className="w-12 h-12 rounded-full object-cover border-2 border-white" />
+                <img src={post.userAvatar} alt={post.displayName} className="w-12 h-12 rounded-full object-cover border-2 border-white" />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-gray-600 border-2 border-white flex items-center justify-center text-white font-semibold">
-                  {(post.username || 'U')[0].toUpperCase()}
+                  {(post.displayName || 'U')[0].toUpperCase()}
                 </div>
               )}
               <div>
-                <span className="text-white font-bold text-base block">{post.username || 'User'}</span>
-                <span className="text-gray-300 text-xs">{new Date(post.createdAt).toLocaleDateString()}</span>
+                <span className="text-white font-bold text-base block">{post.displayName || 'User'}</span>
+                <span className="text-gray-300 text-xs">{formatTimeAgo(post.createdAt)}</span>
               </div>
             </div>
             {post.content && (
@@ -1214,7 +1301,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
 
         {/* Progress Bar */}
-        <div className="absolute bottom-16 left-4 right-4 z-20">
+        <div className="absolute bottom-0 left-0 right-0 z-20">
           <div className="w-full h-0.5 bg-white/30 rounded-full overflow-hidden">
             <div
               className="h-full bg-white rounded-full transition-all duration-100"
@@ -1224,5 +1311,6 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
       </div>
     </div>
+    </>
   )
 }

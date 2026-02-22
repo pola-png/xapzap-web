@@ -11,6 +11,8 @@ import { feedCache } from './lib/cache'
 import { generateSlug } from './lib/slug'
 import { parseHashtags } from './lib/hashtag'
 import { formatTimeAgo } from './utils'
+import { CommentModal } from './CommentModal'
+import { CommentScreen } from './CommentScreen'
 
 interface PostCardProps {
   post: Post
@@ -30,6 +32,8 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
   const [reposted, setReposted] = useState(post.isReposted || false)
   const [reposts, setReposts] = useState(post.reposts || 0)
   const [userProfile, setUserProfile] = useState<any>(post.displayName ? { displayName: post.displayName, avatarUrl: post.avatarUrl } : null)
+  const [showComments, setShowComments] = useState(false)
+  const [showFullComments, setShowFullComments] = useState(false)
 
   // Check if current user has liked/saved/reposted - skip if already in post data
   useEffect(() => {
@@ -364,8 +368,14 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
     return null
   }
 
+  if (showFullComments) {
+    return <CommentScreen post={post} onClose={() => setShowFullComments(false)} />
+  }
+
   return (
-    <div className="border-b border-gray-200 dark:border-gray-700">
+    <>
+      {showComments && <CommentModal post={post} onClose={() => setShowComments(false)} />}
+      <div className="border-b border-gray-200 dark:border-gray-700">
       {/* Header */}
       <div className="flex items-center justify-between py-3">
         <div className="flex items-center gap-3">
@@ -440,7 +450,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
               <Heart size={24} className={liked ? 'fill-red-500' : ''} />
               <span className="text-sm font-medium">{likes || 0}</span>
             </button>
-            <button className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-gray-500 dark:text-gray-400" aria-label="Comment">
+            <button onClick={() => setShowComments(true)} className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-gray-500 dark:text-gray-400" aria-label="Comment">
               <MessageCircle size={24} />
               <span className="text-sm font-medium">{post.comments || 0}</span>
             </button>
@@ -474,7 +484,7 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
               <BarChart2 size={20} />
               <span className="text-sm font-medium">{post.impressions || 0}</span>
             </button>
-            <button onClick={onCommentClick} className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label={`View comments - ${post.comments || 0} comments`}>
+            <button onClick={() => setShowComments(true)} className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label={`View comments - ${post.comments || 0} comments`}>
               <MessageCircle size={20} />
               <span className="text-sm font-medium">{post.comments || 0}</span>
             </button>
@@ -486,5 +496,6 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
         )}
       </div>
     </div>
+    </>
   )
 }

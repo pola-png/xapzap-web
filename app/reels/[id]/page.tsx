@@ -15,10 +15,10 @@ export default function ReelsDetailPage() {
 
   useEffect(() => {
     const loadPost = async () => {
-      if (!params.id) return
+      if (!params.slug) return
 
       try {
-        const postId = extractIdFromSlug(params.id as string)
+        const postId = extractIdFromSlug(params.slug as string)
         const postData = await appwriteService.getPost(postId)
         const profile = await appwriteService.getProfileByUserId(postData.userId)
         const user = await appwriteService.getCurrentUser()
@@ -123,7 +123,7 @@ export default function ReelsDetailPage() {
     }
 
     loadPost()
-  }, [params.id])
+  }, [params.slug])
 
   if (error || !post) {
     return (

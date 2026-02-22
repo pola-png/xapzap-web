@@ -167,30 +167,66 @@ export function ReelsScreen() {
       if (!post) return
 
       if (action === 'like') {
-        await appwriteService.likePost(postId)
+        const wasLiked = post.isLiked
+        const prevLikes = post.likes || 0
+        
         setPosts(prev => prev.map(p => 
           p.id === postId ? { 
             ...p, 
-            isLiked: !p.isLiked,
-            likes: p.isLiked ? (p.likes || 0) - 1 : (p.likes || 0) + 1
+            isLiked: !wasLiked,
+            likes: wasLiked ? Math.max(0, prevLikes - 1) : prevLikes + 1
           } : p
         ))
+        
+        try {
+          if (wasLiked) {
+            await appwriteService.unlikePost(postId)
+          } else {
+            await appwriteService.likePost(postId)
+          }
+        } catch (error) {
+          console.error('Failed to toggle like:', error)
+          setPosts(prev => prev.map(p => 
+            p.id === postId ? { ...p, isLiked: wasLiked, likes: prevLikes } : p
+          ))
+        }
       } else if (action === 'save') {
-        await appwriteService.savePost(postId)
+        const wasSaved = post.isSaved
+        
         setPosts(prev => prev.map(p => 
-          p.id === postId ? { ...p, isSaved: !p.isSaved } : p
+          p.id === postId ? { ...p, isSaved: !wasSaved } : p
         ))
+        
+        try {
+          await appwriteService.savePost(postId)
+        } catch (error) {
+          console.error('Failed to toggle save:', error)
+          setPosts(prev => prev.map(p => 
+            p.id === postId ? { ...p, isSaved: wasSaved } : p
+          ))
+        }
       } else if (action === 'comment') {
         setCommentModalPost(post)
       } else if (action === 'repost') {
-        await appwriteService.repostPost(postId)
+        const wasReposted = post.isReposted
+        const prevReposts = post.reposts || 0
+        
         setPosts(prev => prev.map(p => 
           p.id === postId ? { 
             ...p, 
-            isReposted: !p.isReposted,
-            reposts: p.isReposted ? (p.reposts || 0) - 1 : (p.reposts || 0) + 1
+            isReposted: !wasReposted,
+            reposts: wasReposted ? Math.max(0, prevReposts - 1) : prevReposts + 1
           } : p
         ))
+        
+        try {
+          await appwriteService.repostPost(postId)
+        } catch (error) {
+          console.error('Failed to toggle repost:', error)
+          setPosts(prev => prev.map(p => 
+            p.id === postId ? { ...p, isReposted: wasReposted, reposts: prevReposts } : p
+          ))
+        }
       } else if (action === 'share') {
         if (navigator.share) {
           await navigator.share({
