@@ -86,34 +86,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   // Load comments when modal opens
   useEffect(() => {
-    if (selectedCommentForReplies) {
-    return (
-      <div className="fixed inset-x-0 bottom-0 bg-background z-[70] flex flex-col animate-in slide-in-from-bottom duration-300 rounded-t-3xl" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
-        <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer rounded-t-3xl" onClick={() => setSelectedCommentForReplies(null)}>
-          <div className="w-12 h-1 bg-border rounded-full" />
-        </div>
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="border-b border-border pb-4 mb-4">
-            <div className="flex gap-3">
-              <img src={selectedCommentForReplies.userAvatar || ''} alt={selectedCommentForReplies.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-              <div className="flex-1">
-                <div className="bg-muted rounded-2xl px-3 py-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-sm">{selectedCommentForReplies.username}</span>
-                    <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(selectedCommentForReplies.createdAt || selectedCommentForReplies.$createdAt))}</span>
-                  </div>
-                  <p className="text-sm">{selectedCommentForReplies.content}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <p className="text-sm text-muted-foreground text-center py-4">Replies feature coming soon</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (showComments) {
+    if (showComments) {
       loadComments()
     }
   }, [showComments])
@@ -405,6 +378,33 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     } catch (error) {
       console.error('Failed to share:', error)
     }
+  }
+
+  if (selectedCommentForReplies) {
+    return (
+      <div className="fixed inset-x-0 bottom-0 bg-background z-[70] flex flex-col animate-in slide-in-from-bottom duration-300 rounded-t-3xl" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
+        <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer rounded-t-3xl" onClick={() => setSelectedCommentForReplies(null)}>
+          <div className="w-12 h-1 bg-border rounded-full" />
+        </div>
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="border-b border-border pb-4 mb-4">
+            <div className="flex gap-3">
+              <img src={selectedCommentForReplies.userAvatar || ''} alt={selectedCommentForReplies.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+              <div className="flex-1">
+                <div className="bg-muted rounded-2xl px-3 py-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-sm">{selectedCommentForReplies.username}</span>
+                    <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(selectedCommentForReplies.createdAt || selectedCommentForReplies.$createdAt))}</span>
+                  </div>
+                  <p className="text-sm">{selectedCommentForReplies.content}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground text-center py-4">Replies feature coming soon</p>
+        </div>
+      </div>
+    )
   }
 
   return (
