@@ -7,6 +7,7 @@ import { PostCard } from '../../../PostCard'
 import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
 import { useProfileStore } from '../../../profileStore'
+import { useAuthStore } from '../../../authStore'
 
 type ProfileData = {
   displayName?: string
@@ -43,8 +44,9 @@ export default function ProfilePage() {
   })
   const [activeTab, setActiveTab] = useState<TabType>('posts')
   const profileStore = useProfileStore()
+  const authStore = useAuthStore()
 
-  const isCurrentUser = currentUserId === userId
+  const isCurrentUser = authStore.currentUserId === userId
 
   useEffect(() => {
     const cached = profileStore.getProfile(userId)
@@ -65,7 +67,9 @@ export default function ProfilePage() {
 
       // Get current user
       const currentUser = await appwriteService.getCurrentUser()
-      setCurrentUserId(currentUser?.$id || '')
+      const userId = currentUser?.$id || ''
+      setCurrentUserId(userId)
+      authStore.setCurrentUserId(userId)
 
       // Get profile data
       const profileData = await appwriteService.getProfileByUserId(userId)

@@ -452,7 +452,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           )}
           <div className="min-w-0 flex-1">
             <h3 className="text-foreground font-semibold text-lg sm:text-xl truncate">{post.displayName || 'User'}</h3>
-            <span className="text-muted-foreground text-sm sm:text-base">{new Date(post.createdAt).toLocaleDateString()}</span>
+            <span className="text-muted-foreground text-sm sm:text-base">{formatTimeAgo(post.createdAt)}</span>
           </div>
         </div>
         <button
@@ -963,7 +963,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                         )
                       )}</p>
                     </div>
-                    <div className="flex items-center gap-5 mt-3 ml-3">
+                    <div className="flex items-center gap-3 mt-3 ml-3">
                       <button
                         onClick={(e) => {
                           e.stopPropagation()

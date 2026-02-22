@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import appwriteService from '../../../appwriteService'
 import { useProfileStore } from '../../../profileStore'
+import { useAuthStore } from '../../../authStore'
 
 export default function EditProfilePage() {
   const router = useRouter()
   const profileStore = useProfileStore()
+  const authStore = useAuthStore()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [displayName, setDisplayName] = useState('')
@@ -61,6 +63,7 @@ export default function EditProfilePage() {
         category
       })
 
+      authStore.setCurrentUserId(user.$id)
       profileStore.clearProfile(user.$id)
       router.push('/profile')
     } catch (error) {

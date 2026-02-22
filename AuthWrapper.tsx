@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { AuthScreen } from './AuthScreen'
 import appwriteService from './appwriteService'
+import { useAuthStore } from './authStore'
 
 interface AuthWrapperProps {
   children: React.ReactNode
@@ -13,6 +14,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
   const [user, setUser] = useState<any>(null)
   const router = useRouter()
   const pathname = usePathname()
+  const authStore = useAuthStore()
 
   useEffect(() => {
     checkAuthState()
@@ -22,9 +24,11 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     try {
       const currentUser = await appwriteService.getCurrentUser()
       setUser(currentUser)
+      authStore.setCurrentUserId(currentUser?.$id || null)
     } catch (error) {
       console.error('Auth check failed:', error)
       setUser(null)
+      authStore.setCurrentUserId(null)
     }
   }
 

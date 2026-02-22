@@ -3,13 +3,16 @@
 import { ArrowLeft, Settings, Bookmark, BarChart3, DollarSign, MessageCircle, LogOut, FileText } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import appwriteService from '../../../appwriteService'
+import { useAuthStore } from '../../../authStore'
 
 export default function MenuPage() {
   const router = useRouter()
+  const authStore = useAuthStore()
 
   const handleSignOut = async () => {
     try {
       await appwriteService.signOut()
+      authStore.clearAuth()
       window.location.reload()
     } catch (error) {
       console.error('Sign out failed:', error)
