@@ -400,6 +400,16 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     }
   }
 
+  const handleDelete = async () => {
+    if (!confirm('Delete this post?')) return
+    try {
+      await appwriteService.deletePost(post.id)
+      window.location.reload()
+    } catch (error) {
+      console.error('Failed to delete post:', error)
+    }
+  }
+
   if (selectedCommentForReplies) {
     const loadReplies = async () => {
       setLoadingReplies(true)
@@ -426,58 +436,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     if (repliesList.length === 0 && !loadingReplies) {
       loadReplies()
     }
-
-    return (
-      <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col animate-in slide-in-from-bottom duration-300 rounded-t-3xl" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
-        <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer rounded-t-3xl" onClick={() => { 
-          setSelectedCommentForReplies(null)
-          setRepliesList([])
-          setShowControls(false)
-        }}>
-          <div className="w-12 h-1 bg-border rounded-full" />
-        </div>
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="border-b border-border pb-4 mb-4">
-            <div className="flex gap-3">
-              <img src={selectedCommentForReplies.userAvatar || ''} alt={selectedCommentForReplies.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-              <div className="flex-1">
-                <div className="bg-muted rounded-2xl px-3 py-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-sm">{selectedCommentForReplies.username}</span>
-                    <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(selectedCommentForReplies.createdAt || selectedCommentForReplies.$createdAt))}</span>
-                  </div>
-                  <p className="text-sm">{selectedCommentForReplies.content}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          {loadingReplies ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-            </div>
-          ) : repliesList.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No replies yet</p>
-          ) : (
-            <div className="space-y-4">
-              {repliesList.map((reply: any) => (
-                <div key={reply.$id} className="flex gap-3">
-                  <img src={reply.userAvatar || ''} alt={reply.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
-                  <div className="flex-1">
-                    <div className="bg-muted rounded-2xl px-3 py-2">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-sm">{reply.username}</span>
-                        <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(reply.createdAt || reply.$createdAt))}</span>
-                      </div>
-                      <p className="text-sm">{reply.content}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -641,6 +599,11 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
           <div className="absolute top-14 sm:top-16 right-3 sm:right-4 bg-background border border-border rounded-xl shadow-2xl z-50 min-w-[160px] animate-in fade-in slide-in-from-top-2 duration-200">
+            {currentUserId === post.userId && (
+              <button onClick={handleDelete} className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-muted transition-colors flex items-center gap-2 rounded-t-xl">
+                <span>Delete</span>
+              </button>
+            )}
             <button className="w-full px-4 py-3 text-left text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-2 rounded-t-xl">
               <span>Report</span>
             </button>
@@ -661,8 +624,60 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
       )}
 
+      {/* Replies Overlay */}
+      {selectedCommentForReplies && (
+        <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col animate-in slide-in-from-bottom duration-300 rounded-t-3xl" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
+          <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer rounded-t-3xl" onClick={() => { 
+            setSelectedCommentForReplies(null)
+            setRepliesList([])
+          }}>
+            <div className="w-12 h-1 bg-border rounded-full" />
+          </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="border-b border-border pb-4 mb-4">
+              <div className="flex gap-3">
+                <img src={selectedCommentForReplies.userAvatar || ''} alt={selectedCommentForReplies.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="bg-muted rounded-2xl px-3 py-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-medium text-sm">{selectedCommentForReplies.username}</span>
+                      <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(selectedCommentForReplies.createdAt || selectedCommentForReplies.$createdAt))}</span>
+                    </div>
+                    <p className="text-sm">{selectedCommentForReplies.content}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {loadingReplies ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              </div>
+            ) : repliesList.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No replies yet</p>
+            ) : (
+              <div className="space-y-4">
+                {repliesList.map((reply: any) => (
+                  <div key={reply.$id} className="flex gap-3">
+                    <img src={reply.userAvatar || ''} alt={reply.username} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="bg-muted rounded-2xl px-3 py-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-sm">{reply.username}</span>
+                          <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(reply.createdAt || reply.$createdAt))}</span>
+                        </div>
+                        <p className="text-sm">{reply.content}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Comments Overlay */}
-      {showComments && (
+      {showComments && !selectedCommentForReplies && (
         <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col animate-in slide-in-from-bottom duration-300 rounded-t-3xl" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
           <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer rounded-t-3xl" onClick={() => setShowComments(false)}>
             <div className="w-12 h-1 bg-border rounded-full" />

@@ -1141,6 +1141,19 @@ class AppwriteService {
     } catch {}
   }
 
+  async deletePost(postId: string) {
+    try {
+      await this.databases.deleteDocument(
+        this.databaseId,
+        this.collections.posts,
+        postId
+      )
+    } catch (error) {
+      console.error('Failed to delete post:', error)
+      throw error
+    }
+  }
+
   // Storage methods
   async uploadFile(file: File, customFileId?: string) {
     // Generate a valid fileId (max 36 chars, only a-zA-Z0-9._-)

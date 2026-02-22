@@ -36,6 +36,8 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
   const [showComments, setShowComments] = useState(false)
   const [showFullComments, setShowFullComments] = useState(false)
   const [showReelDetail, setShowReelDetail] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   useEffect(() => {
     const handlePopState = () => {
@@ -52,6 +54,14 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
   }, [showReelDetail, showFullComments, showComments])
 
   // Check if current user has liked/saved/reposted - skip if already in post data
+  useEffect(() => {
+    const loadUser = async () => {
+      const user = await appwriteService.getCurrentUser()
+      setCurrentUserId(user?.$id || null)
+    }
+    loadUser()
+  }, [])
+
   useEffect(() => {
     if (post.isLiked !== undefined) return // Already have interaction data
     
@@ -264,6 +274,16 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
     }
   }
 
+  const handleDelete = async () => {
+    if (!confirm('Delete this post?')) return
+    try {
+      await appwriteService.deletePost(post.id)
+      window.location.reload()
+    } catch (error) {
+      console.error('Failed to delete post:', error)
+    }
+  }
+
   // Render media content
   const renderMedia = () => {
     if (!post.mediaUrls || post.mediaUrls.length === 0) return null
@@ -427,10 +447,26 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
             <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">{formatTimeAgo(post.createdAt)}</span>
           </div>
         </div>
-        <button className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white p-1" aria-label="More options">
+        <button onClick={() => setShowMenu(!showMenu)} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white p-1" aria-label="More options">
           <MoreHorizontal size={20} />
         </button>
       </div>
+
+      {showMenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+          <div className="absolute top-16 right-4 bg-background border border-border rounded-xl shadow-2xl z-50 min-w-[160px]">
+            {currentUserId === post.userId && (
+              <button onClick={handleDelete} className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-muted transition-colors rounded-t-xl">
+                Delete
+              </button>
+            )}
+            <button className="w-full px-4 py-3 text-left text-sm text-foreground hover:bg-muted transition-colors rounded-b-xl">
+              Report
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Content */}
       <div className="pb-2">
