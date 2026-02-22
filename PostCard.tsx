@@ -37,6 +37,20 @@ export const PostCard = ({ post, currentUserId, feedType = 'home', onVideoClick,
   const [showFullComments, setShowFullComments] = useState(false)
   const [showReelDetail, setShowReelDetail] = useState(false)
 
+  useEffect(() => {
+    const handlePopState = () => {
+      if (showReelDetail) setShowReelDetail(false)
+      else if (showFullComments) setShowFullComments(false)
+      else if (showComments) setShowComments(false)
+    }
+    
+    if (showReelDetail || showFullComments || showComments) {
+      window.history.pushState(null, '', window.location.href)
+      window.addEventListener('popstate', handlePopState)
+      return () => window.removeEventListener('popstate', handlePopState)
+    }
+  }, [showReelDetail, showFullComments, showComments])
+
   // Check if current user has liked/saved/reposted - skip if already in post data
   useEffect(() => {
     if (post.isLiked !== undefined) return // Already have interaction data

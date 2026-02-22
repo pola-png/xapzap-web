@@ -1,0 +1,95 @@
+'use client'
+
+import { ArrowLeft, Settings, Bookmark, BarChart3, DollarSign, MessageCircle, LogOut } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import appwriteService from '../../appwriteService'
+
+export default function MenuPage() {
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    try {
+      await appwriteService.signOut()
+      window.location.reload()
+    } catch (error) {
+      console.error('Sign out failed:', error)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center gap-3 p-4 border-b border-border">
+          <button onClick={() => router.back()} className="p-2 hover:bg-accent rounded-full">
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-xl font-bold">Menu</h1>
+        </div>
+        
+        <div className="p-4 space-y-2">
+          <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
+            <Settings size={20} />
+            <span className="font-medium">Edit Profile</span>
+          </button>
+          
+          <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
+            <Bookmark size={20} />
+            <span className="font-medium">Saved Posts</span>
+          </button>
+          
+          <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
+            <BarChart3 size={20} />
+            <span className="font-medium">Analytics</span>
+          </button>
+          
+          <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
+            <DollarSign size={20} />
+            <span className="font-medium">Monetization</span>
+          </button>
+          
+          <div className="h-px bg-border my-2" />
+          
+          <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
+            <Settings size={20} />
+            <span className="font-medium">Settings & Privacy</span>
+          </button>
+          
+          <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
+            <MessageCircle size={20} />
+            <span className="font-medium">Help & Support</span>
+          </button>
+          
+          <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
+            <span className="text-xl">ℹ️</span>
+            <span className="font-medium">About XapZap</span>
+          </button>
+          
+          <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
+            <span className="text-xl">📜</span>
+            <span className="font-medium">Terms of Service</span>
+          </button>
+          
+          <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
+            <span className="text-xl">🔒</span>
+            <span className="font-medium">Privacy Policy</span>
+          </button>
+          
+          <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
+            <span className="text-xl">👥</span>
+            <span className="font-medium">Community Guidelines</span>
+          </button>
+          
+          <div className="h-px bg-border my-2" />
+          
+          <button 
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3 p-4 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors text-left text-red-600"
+          >
+            <LogOut size={20} />
+            <span className="font-medium">Sign Out</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

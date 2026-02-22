@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { BarChart3, DollarSign, Settings, MapPin, Calendar, Link as LinkIcon, MoreHorizontal, UserPlus, UserMinus, MessageCircle, Share, LogOut } from 'lucide-react'
 import { PostCard } from './PostCard'
 import { Post } from './types'
@@ -34,9 +35,18 @@ export function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<'posts' | 'videos' | 'news' | 'all'>('posts')
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     loadProfile()
+  }, [])
+
+  useEffect(() => {
+    const handlePopState = () => {
+      // Device back button pressed - do nothing, let it navigate
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
   const loadProfile = async () => {
@@ -363,16 +373,12 @@ export function ProfileScreen() {
           <div className="flex items-center space-x-3">
             {isOwnProfile ? (
               <>
-                <button className="px-6 py-2 border border-border rounded-full hover:bg-accent transition-colors font-medium">
-                  <Settings size={16} className="inline mr-2" />
-                  Edit Profile
-                </button>
                 <button 
-                  onClick={handleSignOut}
-                  className="px-6 py-2 border border-red-200 text-red-600 rounded-full hover:bg-red-50 transition-colors font-medium"
+                  onClick={() => router.push('/profile/menu')}
+                  className="px-6 py-2 border border-border rounded-full hover:bg-accent transition-colors font-medium"
                 >
-                  <LogOut size={16} className="inline mr-2" />
-                  Sign Out
+                  <Settings size={16} className="inline mr-2" />
+                  Menu
                 </button>
               </>
             ) : (

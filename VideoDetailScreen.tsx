@@ -54,6 +54,23 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const hasCountedView = useRef(false)
 
   useEffect(() => {
+    const handlePopState = () => {
+      if (selectedCommentForReplies) {
+        setSelectedCommentForReplies(null)
+        setRepliesList([])
+      } else if (showComments) {
+        setShowComments(false)
+      }
+    }
+    
+    if (selectedCommentForReplies || showComments) {
+      window.history.pushState(null, '', window.location.href)
+      window.addEventListener('popstate', handlePopState)
+      return () => window.removeEventListener('popstate', handlePopState)
+    }
+  }, [selectedCommentForReplies, showComments])
+
+  useEffect(() => {
     const loadUser = async () => {
       const user = await appwriteService.getCurrentUser()
       setCurrentUserId(user?.$id || null)
@@ -1024,6 +1041,19 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (showFullComments) setShowFullComments(false)
+      else if (showComments) setShowComments(false)
+    }
+    
+    if (showFullComments || showComments) {
+      window.history.pushState(null, '', window.location.href)
+      window.addEventListener('popstate', handlePopState)
+      return () => window.removeEventListener('popstate', handlePopState)
+    }
+  }, [showFullComments, showComments])
 
   // Subscribe to realtime updates for this post
   useEffect(() => {
