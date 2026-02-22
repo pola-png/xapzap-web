@@ -626,12 +626,19 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Replies Overlay */}
       {selectedCommentForReplies && (
-        <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col animate-in slide-in-from-bottom duration-300 rounded-t-3xl" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
-          <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer rounded-t-3xl" onClick={() => { 
-            setSelectedCommentForReplies(null)
-            setRepliesList([])
-          }}>
-            <div className="w-12 h-1 bg-border rounded-full" />
+        <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col animate-in slide-in-from-bottom duration-300" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <button
+              onClick={() => { 
+                setSelectedCommentForReplies(null)
+                setRepliesList([])
+              }}
+              className="p-2 hover:bg-accent rounded-full transition-colors"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h1 className="text-lg font-semibold">Replies</h1>
+            <div className="w-10" />
           </div>
           <div className="flex-1 overflow-y-auto p-4">
             <div className="border-b border-border pb-4 mb-4">
