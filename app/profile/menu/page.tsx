@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Settings, Bookmark, BarChart3, DollarSign, MessageCircle, LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import appwriteService from '../../appwriteService'
+import appwriteService from '../../../appwriteService'
 
 export default function MenuPage() {
   const router = useRouter()
