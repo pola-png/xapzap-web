@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Calendar, MessageCircle, UserPlus, UserMinus, Share, Settings, BarChart3, DollarSign, LogOut, Menu } from 'lucide-react'
+import { Calendar, MessageCircle, UserPlus, UserMinus, Share, Settings, BarChart3, DollarSign, Menu } from 'lucide-react'
 import { PostCard } from '../../../PostCard'
 import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
@@ -31,7 +31,6 @@ export default function ProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [showMenu, setShowMenu] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
   const [showAvatarMenu, setShowAvatarMenu] = useState(false)
@@ -143,15 +142,6 @@ export default function ProfilePage() {
   const handleMessage = () => {
     // TODO: Implement chat functionality
     console.log('Message user:', userId)
-  }
-
-  const handleLogout = async () => {
-    try {
-      await appwriteService.signOut()
-      router.push('/auth/signin')
-    } catch (error) {
-      console.error('Logout failed:', error)
-    }
   }
 
   const handleShare = () => {
@@ -416,39 +406,13 @@ export default function ProfilePage() {
               >
                 <Share className="w-5 h-5" />
               </button>
-              <div className="relative">
-                <button
-                  onClick={() => setShowMenu(!showMenu)}
-                  className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
-                  aria-label="Menu"
-                >
-                  <Menu className="w-5 h-5" />
-                </button>
-                {showMenu && (
-                  <div className="absolute right-0 top-12 bg-gray-900 border border-gray-800 rounded-lg shadow-xl z-50 min-w-[200px]">
-                    <button
-                      onClick={() => {
-                        router.push('/profile/menu')
-                        setShowMenu(false)
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-800 text-white transition-colors rounded-t-lg"
-                    >
-                      <Settings className="w-4 h-4" />
-                      <span>Menu</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleLogout()
-                        setShowMenu(false)
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-800 text-red-500 transition-colors border-t border-gray-800 rounded-b-lg"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Log out</span>
-                    </button>
-                  </div>
-                )}
-              </div>
+              <button
+                onClick={() => router.push('/profile/menu')}
+                className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
+                aria-label="Menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
             </>
           ) : (
             <>

@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Settings, Bookmark, BarChart3, DollarSign, MessageCircle, LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import appwriteService from '../../appwriteService'
+import appwriteService from '../../../appwriteService'
 
 export default function MenuPage() {
   const router = useRouter()
@@ -81,9 +81,9 @@ export default function MenuPage() {
             <span className="text-xl">👥</span>
             <span className="font-medium">Community Guidelines</span>
           </button>
-          
-          <div className="h-px bg-border my-2" />
-          
+        </div>
+        
+        <div className="p-4 pt-0">
           <button 
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 p-4 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors text-left text-red-600"

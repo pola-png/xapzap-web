@@ -12,13 +12,14 @@ export function formatTimeAgo(date: Date | string): string {
   const diffMins = Math.floor(diffMs / 60000)
   const diffHours = Math.floor(diffMs / 3600000)
   const diffDays = Math.floor(diffMs / 86400000)
-  const diffWeeks = Math.floor(diffDays / 7)
 
   if (diffMins < 1) return 'now'
-  if (diffMins < 60) return `${diffMins}m`
-  if (diffHours < 24) return `${diffHours}h`
-  if (diffDays < 7) return `${diffDays}d`
-  if (diffWeeks < 4) return `${diffWeeks}w`
+  if (diffMins === 1) return '1 minute ago'
+  if (diffMins < 60) return `${diffMins} minutes ago`
+  if (diffHours === 1) return '1 hour ago'
+  if (diffHours < 24) return `${diffHours} hours ago`
+  if (diffDays === 1) return '1 day ago'
+  if (diffDays <= 28) return `${diffDays} days ago`
   
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   const yearDiff = now.getFullYear() - past.getFullYear()
