@@ -15,7 +15,8 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    const key = `media/${Date.now()}_${fileName}`
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_')
+    const key = `media/${Date.now()}_${sanitizedFileName}`
 
     const command = new PutObjectCommand({
       Bucket: process.env.WASABI_BUCKET || 'xapzap-media',

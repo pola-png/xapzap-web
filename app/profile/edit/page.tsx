@@ -124,27 +124,28 @@ export default function EditProfilePage() {
       const user = await appwriteService.getCurrentUser()
       if (!user) return
 
-      let newAvatarUrl = avatarUrl
-      let newCoverUrl = coverUrl
-
-      if (avatarFile) {
-        newAvatarUrl = await uploadToWasabi(avatarFile)
-      }
-
-      if (coverFile) {
-        newCoverUrl = await uploadToWasabi(coverFile)
-      }
-
-      await appwriteService.updateProfile(user.$id, {
+      const updateData: any = {
         displayName: displayName.trim(),
         username: username.trim(),
         bio: bio || '',
         location: location || '',
         website: website || '',
-        category: category || '',
-        avatarUrl: newAvatarUrl || '',
-        coverUrl: newCoverUrl || ''
-      })
+        category: category || ''
+      }
+
+      if (avatarFile) {
+        updateData.avatarUrl = await uploadToWasabi(avatarFile)
+      } else if (avatarUrl && !avatarUrl.startsWith('blob:')) {
+        updateData.avatarUrl = avatarUrl
+      }
+
+      if (coverFile) {
+        updateData.coverUrl = await uploadToWasabi(coverFile)
+      } else if (coverUrl && !coverUrl.startsWith('blob:')) {
+        updateData.coverUrl = coverUrl
+      }
+
+      await appwriteService.updateProfile(user.$id, updateData)
 
       authStore.setCurrentUserId(user.$id)
       profileStore.clearProfile(user.$id)
