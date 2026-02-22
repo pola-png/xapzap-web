@@ -455,15 +455,17 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
       {showMenu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
-          <div className="absolute top-16 right-4 bg-background border border-border rounded-xl shadow-2xl z-50 min-w-[160px]">
-            {currentUserId === post.userId && (
-              <button onClick={handleDelete} className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-muted transition-colors rounded-t-xl">
-                Delete
+          <div className="absolute top-12 right-4 bg-background border border-border rounded-xl shadow-2xl z-50 overflow-x-auto whitespace-nowrap max-w-[calc(100vw-2rem)]">
+            <div className="flex">
+              {currentUserId === post.userId && (
+                <button onClick={handleDelete} className="px-4 py-3 text-sm text-red-600 hover:bg-muted transition-colors">
+                  Delete
+                </button>
+              )}
+              <button className="px-4 py-3 text-sm text-foreground hover:bg-muted transition-colors">
+                Report
               </button>
-            )}
-            <button className="w-full px-4 py-3 text-left text-sm text-foreground hover:bg-muted transition-colors rounded-b-xl">
-              Report
-            </button>
+            </div>
           </div>
         </>
       )}

@@ -598,15 +598,17 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       {showMenu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
-          <div className="absolute top-14 sm:top-16 right-3 sm:right-4 bg-background border border-border rounded-xl shadow-2xl z-50 min-w-[160px] animate-in fade-in slide-in-from-top-2 duration-200">
-            {currentUserId === post.userId && (
-              <button onClick={handleDelete} className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-muted transition-colors flex items-center gap-2 rounded-t-xl">
-                <span>Delete</span>
+          <div className="absolute top-14 sm:top-16 right-3 sm:right-4 bg-background border border-border rounded-xl shadow-2xl z-50 overflow-x-auto whitespace-nowrap max-w-[calc(100vw-2rem)]">
+            <div className="flex">
+              {currentUserId === post.userId && (
+                <button onClick={handleDelete} className="px-4 py-3 text-sm text-red-600 hover:bg-muted transition-colors">
+                  Delete
+                </button>
+              )}
+              <button className="px-4 py-3 text-sm text-foreground hover:bg-muted transition-colors">
+                Report
               </button>
-            )}
-            <button className="w-full px-4 py-3 text-left text-sm text-foreground hover:bg-muted transition-colors flex items-center gap-2 rounded-t-xl">
-              <span>Report</span>
-            </button>
+            </div>
           </div>
         </>
       )}
