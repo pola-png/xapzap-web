@@ -90,13 +90,18 @@ export default function EditProfilePage() {
 
   const uploadToWasabi = async (file: File): Promise<string> => {
     try {
-      console.log('Uploading file:', file.name, file.type, file.size)
+      // Sanitize filename - remove spaces and special characters
+      const sanitizedName = file.name.replace(/\s+/g, '_').replace(/[()]/g, '')
+      const timestamp = Date.now()
+      const cleanFileName = `${timestamp}_${sanitizedName}`
+      
+      console.log('Uploading file:', cleanFileName, file.type, file.size)
       
       const presignedRes = await fetch('/api/presigned-url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fileName: file.name,
+          fileName: cleanFileName,
           fileType: file.type
         })
       })
