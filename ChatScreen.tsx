@@ -94,7 +94,7 @@ function ChatList({ chats, onChatSelect, loading }: ChatListProps) {
                 key={chat.id}
                 onClick={() => onChatSelect(chat)}
                 className="p-4 hover:bg-accent cursor-pointer transition-colors"
-                ref={el => el && avatarRefs.current.set(chat.id, el)}
+                ref={el => { if (el) avatarRefs.current.set(chat.id, el) }}
               >
                 <div className="flex items-center space-x-3">
                   <div className="relative">
