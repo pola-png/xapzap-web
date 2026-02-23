@@ -125,13 +125,15 @@ export default function EditProfilePage() {
       if (!user) return
 
       const updateData: any = {
+        userId: user.$id,
         displayName: displayName.trim(),
-        username: username.trim(),
-        bio: bio || '',
-        location: location || '',
-        website: website || '',
-        category: category || ''
+        username: username.trim()
       }
+
+      if (bio.trim()) updateData.bio = bio.trim()
+      if (location.trim()) updateData.location = location.trim()
+      if (website.trim()) updateData.website = website.trim()
+      if (category) updateData.category = category
 
       if (avatarFile) {
         updateData.avatarUrl = await uploadToWasabi(avatarFile)

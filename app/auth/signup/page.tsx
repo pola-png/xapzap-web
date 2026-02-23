@@ -7,6 +7,7 @@ import appwriteService from '../../../appwriteService'
 
 export default function SignUpPage() {
   const router = useRouter()
+  const [displayName, setDisplayName] = useState('')
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -17,7 +18,7 @@ export default function SignUpPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!username || !email || !password || !confirmPassword) {
+    if (!displayName || !username || !email || !password || !confirmPassword) {
       setError('Please fill in all fields')
       return
     }
@@ -46,8 +47,8 @@ export default function SignUpPage() {
     setError('')
 
     try {
-      await appwriteService.signUp(email, password, username)
-      router.push('/')
+      await appwriteService.signUp(email, password, username, displayName)
+      router.push('/profile/edit')
     } catch (err: any) {
       setError(err.message || 'Sign up failed')
     } finally {
@@ -67,6 +68,20 @@ export default function SignUpPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
+                Display Name
+              </label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Your full name"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Username
               </label>
               <input
@@ -74,7 +89,7 @@ export default function SignUpPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g., yourusername"
+                placeholder="@yourusername"
                 required
               />
             </div>

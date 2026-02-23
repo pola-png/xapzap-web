@@ -79,19 +79,7 @@ class AppwriteService {
       const user = await this.getCurrentUser()
       if (!user) throw new Error('Failed to get user after signup')
 
-      // Create user record in users collection
-      await this.databases.createDocument(
-        this.databaseId,
-        this.collections.users,
-        user.$id,
-        {
-          userId: user.$id,
-          username,
-          email
-        }
-      )
-
-      // Create profile record
+      // Create profile record (only required fields)
       await this.databases.createDocument(
         this.databaseId,
         this.collections.profiles,
@@ -99,12 +87,7 @@ class AppwriteService {
         {
           userId: user.$id,
           username,
-          displayName: displayName || username,
-          bio: '',
-          avatarUrl: '',
-          coverUrl: '',
-          isAdmin: false,
-          isBanned: false
+          displayName: displayName || username
         }
       )
 
