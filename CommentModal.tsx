@@ -237,7 +237,7 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
               <div key={comment.id}>
                 <div className="flex gap-3">
                 <img 
-                  src={comment.userAvatar || ''} 
+                  src={comment.userAvatar.startsWith('/media/') ? `/api/image-proxy?path=${comment.userAvatar.substring(1)}` : comment.userAvatar || ''} 
                   alt={comment.username} 
                   className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer" 
                   onClick={(e) => {

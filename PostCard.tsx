@@ -426,7 +426,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           >
             {userProfile?.avatarUrl ? (
               <img
-                src={userProfile.avatarUrl}
+                src={userProfile.avatarUrl.startsWith('/media/') ? `/api/image-proxy?path=${userProfile.avatarUrl.substring(1)}` : userProfile.avatarUrl}
                 alt={userProfile.displayName || 'User'}
                 className="w-10 h-10 rounded-full object-cover"
               />

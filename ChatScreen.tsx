@@ -73,7 +73,7 @@ function ChatList({ chats, onChatSelect, loading }: ChatListProps) {
                 <div className="flex items-center space-x-3">
                   <div className="relative">
                     <img
-                      src={chat.partnerAvatar}
+                      src={chat.partnerAvatar.startsWith('/media/') ? `/api/image-proxy?path=${chat.partnerAvatar.substring(1)}` : chat.partnerAvatar}
                       alt={chat.partnerName}
                       className="w-12 h-12 rounded-full object-cover"
                     />
@@ -155,7 +155,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
           </button>
           <div className="relative">
             <img
-              src={chat.partnerAvatar}
+              src={chat.partnerAvatar.startsWith('/media/') ? `/api/image-proxy?path=${chat.partnerAvatar.substring(1)}` : chat.partnerAvatar}
               alt={chat.partnerName}
               className="w-10 h-10 rounded-full object-cover"
             />

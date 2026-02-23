@@ -211,10 +211,35 @@ export default function ProfilePage() {
 
     setUploadingAvatar(true)
     try {
-      const avatarUrl = await appwriteService.uploadProfilePicture(file)
-      await appwriteService.updateProfile(currentUserId, { avatarUrl })
-      setProfile(prev => prev ? { ...prev, avatarUrl } : null)
+      // Sanitize filename
+      const sanitizedName = file.name.replace(/\s+/g, '_').replace(/[()]/g, '')
+      const cleanFileName = `${Date.now()}_${sanitizedName}`
+      
+      const presignedRes = await fetch('/api/presigned-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: cleanFileName,
+          fileType: file.type
+        })
+      })
+      
+      if (!presignedRes.ok) throw new Error('Failed to get presigned URL')
+      
+      const { presignedUrl, url } = await presignedRes.json()
+      
+      const uploadRes = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type }
+      })
+      
+      if (!uploadRes.ok) throw new Error('Upload failed')
+      
+      await appwriteService.updateProfile(currentUserId, { avatarUrl: url })
+      setProfile(prev => prev ? { ...prev, avatarUrl: url } : null)
       setShowAvatarMenu(false)
+      profileStore.clearProfile(currentUserId)
     } catch (error) {
       console.error('Failed to upload avatar:', error)
     } finally {
@@ -228,11 +253,35 @@ export default function ProfilePage() {
 
     setUploadingBanner(true)
     try {
-      const { default: storageService } = await import('../../../storage')
-      const coverUrl = await storageService.uploadFile(file)
-      await appwriteService.updateProfile(currentUserId, { coverUrl })
-      setProfile(prev => prev ? { ...prev, coverUrl } : null)
+      // Sanitize filename
+      const sanitizedName = file.name.replace(/\s+/g, '_').replace(/[()]/g, '')
+      const cleanFileName = `${Date.now()}_${sanitizedName}`
+      
+      const presignedRes = await fetch('/api/presigned-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: cleanFileName,
+          fileType: file.type
+        })
+      })
+      
+      if (!presignedRes.ok) throw new Error('Failed to get presigned URL')
+      
+      const { presignedUrl, url } = await presignedRes.json()
+      
+      const uploadRes = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type }
+      })
+      
+      if (!uploadRes.ok) throw new Error('Upload failed')
+      
+      await appwriteService.updateProfile(currentUserId, { coverUrl: url })
+      setProfile(prev => prev ? { ...prev, coverUrl: url } : null)
       setShowBannerMenu(false)
+      profileStore.clearProfile(currentUserId)
     } catch (error) {
       console.error('Failed to upload banner:', error)
     } finally {
@@ -284,7 +333,7 @@ export default function ProfilePage() {
       <div className="relative h-48 bg-gradient-to-br from-blue-600 to-purple-700 group">
         {profile.coverUrl && (
           <img
-            src={profile.coverUrl}
+            src={profile.coverUrl.startsWith('/media/') ? `/api/image-proxy?path=${profile.coverUrl.substring(1)}` : profile.coverUrl}
             alt="Cover"
             className="w-full h-full object-cover"
           />
@@ -336,7 +385,7 @@ export default function ProfilePage() {
           <div className="w-24 h-24 rounded-full border-4 border-black bg-gray-800 flex items-center justify-center relative group">
             {profile.avatarUrl ? (
               <img
-                src={profile.avatarUrl}
+                src={profile.avatarUrl.startsWith('/media/') ? `/api/image-proxy?path=${profile.avatarUrl.substring(1)}` : profile.avatarUrl}
                 alt={profile.displayName}
                 className="w-full h-full rounded-full object-cover"
               />

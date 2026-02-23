@@ -53,7 +53,7 @@ export function StoryBar() {
                   <div className={`absolute inset-0 rounded-full ${story.isViewed ? 'bg-[rgb(var(--bg-secondary))]' : 'bg-gradient-to-tr from-[#FEDA75] via-[#F58529] via-[#DD2A7B] via-[#8134AF] to-[#515BD4]'}`} />
                   <div className="relative w-[62px] h-[62px] rounded-full bg-[rgb(var(--bg-primary))] border-2 border-[rgb(var(--bg-primary))] flex items-center justify-center overflow-hidden">
                     {story.avatar ? (
-                      <img src={story.avatar} alt={story.username} className="w-full h-full object-cover" />
+                      <img src={story.avatar.startsWith('/media/') ? `/api/image-proxy?path=${story.avatar.substring(1)}` : story.avatar} alt={story.username} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-[rgb(var(--bg-secondary))] flex items-center justify-center text-[rgb(var(--text-primary))] text-sm font-bold">
                         {story.username[0]}

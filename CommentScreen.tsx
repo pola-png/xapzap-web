@@ -150,7 +150,7 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
   const CommentItem = ({ comment, isReply = false }: { comment: Comment; isReply?: boolean }) => (
     <div className={cn("flex gap-3", isReply && "ml-12")}>
       <img 
-        src={comment.userAvatar || ''} 
+        src={comment.userAvatar.startsWith('/media/') ? `/api/image-proxy?path=${comment.userAvatar.substring(1)}` : comment.userAvatar || ''} 
         alt={comment.username} 
         className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer" 
         onClick={(e) => {

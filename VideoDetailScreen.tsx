@@ -444,7 +444,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       <div className="bg-background/95 backdrop-blur-md p-4 sm:p-5 z-20 flex items-center justify-between border-b border-border/50 shadow-sm transition-all">
         <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
           {post.userAvatar ? (
-            <img src={post.userAvatar} alt={post.displayName} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover ring-2 ring-border transition-transform hover:scale-105" />
+            <img src={post.userAvatar.startsWith('/media/') ? `/api/image-proxy?path=${post.userAvatar.substring(1)}` : post.userAvatar} alt={post.displayName} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover ring-2 ring-border transition-transform hover:scale-105" />
           ) : (
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-lg shadow-md">
               {(post.displayName || 'U')[0].toUpperCase()}
@@ -648,7 +648,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <div className="flex-1 overflow-y-auto p-4 sm:p-5">
             <div className="border-b border-border pb-5 mb-5">
               <div className="flex gap-3">
-                <img src={selectedCommentForReplies.userAvatar || ''} alt={selectedCommentForReplies.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                <img src={selectedCommentForReplies.userAvatar.startsWith('/media/') ? `/api/image-proxy?path=${selectedCommentForReplies.userAvatar.substring(1)}` : selectedCommentForReplies.userAvatar || ''} alt={selectedCommentForReplies.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                 <div className="flex-1">
                   <div className="bg-muted rounded-2xl px-4 py-3">
                     <div className="flex items-center gap-2 mb-1.5">
@@ -670,7 +670,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
               <div className="space-y-5">
                 {repliesList.map((reply: any) => (
                   <div key={reply.$id} className="flex gap-3">
-                    <img src={reply.userAvatar || ''} alt={reply.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                    <img src={reply.userAvatar.startsWith('/media/') ? `/api/image-proxy?path=${reply.userAvatar.substring(1)}` : reply.userAvatar || ''} alt={reply.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                     <div className="flex-1">
                       <div className="bg-muted rounded-2xl px-4 py-3">
                         <div className="flex items-center gap-2 mb-1.5">
@@ -737,7 +737,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                   <div key={comment.$id}>
                     <div className="flex gap-3">
                     <img 
-                      src={comment.userAvatar || ''} 
+                      src={comment.userAvatar.startsWith('/media/') ? `/api/image-proxy?path=${comment.userAvatar.substring(1)}` : comment.userAvatar || ''} 
                       alt={comment.username} 
                       className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer" 
                       onClick={(e) => {
@@ -924,7 +924,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 >
                   <div className="flex gap-3">
                   <img 
-                    src={comment.userAvatar || ''} 
+                    src={comment.userAvatar.startsWith('/media/') ? `/api/image-proxy?path=${comment.userAvatar.substring(1)}` : comment.userAvatar || ''} 
                     alt={comment.username} 
                     className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer" 
                     onClick={(e) => {
@@ -1340,7 +1340,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <div className="max-w-md">
             <div className="flex items-center gap-3 mb-3">
               {post.userAvatar ? (
-                <img src={post.userAvatar} alt={post.displayName} className="w-14 h-14 rounded-full object-cover border-2 border-white" />
+                <img src={post.userAvatar.startsWith('/media/') ? `/api/image-proxy?path=${post.userAvatar.substring(1)}` : post.userAvatar} alt={post.displayName} className="w-14 h-14 rounded-full object-cover border-2 border-white" />
               ) : (
                 <div className="w-14 h-14 rounded-full bg-gray-600 border-2 border-white flex items-center justify-center text-white font-semibold text-lg">
                   {(post.displayName || 'U')[0].toUpperCase()}
