@@ -610,16 +610,12 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 </span>
                 <span className="text-muted-foreground/70">{formatTimeAgo(post.createdAt)}</span>
               </div>
-              {currentUserId && currentUserId !== post.userId && (
+              {currentUserId && currentUserId !== post.userId && !isFollowing && (
                 <button
                   onClick={handleFollow}
-                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 ${
-                    isFollowing 
-                      ? 'bg-muted text-foreground hover:bg-muted/80' 
-                      : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                  }`}
+                  className="px-4 py-1.5 rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  {isFollowing ? 'Following' : 'Follow'}
+                  Follow
                 </button>
               )}
             </div>

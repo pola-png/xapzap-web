@@ -515,16 +515,12 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          {currentUserId && currentUserId !== post.userId && (
+          {currentUserId && currentUserId !== post.userId && !isFollowing && (
             <button
               onClick={handleFollow}
-              className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 ${
-                isFollowing 
-                  ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600' 
-                  : 'bg-blue-500 text-white hover:bg-blue-600'
-              }`}
+              className="px-4 py-1.5 rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 bg-blue-500 text-white hover:bg-blue-600"
             >
-              {isFollowing ? 'Following' : 'Follow'}
+              Follow
             </button>
           )}
           <button onClick={() => setShowMenu(!showMenu)} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white p-1" aria-label="More options">
