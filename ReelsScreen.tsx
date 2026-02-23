@@ -307,7 +307,7 @@ export function ReelsScreen() {
         style={{ transform: `translateY(-${currentIndex * 100}vh)` }}
       >
         {posts.map((post, index) => (
-          <div key={post.id} className="h-screen w-screen relative" ref={el => el && mediaRefs.current.set(post.id, el)}>
+          <div key={post.id} className="h-screen w-screen relative" ref={el => { if (el) mediaRefs.current.set(post.id, el) }}>
             {shouldLoadMedia.get(post.id) ? (
             <video
               ref={el => { videoRefs.current[index] = el }}
