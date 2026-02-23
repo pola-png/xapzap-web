@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { ArrowLeft, Send, Image, Video, Smile, MoreVertical, Phone, VideoIcon, Search } from 'lucide-react'
 import { Chat, Message } from './types'
 import appwriteService from './appwriteService'
 import { useRealtimeChat } from './realtime'
+import { useAuthStore } from './authStore'
 
 function formatTime(date: Date): string {
   const now = new Date()
@@ -146,11 +147,12 @@ interface ChatViewProps {
 
 function ChatView({ chat, onBack }: ChatViewProps) {
   const [newMessage, setNewMessage] = useState('')
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const authStore = useAuthStore()
   const { messages, sendMessage } = useRealtimeChat(chat.id)
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const messagesEnd = document.getElementById('messages-end')
+    messagesEnd?.scrollIntoView({ behavior: 'smooth' })
   }
 
   useEffect(() => {
@@ -243,7 +245,7 @@ function ChatView({ chat, onBack }: ChatViewProps) {
             </div>
           ))
         )}
-        <div ref={messagesEndRef} />
+        <div id="messages-end" />
       </div>
 
       {/* Message Input */}

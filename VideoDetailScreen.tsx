@@ -9,6 +9,7 @@ import { parseHashtags } from './lib/hashtag'
 import { formatTimeAgo } from './utils'
 import { CommentModal } from './CommentModal'
 import { CommentScreen } from './CommentScreen'
+import { useAuthStore } from './authStore'
 
 interface VideoDetailScreenProps {
   post: Post
@@ -48,7 +49,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [selectedCommentForReplies, setSelectedCommentForReplies] = useState<any>(null)
   const [repliesList, setRepliesList] = useState<any[]>([])
   const [loadingReplies, setLoadingReplies] = useState(false)
-  const [currentUserAvatar, setCurrentUserAvatar] = useState<string>('')
+  const authStore = useAuthStore()
+  const currentUserAvatar = authStore.currentUserAvatar || ''
   const [shouldLoadVideo, setShouldLoadVideo] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -83,7 +85,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       setCurrentUserId(user?.$id || null)
       if (user) {
         const profile = await appwriteService.getProfileByUserId(user.$id)
-        setCurrentUserAvatar(profile?.avatarUrl || '')
+        authStore.setCurrentUserAvatar(profile?.avatarUrl || '')
         if (post.userId) {
           const following = await appwriteService.isFollowing(user.$id, post.userId)
           setIsFollowing(following)

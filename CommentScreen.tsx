@@ -5,6 +5,7 @@ import { ArrowLeft, Heart, Reply, Mic, Send, MoreHorizontal } from 'lucide-react
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { cn, formatTimeAgo } from './utils'
+import { useAuthStore } from './authStore'
 
 interface Comment {
   id: string
@@ -35,10 +36,11 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
   const [newComment, setNewComment] = useState('')
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
-  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
   const [swipeStartX, setSwipeStartX] = useState(0)
   const [selectedCommentForReplies, setSelectedCommentForReplies] = useState<Comment | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const authStore = useAuthStore()
+  const currentUserAvatar = authStore.currentUserAvatar || ''
 
   useEffect(() => {
     loadComments()
@@ -51,7 +53,7 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
       if (user) {
         const profile = await appwriteService.getProfileByUserId(user.$id)
         setCurrentUser(user)
-        setCurrentUserProfile(profile)
+        authStore.setCurrentUserAvatar(profile?.avatarUrl || '')
       }
     } catch (error) {
       console.error('Failed to load user:', error)
@@ -311,8 +313,8 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
       {/* Comment Input */}
       <div className="border-t border-border p-4">
         <div className="flex items-center space-x-3">
-          {currentUserProfile?.avatarUrl ? (
-            <img src={currentUserProfile.avatarUrl.startsWith('/media/') ? `/api/image-proxy?path=${currentUserProfile.avatarUrl.substring(1)}` : currentUserProfile.avatarUrl} alt="You" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+          {currentUserAvatar ? (
+            <img src={currentUserAvatar.startsWith('/media/') ? `/api/image-proxy?path=${currentUserAvatar.substring(1)}` : currentUserAvatar} alt="You" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
           ) : (
             <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
               <span className="text-xs font-medium">U</span>

@@ -3,6 +3,7 @@
 import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import appwriteService from './appwriteService'
+import { useAuthStore } from './authStore'
 
 interface Story {
   id: string
@@ -13,7 +14,8 @@ interface Story {
 
 export function StoryBar() {
   const [stories, setStories] = useState<Story[]>([])
-  const [currentUserAvatar, setCurrentUserAvatar] = useState<string>('')
+  const authStore = useAuthStore()
+  const currentUserAvatar = authStore.currentUserAvatar
 
   useEffect(() => {
     loadStories()
@@ -25,7 +27,7 @@ export function StoryBar() {
       const user = await appwriteService.getCurrentUser()
       if (user) {
         const profile = await appwriteService.getProfileByUserId(user.$id)
-        setCurrentUserAvatar(profile?.avatarUrl || '')
+        authStore.setCurrentUserAvatar(profile?.avatarUrl || '')
       }
     } catch (error) {
       console.error('Failed to load user:', error)

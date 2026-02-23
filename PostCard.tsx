@@ -465,7 +465,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           <div className="w-10" />
         </div>
         <div className="flex-1 overflow-y-auto">
-          <PostCard post={post} currentUserId={currentUserId} feedType={feedType} onVideoClick={onVideoClick} onCommentClick={onCommentClick} />
+          <PostCard post={post} currentUserId={currentUserId || undefined} feedType={feedType} onVideoClick={onVideoClick} onCommentClick={onCommentClick} />
         </div>
       </div>
     )

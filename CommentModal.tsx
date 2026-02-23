@@ -7,6 +7,7 @@ import appwriteService from './appwriteService'
 import { formatTimeAgo } from './utils'
 import { Heart } from 'lucide-react'
 import { CommentScreen } from './CommentScreen'
+import { useAuthStore } from './authStore'
 
 interface CommentModalProps {
   post: Post
@@ -40,7 +41,8 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
   const [swipeStartX, setSwipeStartX] = useState(0)
   const [showFullScreen, setShowFullScreen] = useState(false)
   const [selectedCommentForReplies, setSelectedCommentForReplies] = useState<Comment | null>(null)
-  const [currentUserAvatar, setCurrentUserAvatar] = useState<string>('')
+  const authStore = useAuthStore()
+  const currentUserAvatar = authStore.currentUserAvatar || ''
 
   useEffect(() => {
     loadComments()
@@ -52,7 +54,7 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
       const user = await appwriteService.getCurrentUser()
       if (user) {
         const profile = await appwriteService.getProfileByUserId(user.$id)
-        setCurrentUserAvatar(profile?.avatarUrl || '')
+        authStore.setCurrentUserAvatar(profile?.avatarUrl || '')
       }
     } catch (error) {
       console.error('Failed to load user:', error)
