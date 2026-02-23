@@ -804,7 +804,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-4 space-y-6">
+          <div className="space-y-4">
             {/* Form Fields */}
             <div className="space-y-4">
               {/* Title (for videos and news) */}
@@ -856,7 +856,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
             {/* Media Preview */}
             <div
               onClick={() => fileInputRef.current?.click()}
-              className={`${selectedType === 'image' ? 'h-[480px]' : 'aspect-video'} rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
+              className={`${selectedType === 'reel' ? 'h-[480px]' : selectedType === 'image' ? 'h-[480px]' : 'aspect-video'} rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
                 isDark
                   ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
                   : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
@@ -865,9 +865,11 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
               {previewUrl ? (
                 <div className="relative w-full h-full">
                   {selectedType === 'image' ? (
-                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                    <img src={previewUrl} alt="Preview" className="w-full h-full object-contain rounded-lg" />
+                  ) : selectedType === 'reel' ? (
+                    <video src={previewUrl} className="w-full h-full object-contain rounded-lg" controls playsInline />
                   ) : (
-                    <video src={previewUrl} className="w-full h-full object-cover rounded-lg" controls />
+                    <video src={previewUrl} className="w-full h-full object-contain rounded-lg" controls playsInline />
                   )}
                   <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                     <p className="text-white text-sm font-medium">Tap to change</p>
@@ -881,7 +883,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
               )}
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 p-4">
 
               {/* Thumbnail (for videos/reels) */}
               {(selectedType === 'video' || selectedType === 'reel') && (

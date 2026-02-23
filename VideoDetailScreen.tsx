@@ -587,15 +587,29 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 <button onClick={() => setShowDescription(true)} className="text-primary text-sm whitespace-nowrap flex-shrink-0 hover:underline transition-all">...more</button>
               )}
             </div>
-            <div className="flex items-center gap-3 text-sm sm:text-base mt-1">
-              {post.username && (
-                <p className="text-muted-foreground/70">@{post.username}</p>
+            <div className="flex items-center justify-between gap-3 text-sm sm:text-base mt-1">
+              <div className="flex items-center gap-3">
+                {post.username && (
+                  <p className="text-muted-foreground/70">@{post.username}</p>
+                )}
+                <span className="flex items-center gap-1.5 text-muted-foreground/70">
+                  <Eye size={16} />
+                  {views || 0}
+                </span>
+                <span className="text-muted-foreground/70">{formatTimeAgo(post.createdAt)}</span>
+              </div>
+              {currentUserId && currentUserId !== post.userId && (
+                <button
+                  onClick={handleFollow}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 ${
+                    isFollowing 
+                      ? 'bg-muted text-foreground hover:bg-muted/80' 
+                      : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  }`}
+                >
+                  {isFollowing ? 'Following' : 'Follow'}
+                </button>
               )}
-              <span className="flex items-center gap-1.5 text-muted-foreground/70">
-                <Eye size={16} />
-                {views || 0}
-              </span>
-              <span className="text-muted-foreground/70">{formatTimeAgo(post.createdAt)}</span>
             </div>
           </div>
         )}
@@ -894,18 +908,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <MessageCircle size={24} />
             <span className="text-sm sm:text-base font-medium">{comments || 0}</span>
           </button>
-          {currentUserId && currentUserId !== post.userId && (
-            <button
-              onClick={handleFollow}
-              className={`px-5 sm:px-6 py-2 sm:py-2.5 rounded-full text-sm sm:text-base font-semibold transition-all hover:scale-105 active:scale-95 shadow-md ${
-                isFollowing 
-                  ? 'bg-muted text-foreground hover:bg-muted/80' 
-                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
-              }`}
-            >
-              {isFollowing ? 'Following' : 'Follow'}
-            </button>
-          )}
           <button
             onClick={handleLike}
             className={`flex items-center gap-2 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 ${liked ? 'text-red-500' : 'text-gray-500 dark:text-gray-400 hover:text-red-500'}`}
