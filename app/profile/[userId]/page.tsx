@@ -78,8 +78,10 @@ export default function ProfilePage() {
       setCurrentUserId(currentUserId)
       authStore.setCurrentUserId(currentUserId)
 
+      const profileUserId = params.userId as string
+
       // Get profile data
-      const profileData = await appwriteService.getProfileByUserId(params.userId as string)
+      const profileData = await appwriteService.getProfileByUserId(profileUserId)
       if (profileData) {
         setProfile({
           displayName: profileData.displayName || profileData.username,
@@ -94,7 +96,7 @@ export default function ProfilePage() {
       }
 
       // Get posts
-      const postsResult = await appwriteService.fetchPostsByUserIds([params.userId as string], 50)
+      const postsResult = await appwriteService.fetchPostsByUserIds([profileUserId], 50)
       const postsData = await Promise.all(
         postsResult.documents.map(async (doc: any) => {
           const interactions = currentUser ? await Promise.all([
@@ -129,20 +131,20 @@ export default function ProfilePage() {
       setPosts(postsData)
       setStats({
         posts: postsResult.total,
-        followers: await appwriteService.getFollowerCount(params.userId as string),
-        following: await appwriteService.getFollowingCount(params.userId as string)
+        followers: await appwriteService.getFollowerCount(profileUserId),
+        following: await appwriteService.getFollowingCount(profileUserId)
       })
 
       // Check follow status if not current user
-      if (currentUser && currentUser.$id !== params.userId as string) {
-        const following = await appwriteService.isFollowing(currentUser.$id, params.userId as string)
+      if (currentUser && currentUser.$id !== profileUserId) {
+        const following = await appwriteService.isFollowing(currentUser.$id, profileUserId)
         setIsFollowing(following)
       }
 
       // Cache the profile data
       if (profileData) {
-        profileStore.setProfile(params.userId as string, {
-          userId: params.userId as string,
+        profileStore.setProfile(profileUserId, {
+          userId: profileUserId,
           profile: {
             displayName: profileData.displayName || profileData.username,
             username: profileData.username,
@@ -156,8 +158,8 @@ export default function ProfilePage() {
           posts: postsData,
           stats: {
             posts: postsResult.total,
-            followers: await appwriteService.getFollowerCount(params.userId as string),
-            following: await appwriteService.getFollowingCount(params.userId as string)
+            followers: await appwriteService.getFollowerCount(profileUserId),
+            following: await appwriteService.getFollowingCount(profileUserId)
           },
           activeTab: 'posts'
         })
@@ -173,6 +175,7 @@ export default function ProfilePage() {
   const handleFollow = async () => {
     if (!currentUserId || followLoading) return
 
+    const profileUserId = params.userId as string
     const wasFollowing = isFollowing
     const prevFollowers = stats.followers
     
@@ -182,9 +185,9 @@ export default function ProfilePage() {
     
     try {
       if (wasFollowing) {
-        await appwriteService.unfollowUser(userId)
+        await appwriteService.unfollowUser(profileUserId)
       } else {
-        await appwriteService.followUser(userId)
+        await appwriteService.followUser(profileUserId)
       }
     } catch (error) {
       console.error('Failed to toggle follow:', error)
