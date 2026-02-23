@@ -45,6 +45,13 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<TabType>('posts')
   const profileStore = useProfileStore()
   const authStore = useAuthStore()
+  const [shouldLoadCover, setShouldLoadCover] = useState(false)
+  const [shouldLoadAvatar, setShouldLoadAvatar] = useState(false)
+
+  useEffect(() => {
+    setShouldLoadCover(true)
+    setShouldLoadAvatar(true)
+  }, [])
 
   const isCurrentUser = authStore.currentUserId === userId
 
@@ -331,7 +338,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-black">
       {/* Cover Photo */}
       <div className="relative h-48 bg-gradient-to-br from-blue-600 to-purple-700 group">
-        {profile.coverUrl && (
+        {profile.coverUrl && shouldLoadCover && (
           <img
             src={profile.coverUrl.startsWith('/media/') ? `/api/image-proxy?path=${profile.coverUrl.substring(1)}` : profile.coverUrl}
             alt="Cover"
@@ -383,7 +390,7 @@ export default function ProfilePage() {
         {/* Avatar */}
         <div className="absolute -bottom-12 left-4">
           <div className="w-24 h-24 rounded-full border-4 border-black bg-gray-800 flex items-center justify-center relative group">
-            {profile.avatarUrl ? (
+            {profile.avatarUrl && shouldLoadAvatar ? (
               <img
                 src={profile.avatarUrl.startsWith('/media/') ? `/api/image-proxy?path=${profile.avatarUrl.substring(1)}` : profile.avatarUrl}
                 alt={profile.displayName}

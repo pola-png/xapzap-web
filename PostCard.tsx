@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Play } from 'lucide-react'
 import { Post } from './types'
@@ -38,6 +38,9 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   const [showReelDetail, setShowReelDetail] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(propCurrentUserId || null)
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [shouldLoadMedia, setShouldLoadMedia] = useState(false)
+  const mediaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handlePopState = () => {
@@ -58,8 +61,27 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
     const loadUser = async () => {
       const user = await appwriteService.getCurrentUser()
       setCurrentUserId(user?.$id || null)
+      if (user && post.userId && user.$id !== post.userId) {
+        const following = await appwriteService.isFollowing(user.$id, post.userId)
+        setIsFollowing(following)
+      }
     }
     loadUser()
+  }, [])
+
+  useEffect(() => {
+    if (!mediaRef.current) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldLoadMedia(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '100px' }
+    )
+    observer.observe(mediaRef.current)
+    return () => observer.disconnect()
   }, [])
 
   useEffect(() => {
@@ -284,9 +306,28 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
     }
   }
 
-  // Render media content
+  const handleFollow = async () => {
+    const currentUser = await appwriteService.getCurrentUser()
+    if (!currentUser) return
+
+    const wasFollowing = isFollowing
+    setIsFollowing(!wasFollowing)
+
+    try {
+      if (wasFollowing) {
+        await appwriteService.unfollowUser(post.userId)
+      } else {
+        await appwriteService.followUser(post.userId)
+      }
+    } catch (error) {
+      console.error('Failed to toggle follow:', error)
+      setIsFollowing(wasFollowing)
+    }
+  }
+
   const renderMedia = () => {
     if (!post.mediaUrls || post.mediaUrls.length === 0) return null
+    if (!shouldLoadMedia) return <div className="w-full aspect-square rounded-xl mb-3 bg-gray-100 dark:bg-gray-800" />
 
     const toProxyUrl = (url: string) => {
       if (url.startsWith('/media/')) {
@@ -424,10 +465,10 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
       <div className="border-b border-gray-200 dark:border-gray-700 relative">
       {/* Header */}
       <div className="flex items-center justify-between py-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <button
             onClick={() => router.push(`/profile/${post.userId}`)}
-            className="hover:opacity-80 transition-opacity"
+            className="hover:opacity-80 transition-opacity flex-shrink-0"
             aria-label={`View ${userProfile?.displayName || userProfile?.username || post.username}'s profile`}
           >
             {userProfile?.avatarUrl ? (
@@ -442,7 +483,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
               </div>
             )}
           </button>
-          <div>
+          <div className="flex-1 min-w-0">
             <button
               onClick={() => router.push(`/profile/${post.userId}`)}
               className="text-gray-900 dark:text-white font-bold text-base hover:underline transition-all text-left"
@@ -453,9 +494,23 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">{formatTimeAgo(post.createdAt)}</span>
           </div>
         </div>
-        <button onClick={() => setShowMenu(!showMenu)} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white p-1" aria-label="More options">
-          <MoreHorizontal size={20} />
-        </button>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {currentUserId && currentUserId !== post.userId && (
+            <button
+              onClick={handleFollow}
+              className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 ${
+                isFollowing 
+                  ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600' 
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}
+            >
+              {isFollowing ? 'Following' : 'Follow'}
+            </button>
+          )}
+          <button onClick={() => setShowMenu(!showMenu)} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white p-1" aria-label="More options">
+            <MoreHorizontal size={20} />
+          </button>
+        </div>
       </div>
 
       {showMenu && (
@@ -480,7 +535,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
       )}
 
       {/* Content */}
-      <div className="pb-2">
+      <div className="pb-2" ref={mediaRef}>
         {post.textBgColor ? (
           <div
             className={`text-white text-center leading-relaxed p-4 rounded-xl mb-3 max-w-sm ${

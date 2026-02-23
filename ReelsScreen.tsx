@@ -27,6 +27,8 @@ export function ReelsScreen() {
   const navTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const [commentModalPost, setCommentModalPost] = useState<Post | null>(null)
+  const [shouldLoadMedia, setShouldLoadMedia] = useState<Map<string, boolean>>(new Map())
+  const mediaRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
   useEffect(() => {
     const cached = feedStore.getFeed('reels')
@@ -54,6 +56,29 @@ export function ReelsScreen() {
 
     return unsubscribe
   }, [])
+
+  useEffect(() => {
+    const observers = new Map<string, IntersectionObserver>()
+    
+    posts.forEach(post => {
+      const element = mediaRefs.current.get(post.id)
+      if (!element || shouldLoadMedia.get(post.id)) return
+      
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setShouldLoadMedia(prev => new Map(prev).set(post.id, true))
+            observer.disconnect()
+          }
+        },
+        { rootMargin: '200px' }
+      )
+      observer.observe(element)
+      observers.set(post.id, observer)
+    })
+    
+    return () => observers.forEach(obs => obs.disconnect())
+  }, [posts])
 
   useEffect(() => {
     videoRefs.current.forEach((video, index) => {
@@ -282,7 +307,8 @@ export function ReelsScreen() {
         style={{ transform: `translateY(-${currentIndex * 100}vh)` }}
       >
         {posts.map((post, index) => (
-          <div key={post.id} className="h-screen w-screen relative">
+          <div key={post.id} className="h-screen w-screen relative" ref={el => el && mediaRefs.current.set(post.id, el)}>
+            {shouldLoadMedia.get(post.id) ? (
             <video
               ref={el => { videoRefs.current[index] = el }}
               src={post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls[0]}
@@ -302,6 +328,9 @@ export function ReelsScreen() {
                 }
               }}
             />
+            ) : (
+              <div className="h-full w-full bg-gray-900" />
+            )}
 
             {/* Right Side Reactions */}
             <div className="absolute right-3 bottom-24 flex flex-col items-center gap-4 z-10">

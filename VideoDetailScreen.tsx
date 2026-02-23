@@ -49,10 +49,16 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [repliesList, setRepliesList] = useState<any[]>([])
   const [loadingReplies, setLoadingReplies] = useState(false)
   const [currentUserAvatar, setCurrentUserAvatar] = useState<string>('')
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const hasCountedView = useRef(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setShouldLoadVideo(true)
+  }, [])
 
   useEffect(() => {
     const handlePopState = () => {
@@ -473,6 +479,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Video Player Container */}
       <div className="w-full aspect-video bg-black relative overflow-hidden">
+        {shouldLoadVideo ? (
         <video
           ref={videoRef}
           src={post.mediaUrls && post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls && post.mediaUrls[0]}
@@ -484,6 +491,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           preload="metadata"
           autoPlay
         />
+        ) : (
+          <div className="w-full h-full bg-gray-900" />
+        )}
 
         {/* Speaker Icon - Top Right */}
         {showControls && (
@@ -1074,9 +1084,14 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [views, setViews] = useState(post.views || 0)
   const [showComments, setShowComments] = useState(false)
   const [showFullComments, setShowFullComments] = useState(false)
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+
+  useEffect(() => {
+    setShouldLoadVideo(true)
+  }, [])
 
   useEffect(() => {
     const handlePopState = () => {
@@ -1232,6 +1247,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
       <div className="fixed inset-0 bg-black z-50">
       {/* Full screen vertical video */}
       <div className="relative w-full h-full">
+        {shouldLoadVideo ? (
         <video
           ref={videoRef}
           src={post.mediaUrls && post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls && post.mediaUrls[0]}
@@ -1242,6 +1258,9 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           loop
           preload="auto"
         />
+        ) : (
+          <div className="w-full h-full bg-gray-900" />
+        )}
 
         {/* Top Controls */}
         <div className="absolute top-0 left-0 right-0 z-20 p-4">
