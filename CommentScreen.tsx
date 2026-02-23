@@ -35,8 +35,10 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
   const [newComment, setNewComment] = useState('')
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
   const [swipeStartX, setSwipeStartX] = useState(0)
   const [selectedCommentForReplies, setSelectedCommentForReplies] = useState<Comment | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     loadComments()
@@ -48,7 +50,8 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
       const user = await appwriteService.getCurrentUser()
       if (user) {
         const profile = await appwriteService.getProfileByUserId(user.$id)
-        setCurrentUser({ ...user, avatarUrl: profile?.avatarUrl || '' })
+        setCurrentUser(user)
+        setCurrentUserProfile(profile)
       }
     } catch (error) {
       console.error('Failed to load user:', error)
@@ -97,19 +100,22 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
   }
 
   const handleSubmitComment = async () => {
-    if (!newComment.trim()) return
+    if (!newComment.trim() || isSubmitting) return
     if (isGuest) {
       onGuestAction?.()
       return
     }
 
+    setIsSubmitting(true)
     try {
-      const comment = await appwriteService.createComment(post.id, newComment.trim())
-      await loadComments()
+      await appwriteService.createComment(post.id, newComment.trim(), replyTo || undefined)
       setNewComment('')
       setReplyTo(null)
+      await loadComments()
     } catch (error) {
       console.error('Failed to post comment:', error)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -305,8 +311,8 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
       {/* Comment Input */}
       <div className="border-t border-border p-4">
         <div className="flex items-center space-x-3">
-          {currentUser?.avatarUrl ? (
-            <img src={currentUser.avatarUrl.startsWith('/media/') ? `/api/image-proxy?path=${currentUser.avatarUrl.substring(1)}` : currentUser.avatarUrl} alt="You" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+          {currentUserProfile?.avatarUrl ? (
+            <img src={currentUserProfile.avatarUrl.startsWith('/media/') ? `/api/image-proxy?path=${currentUserProfile.avatarUrl.substring(1)}` : currentUserProfile.avatarUrl} alt="You" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
           ) : (
             <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
               <span className="text-xs font-medium">U</span>
@@ -326,7 +332,7 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={handleSubmitComment}
-              disabled={!newComment.trim()}
+              disabled={!newComment.trim() || isSubmitting}
               className="p-2 text-xapzap-blue hover:bg-accent rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send size={16} />
