@@ -285,7 +285,7 @@ export function ReelsScreen() {
           <div key={post.id} className="h-screen w-screen relative">
             <video
               ref={el => { videoRefs.current[index] = el }}
-              src={post.mediaUrls[0]}
+              src={post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls[0]}
               className="h-full w-full object-cover"
               loop
               playsInline
@@ -293,6 +293,7 @@ export function ReelsScreen() {
               onPlay={() => handleVideoPlay(post.id)}
               onEnded={() => handleVideoEnded(post.id)}
               onClick={(e) => {
+                e.stopPropagation()
                 const video = e.currentTarget
                 if (video.paused) {
                   video.play()
@@ -303,111 +304,115 @@ export function ReelsScreen() {
             />
 
             {/* Right Side Reactions */}
-            <div className="absolute right-3 bottom-24 flex flex-col items-center gap-6 z-10">
-              {/* Profile Avatar */}
-              <button 
-                onClick={() => router.push(`/profile/${post.userId}`)}
-                className="relative"
-              >
-                {post.avatarUrl ? (
-                  <OptimizedImage
-                    src={post.avatarUrl}
-                    alt={post.displayName}
-                    className="w-12 h-12 rounded-full border-2 border-white object-cover"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center border-2 border-white">
-                    <span className="text-white font-bold text-lg">
-                      {post.displayName.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-              </button>
-
+            <div className="absolute right-3 bottom-24 flex flex-col items-center gap-4 z-10">
               {/* Like */}
               <button 
-                onClick={() => handleReaction(post.id, 'like')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleReaction(post.id, 'like')
+                }}
                 className="flex flex-col items-center gap-1"
               >
-                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all">
                   <Heart 
-                    className={`w-7 h-7 ${post.isLiked ? 'fill-red-500 text-red-500' : 'text-white'}`}
+                    size={24}
+                    className={post.isLiked ? 'fill-red-500 text-red-500' : 'text-white'}
                   />
                 </div>
-                <span className="text-white text-xs font-semibold">
-                  {(post.likes || 0) > 0 ? post.likes : ''}
+                <span className="text-white text-xs font-bold">
+                  {post.likes || 0}
                 </span>
               </button>
 
               {/* Comment */}
               <button 
-                onClick={() => handleReaction(post.id, 'comment')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleReaction(post.id, 'comment')
+                }}
                 className="flex flex-col items-center gap-1"
               >
-                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
-                  <MessageCircle className="w-7 h-7 text-white" />
+                <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all">
+                  <MessageCircle size={24} className="text-white" />
                 </div>
-                <span className="text-white text-xs font-semibold">
-                  {(post.comments || 0) > 0 ? post.comments : ''}
+                <span className="text-white text-xs font-bold">
+                  {post.comments || 0}
                 </span>
               </button>
 
               {/* Repost */}
               <button 
-                onClick={() => handleReaction(post.id, 'repost')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleReaction(post.id, 'repost')
+                }}
                 className="flex flex-col items-center gap-1"
-                aria-label="Repost"
               >
-                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all">
                   <Repeat2 
-                    className={`w-6 h-6 ${post.isReposted ? 'text-green-500' : 'text-white'}`}
+                    size={24}
+                    className={post.isReposted ? 'text-green-500' : 'text-white'}
                   />
                 </div>
-                <span className="text-white text-xs font-semibold">
-                  {(post.reposts || 0) > 0 ? post.reposts : ''}
+                <span className="text-white text-xs font-bold">
+                  {post.reposts || 0}
                 </span>
               </button>
 
               {/* Save */}
               <button 
-                onClick={() => handleReaction(post.id, 'save')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleReaction(post.id, 'save')
+                }}
                 className="flex flex-col items-center gap-1"
-                aria-label="Save"
               >
-                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all">
                   <Bookmark 
-                    className={`w-6 h-6 ${post.isSaved ? 'fill-yellow-500 text-yellow-500' : 'text-white'}`}
+                    size={24}
+                    className={post.isSaved ? 'fill-yellow-500 text-yellow-500' : 'text-white'}
                   />
                 </div>
+                <span className="text-white text-xs font-bold">Save</span>
               </button>
 
               {/* Share */}
               <button 
-                onClick={() => handleReaction(post.id, 'share')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleReaction(post.id, 'share')
+                }}
                 className="flex flex-col items-center gap-1"
-                aria-label="Share"
               >
-                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
-                  <Share2 className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all">
+                  <Share2 size={24} className="text-white" />
                 </div>
-              </button>
-
-              {/* More */}
-              <button className="flex flex-col items-center gap-1" aria-label="More options">
-                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
-                  <MoreVertical className="w-6 h-6 text-white" />
-                </div>
+                <span className="text-white text-xs font-bold">Share</span>
               </button>
             </div>
 
             {/* Bottom Info */}
-            <div className="absolute bottom-20 left-4 right-20 z-10">
-              <div className="text-white">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-semibold">@{post.displayName}</span>
+            <div className="absolute bottom-0 left-0 right-20 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 z-10">
+              <div className="max-w-md">
+                <div className="flex items-center gap-3 mb-3">
+                  {post.avatarUrl ? (
+                    <img 
+                      src={post.avatarUrl.startsWith('/media/') ? `/api/image-proxy?path=${post.avatarUrl.substring(1)}` : post.avatarUrl} 
+                      alt={post.displayName} 
+                      className="w-14 h-14 rounded-full object-cover border-2 border-white" 
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-gray-600 border-2 border-white flex items-center justify-center text-white font-semibold text-lg">
+                      {(post.displayName || 'U')[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-white font-bold text-lg block">{post.displayName || 'User'}</span>
+                    <span className="text-gray-300 text-sm">{formatTimeAgo(post.timestamp)}</span>
+                  </div>
                 </div>
                 {post.content && (
-                  <p className="text-sm mb-2 line-clamp-2">{post.content}</p>
+                  <p className="text-white text-base leading-relaxed line-clamp-3">{post.content}</p>
                 )}
               </div>
             </div>
