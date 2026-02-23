@@ -89,28 +89,47 @@ export default function EditProfilePage() {
   }
 
   const uploadToWasabi = async (file: File): Promise<string> => {
-    const presignedRes = await fetch('/api/presigned-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fileName: file.name,
-        fileType: file.type
+    try {
+      console.log('Uploading file:', file.name, file.type, file.size)
+      
+      const presignedRes = await fetch('/api/presigned-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: file.name,
+          fileType: file.type
+        })
       })
-    })
-    
-    if (!presignedRes.ok) throw new Error('Failed to get presigned URL')
-    
-    const { presignedUrl, url } = await presignedRes.json()
-    
-    const uploadRes = await fetch(presignedUrl, {
-      method: 'PUT',
-      body: file,
-      headers: { 'Content-Type': file.type }
-    })
-    
-    if (!uploadRes.ok) throw new Error('Upload failed')
-    
-    return url
+      
+      if (!presignedRes.ok) {
+        const error = await presignedRes.text()
+        console.error('Presigned URL error:', error)
+        throw new Error('Failed to get presigned URL')
+      }
+      
+      const { presignedUrl, url } = await presignedRes.json()
+      console.log('Got presigned URL, uploading...')
+      
+      const uploadRes = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type }
+      })
+      
+      console.log('Upload response:', uploadRes.status, uploadRes.statusText)
+      
+      if (!uploadRes.ok) {
+        const errorText = await uploadRes.text()
+        console.error('Upload error:', errorText)
+        throw new Error(`Upload failed: ${uploadRes.status}`)
+      }
+      
+      console.log('Upload successful, URL:', url)
+      return url
+    } catch (error) {
+      console.error('Upload to Wasabi failed:', error)
+      throw error
+    }
   }
 
   const handleSave = async () => {
