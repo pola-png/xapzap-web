@@ -322,7 +322,13 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           <div
             className="relative w-full rounded-xl mb-3 bg-gray-900 cursor-pointer overflow-hidden"
             style={{ aspectRatio: '4/3' }}
-            onClick={() => router.push(`/watch/${generateSlug(post.title || 'video', post.id)}`)}
+            onClick={() => {
+              if (onVideoClick) {
+                onVideoClick(post)
+              } else {
+                router.push(`/watch/${generateSlug(post.title || 'video', post.id)}`)
+              }
+            }}
           >
             {thumbnailUrl && (
               <img

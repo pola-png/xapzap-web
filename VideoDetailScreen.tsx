@@ -260,8 +260,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     
     if (video.paused) {
       video.play()
+      setIsPlaying(true)
     } else {
       video.pause()
+      setIsPlaying(false)
     }
   }
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { PostCard } from './PostCard'
 import { CommentModal } from './CommentModal'
+import { VideoDetailScreen } from './VideoDetailScreen'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { feedCache } from './lib/cache'
@@ -18,6 +19,7 @@ export function WatchScreen() {
   const [hasLoaded, setHasLoaded] = useState(false)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [showComments, setShowComments] = useState(false)
+  const [showVideoDetail, setShowVideoDetail] = useState(false)
 
   useEffect(() => {
     const postId = searchParams.get('post')
@@ -124,6 +126,19 @@ export function WatchScreen() {
     router.push('/watch', { scroll: false })
   }
 
+  const handleVideoClick = (post: Post) => {
+    setSelectedPost(post)
+    setShowVideoDetail(true)
+  }
+
+  if (showVideoDetail && selectedPost) {
+    return (
+      <div className="fixed inset-0 z-50">
+        <VideoDetailScreen post={selectedPost} onClose={() => setShowVideoDetail(false)} />
+      </div>
+    )
+  }
+
   if (showComments && selectedPost) {
     const isFullscreen = searchParams.get('comments') === 'fullscreen'
     
@@ -177,6 +192,7 @@ export function WatchScreen() {
                 key={post.id}
                 post={post}
                 feedType="watch"
+                onVideoClick={handleVideoClick}
                 onCommentClick={() => handleCommentClick(post)}
               />
             ))}
@@ -201,6 +217,7 @@ export function WatchScreen() {
               key={post.id}
               post={post}
               feedType="watch"
+              onVideoClick={handleVideoClick}
               onCommentClick={() => handleCommentClick(post)}
             />
           ))
