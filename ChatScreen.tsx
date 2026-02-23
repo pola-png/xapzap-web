@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, Send, Image, Video, Smile, MoreVertical, Phone, VideoIcon, Search } from 'lucide-react'
 import { Chat, Message } from './types'
 import appwriteService from './appwriteService'
