@@ -24,10 +24,35 @@ interface ChatListProps {
 
 function ChatList({ chats, onChatSelect, loading }: ChatListProps) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [shouldLoadAvatars, setShouldLoadAvatars] = useState<Set<string>>(new Set())
+  const avatarRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   
   const filteredChats = chats.filter(chat =>
     chat.partnerName.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  useEffect(() => {
+    const observers = new Map<string, IntersectionObserver>()
+    
+    filteredChats.forEach(chat => {
+      const element = avatarRefs.current.get(chat.id)
+      if (!element || shouldLoadAvatars.has(chat.id)) return
+      
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setShouldLoadAvatars(prev => new Set(prev).add(chat.id))
+            observer.disconnect()
+          }
+        },
+        { rootMargin: '100px' }
+      )
+      observer.observe(element)
+      observers.set(chat.id, observer)
+    })
+    
+    return () => observers.forEach(obs => obs.disconnect())
+  }, [filteredChats])
 
   return (
     <div className="h-full flex flex-col">
@@ -263,35 +288,10 @@ export function ChatScreen() {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
   const [chats, setChats] = useState<Chat[]>([])
   const [loading, setLoading] = useState(true)
-  const [shouldLoadAvatars, setShouldLoadAvatars] = useState<Set<string>>(new Set())
-  const avatarRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
   useEffect(() => {
     loadChats()
   }, [])
-
-  useEffect(() => {
-    const observers = new Map<string, IntersectionObserver>()
-    
-    chats.forEach(chat => {
-      const element = avatarRefs.current.get(chat.id)
-      if (!element || shouldLoadAvatars.has(chat.id)) return
-      
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setShouldLoadAvatars(prev => new Set(prev).add(chat.id))
-            observer.disconnect()
-          }
-        },
-        { rootMargin: '100px' }
-      )
-      observer.observe(element)
-      observers.set(chat.id, observer)
-    })
-    
-    return () => observers.forEach(obs => obs.disconnect())
-  }, [chats])
 
   const loadChats = async () => {
     setLoading(true)
