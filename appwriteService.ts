@@ -664,14 +664,14 @@ class AppwriteService {
   }
 
   // Follow methods
-  async isFollowing(followerId: string, followingId: string) {
+  async isFollowing(followerId: string, followeeId: string) {
     try {
       const result = await this.databases.listDocuments(
         this.databaseId,
         this.collections.follows,
         [
           Query.equal('followerId', followerId),
-          Query.equal('followingId', followingId),
+          Query.equal('followeeId', followeeId),
           Query.limit(1)
         ]
       )
@@ -681,11 +681,11 @@ class AppwriteService {
     }
   }
 
-  async followUser(followingId: string) {
+  async followUser(followeeId: string) {
     const user = await this.getCurrentUser()
     if (!user) throw new Error('User must be signed in')
 
-    const isAlreadyFollowing = await this.isFollowing(user.$id, followingId)
+    const isAlreadyFollowing = await this.isFollowing(user.$id, followeeId)
     if (isAlreadyFollowing) return
 
     await this.databases.createDocument(
@@ -694,13 +694,15 @@ class AppwriteService {
       ID.unique(),
       {
         followerId: user.$id,
-        followingId,
-        createdAt: new Date().toISOString()
+        followeeId,
+        followedAt: new Date().toISOString(),
+        status: 'active',
+        notificationEnabled: true
       }
     )
   }
 
-  async unfollowUser(followingId: string) {
+  async unfollowUser(followeeId: string) {
     const user = await this.getCurrentUser()
     if (!user) return
 
@@ -710,7 +712,7 @@ class AppwriteService {
         this.collections.follows,
         [
           Query.equal('followerId', user.$id),
-          Query.equal('followingId', followingId)
+          Query.equal('followeeId', followeeId)
         ]
       )
       
@@ -730,7 +732,7 @@ class AppwriteService {
         this.databaseId,
         this.collections.follows,
         [
-          Query.equal('followingId', userId),
+          Query.equal('followeeId', userId),
           Query.limit(1)
         ]
       )
@@ -893,7 +895,7 @@ class AppwriteService {
           Query.limit(500)
         ]
       )
-      return result.documents.map(doc => doc.followingId || doc.followeeId)
+      return result.documents.map(doc => doc.followeeId)
     } catch {
       return []
     }
