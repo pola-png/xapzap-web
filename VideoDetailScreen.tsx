@@ -1275,14 +1275,14 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
         )}
 
         {/* Right Side Reactions (Vertical) */}
-        <div className="absolute right-4 bottom-24 flex flex-col items-center gap-6 z-20">
+        <div className="absolute right-3 bottom-24 flex flex-col items-center gap-4 z-20">
           <button
             onClick={handleLike}
             className={`flex flex-col items-center gap-1 transition-all ${liked ? 'text-red-500' : 'text-white'}`}
             aria-label={liked ? "Unlike reel" : "Like reel"}
           >
-            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
-              <Heart size={28} className={liked ? 'fill-red-500' : ''} />
+            <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
+              <Heart size={24} className={liked ? 'fill-red-500' : ''} />
             </div>
             <span className="text-xs font-bold">{likes || 0}</span>
           </button>
@@ -1292,8 +1292,8 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
             className="flex flex-col items-center gap-1 text-white"
             aria-label="View comments"
           >
-            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
-              <MessageCircle size={28} />
+            <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
+              <MessageCircle size={24} />
             </div>
             <span className="text-xs font-bold">{comments || 0}</span>
           </button>
@@ -1303,20 +1303,10 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
             className={`flex flex-col items-center gap-1 transition-all ${reposted ? 'text-green-500' : 'text-white'}`}
             aria-label="Repost reel"
           >
-            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
-              <Repeat2 size={28} className={reposted ? 'fill-green-500' : ''} />
+            <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
+              <Repeat2 size={24} className={reposted ? 'fill-green-500' : ''} />
             </div>
             <span className="text-xs font-bold">{reposts || 0}</span>
-          </button>
-
-          <button
-            className="flex flex-col items-center gap-1 text-white"
-            aria-label="View count"
-          >
-            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
-              <Eye size={28} />
-            </div>
-            <span className="text-xs font-bold">{views || 0}</span>
           </button>
 
           <button
@@ -1324,8 +1314,8 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
             className={`flex flex-col items-center gap-1 transition-all ${saved ? 'text-yellow-500' : 'text-white'}`}
             aria-label="Save reel"
           >
-            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
-              <Bookmark size={28} className={saved ? 'fill-yellow-500' : ''} />
+            <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
+              <Bookmark size={24} className={saved ? 'fill-yellow-500' : ''} />
             </div>
             <span className="text-xs font-bold">Save</span>
           </button>
@@ -1335,8 +1325,8 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
             className="flex flex-col items-center gap-1 text-white"
             aria-label="Share reel"
           >
-            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
-              <Share size={28} />
+            <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
+              <Share size={24} />
             </div>
             <span className="text-xs font-bold">Share</span>
           </button>
@@ -1353,8 +1343,14 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
                   {(post.displayName || 'U')[0].toUpperCase()}
                 </div>
               )}
-              <div>
-                <span className="text-white font-bold text-lg block">{post.displayName || 'User'}</span>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-white font-bold text-lg">{post.displayName || 'User'}</span>
+                  <span className="flex items-center gap-1 text-gray-300 text-sm">
+                    <Eye size={14} />
+                    {views || 0}
+                  </span>
+                </div>
                 <span className="text-gray-300 text-sm">{formatTimeAgo(post.createdAt)}</span>
               </div>
             </div>

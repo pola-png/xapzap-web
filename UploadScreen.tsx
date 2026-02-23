@@ -856,7 +856,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
             {/* Media Preview */}
             <div
               onClick={() => fileInputRef.current?.click()}
-              className={`${selectedType === 'image' ? 'h-[600px]' : 'aspect-video'} rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
+              className={`${selectedType === 'image' ? 'h-[480px]' : 'aspect-video'} rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
                 isDark
                   ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
                   : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
