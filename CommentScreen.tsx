@@ -46,7 +46,10 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
   const loadCurrentUser = async () => {
     try {
       const user = await appwriteService.getCurrentUser()
-      setCurrentUser(user)
+      if (user) {
+        const profile = await appwriteService.getProfileByUserId(user.$id)
+        setCurrentUser({ ...user, avatarUrl: profile?.avatarUrl || '' })
+      }
     } catch (error) {
       console.error('Failed to load user:', error)
     }
@@ -302,15 +305,13 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
       {/* Comment Input */}
       <div className="border-t border-border p-4">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-            {currentUser ? (
-              <span className="text-xs font-medium">
-                {currentUser.name?.[0]?.toUpperCase() || 'U'}
-              </span>
-            ) : (
+          {currentUser?.avatarUrl ? (
+            <img src={currentUser.avatarUrl.startsWith('/media/') ? `/api/image-proxy?path=${currentUser.avatarUrl.substring(1)}` : currentUser.avatarUrl} alt="You" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
               <span className="text-xs font-medium">U</span>
-            )}
-          </div>
+            </div>
+          )}
           
           <div className="flex-1 flex items-center space-x-2">
             <input

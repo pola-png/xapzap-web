@@ -40,10 +40,24 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
   const [swipeStartX, setSwipeStartX] = useState(0)
   const [showFullScreen, setShowFullScreen] = useState(false)
   const [selectedCommentForReplies, setSelectedCommentForReplies] = useState<Comment | null>(null)
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string>('')
 
   useEffect(() => {
     loadComments()
+    loadCurrentUser()
   }, [])
+
+  const loadCurrentUser = async () => {
+    try {
+      const user = await appwriteService.getCurrentUser()
+      if (user) {
+        const profile = await appwriteService.getProfileByUserId(user.$id)
+        setCurrentUserAvatar(profile?.avatarUrl || '')
+      }
+    } catch (error) {
+      console.error('Failed to load user:', error)
+    }
+  }
 
   const loadComments = async () => {
     try {
@@ -197,11 +211,11 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
       {commentInputFocused && (
         <div className="p-3 bg-background border-b border-border">
           <div className="flex items-center gap-2 sm:gap-3">
-            {post.avatarUrl ? (
-              <img src={post.avatarUrl} alt={post.displayName} className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
+            {currentUserAvatar ? (
+              <img src={currentUserAvatar.startsWith('/media/') ? `/api/image-proxy?path=${currentUserAvatar.substring(1)}` : currentUserAvatar} alt="You" className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
             ) : (
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
-                {(post.displayName || 'U')[0].toUpperCase()}
+                U
               </div>
             )}
             <input
@@ -335,11 +349,11 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
       {!commentInputFocused && (
         <div className="absolute bottom-0 inset-x-0 p-3 bg-background border-t border-border">
           <div className="flex items-center gap-2 sm:gap-3">
-            {post.avatarUrl ? (
-              <img src={post.avatarUrl} alt={post.displayName} className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
+            {currentUserAvatar ? (
+              <img src={currentUserAvatar.startsWith('/media/') ? `/api/image-proxy?path=${currentUserAvatar.substring(1)}` : currentUserAvatar} alt="You" className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
             ) : (
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
-                {(post.displayName || 'U')[0].toUpperCase()}
+                U
               </div>
             )}
             <input

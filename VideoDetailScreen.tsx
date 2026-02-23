@@ -48,6 +48,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [selectedCommentForReplies, setSelectedCommentForReplies] = useState<any>(null)
   const [repliesList, setRepliesList] = useState<any[]>([])
   const [loadingReplies, setLoadingReplies] = useState(false)
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string>('')
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
@@ -74,9 +75,13 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     const loadUser = async () => {
       const user = await appwriteService.getCurrentUser()
       setCurrentUserId(user?.$id || null)
-      if (user && post.userId) {
-        const following = await appwriteService.isFollowing(user.$id, post.userId)
-        setIsFollowing(following)
+      if (user) {
+        const profile = await appwriteService.getProfileByUserId(user.$id)
+        setCurrentUserAvatar(profile?.avatarUrl || '')
+        if (post.userId) {
+          const following = await appwriteService.isFollowing(user.$id, post.userId)
+          setIsFollowing(following)
+        }
       }
     }
     loadUser()
@@ -699,11 +704,11 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           {commentInputFocused && (
             <div className="p-3 bg-background border-b border-border">
               <div className="flex items-center gap-2 sm:gap-3">
-                {post.userAvatar ? (
-                  <img src={post.userAvatar} alt={post.displayName} className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
+                {currentUserAvatar ? (
+                  <img src={currentUserAvatar.startsWith('/media/') ? `/api/image-proxy?path=${currentUserAvatar.substring(1)}` : currentUserAvatar} alt="You" className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
-                    {(post.displayName || 'U')[0].toUpperCase()}
+                    U
                   </div>
                 )}
                 <input
@@ -837,11 +842,11 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           {!commentInputFocused && (
             <div className="absolute bottom-0 inset-x-0 p-3 bg-background border-t border-border">
               <div className="flex items-center gap-2 sm:gap-3">
-                {post.userAvatar ? (
-                  <img src={post.userAvatar} alt={post.displayName} className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
+                {currentUserAvatar ? (
+                  <img src={currentUserAvatar.startsWith('/media/') ? `/api/image-proxy?path=${currentUserAvatar.substring(1)}` : currentUserAvatar} alt="You" className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
-                    {(post.displayName || 'U')[0].toUpperCase()}
+                    U
                   </div>
                 )}
                 <input
@@ -1023,11 +1028,11 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         {/* Comment Input - Fixed at Bottom */}
         <div className="p-3 bg-muted/30 border-t border-border/30">
           <div className="flex items-center gap-2 sm:gap-3">
-            {post.userAvatar ? (
-              <img src={post.userAvatar} alt={post.displayName} className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
+            {currentUserAvatar ? (
+              <img src={currentUserAvatar.startsWith('/media/') ? `/api/image-proxy?path=${currentUserAvatar.substring(1)}` : currentUserAvatar} alt="You" className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
             ) : (
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
-                {(post.displayName || 'U')[0].toUpperCase()}
+                U
               </div>
             )}
             <input
