@@ -39,7 +39,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   const [showFullPost, setShowFullPost] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(propCurrentUserId || null)
-  const [isFollowing, setIsFollowing] = useState(false)
+  const [isFollowing, setIsFollowing] = useState<boolean | null>(null)
   const [shouldLoadMedia, setShouldLoadMedia] = useState(false)
   const [expandedText, setExpandedText] = useState(false)
   const mediaRef = useRef<HTMLDivElement>(null)
@@ -515,7 +515,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          {currentUserId && currentUserId !== post.userId && !isFollowing && (
+          {currentUserId && currentUserId !== post.userId && isFollowing === false && (
             <button
               onClick={handleFollow}
               className="px-4 py-1.5 rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 bg-blue-500 text-white hover:bg-blue-600"

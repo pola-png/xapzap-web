@@ -34,7 +34,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [impressions, setImpressions] = useState(post.impressions || 0)
   const [views, setViews] = useState(post.views || 0)
   const [showDescription, setShowDescription] = useState(false)
-  const [isFollowing, setIsFollowing] = useState(false)
+  const [isFollowing, setIsFollowing] = useState<boolean | null>(null)
   const [showMenu, setShowMenu] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [showComments, setShowComments] = useState(false)
@@ -610,7 +610,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 </span>
                 <span className="text-muted-foreground/70">{formatTimeAgo(post.createdAt)}</span>
               </div>
-              {currentUserId && currentUserId !== post.userId && !isFollowing && (
+              {currentUserId && currentUserId !== post.userId && isFollowing === false && (
                 <button
                   onClick={handleFollow}
                   className="px-4 py-1.5 rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 bg-primary text-primary-foreground hover:bg-primary/90"

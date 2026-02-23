@@ -74,12 +74,12 @@ export default function ProfilePage() {
 
       // Get current user
       const currentUser = await appwriteService.getCurrentUser()
-      const userId = currentUser?.$id || ''
-      setCurrentUserId(userId)
-      authStore.setCurrentUserId(userId)
+      const currentUserId = currentUser?.$id || ''
+      setCurrentUserId(currentUserId)
+      authStore.setCurrentUserId(currentUserId)
 
       // Get profile data
-      const profileData = await appwriteService.getProfileByUserId(userId)
+      const profileData = await appwriteService.getProfileByUserId(params.userId as string)
       if (profileData) {
         setProfile({
           displayName: profileData.displayName || profileData.username,
@@ -94,7 +94,7 @@ export default function ProfilePage() {
       }
 
       // Get posts
-      const postsResult = await appwriteService.fetchPostsByUserIds([userId], 50)
+      const postsResult = await appwriteService.fetchPostsByUserIds([params.userId as string], 50)
       const postsData = await Promise.all(
         postsResult.documents.map(async (doc: any) => {
           const interactions = currentUser ? await Promise.all([
@@ -129,20 +129,20 @@ export default function ProfilePage() {
       setPosts(postsData)
       setStats({
         posts: postsResult.total,
-        followers: await appwriteService.getFollowerCount(userId),
-        following: await appwriteService.getFollowingCount(userId)
+        followers: await appwriteService.getFollowerCount(params.userId as string),
+        following: await appwriteService.getFollowingCount(params.userId as string)
       })
 
       // Check follow status if not current user
-      if (currentUser && currentUser.$id !== userId) {
-        const following = await appwriteService.isFollowing(currentUser.$id, userId)
+      if (currentUser && currentUser.$id !== params.userId as string) {
+        const following = await appwriteService.isFollowing(currentUser.$id, params.userId as string)
         setIsFollowing(following)
       }
 
       // Cache the profile data
       if (profileData) {
-        profileStore.setProfile(userId, {
-          userId,
+        profileStore.setProfile(params.userId as string, {
+          userId: params.userId as string,
           profile: {
             displayName: profileData.displayName || profileData.username,
             username: profileData.username,
@@ -156,8 +156,8 @@ export default function ProfilePage() {
           posts: postsData,
           stats: {
             posts: postsResult.total,
-            followers: await appwriteService.getFollowerCount(userId),
-            following: await appwriteService.getFollowingCount(userId)
+            followers: await appwriteService.getFollowerCount(params.userId as string),
+            following: await appwriteService.getFollowingCount(params.userId as string)
           },
           activeTab: 'posts'
         })
