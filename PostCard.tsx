@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Play } from 'lucide-react'
+import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Play, ArrowLeft } from 'lucide-react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { OptimizedImage } from './components/OptimizedImage'
@@ -36,25 +36,28 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   const [showComments, setShowComments] = useState(false)
   const [showFullComments, setShowFullComments] = useState(false)
   const [showReelDetail, setShowReelDetail] = useState(false)
+  const [showFullPost, setShowFullPost] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(propCurrentUserId || null)
   const [isFollowing, setIsFollowing] = useState(false)
   const [shouldLoadMedia, setShouldLoadMedia] = useState(false)
+  const [expandedText, setExpandedText] = useState(false)
   const mediaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handlePopState = () => {
       if (showReelDetail) setShowReelDetail(false)
+      else if (showFullPost) setShowFullPost(false)
       else if (showFullComments) setShowFullComments(false)
       else if (showComments) setShowComments(false)
     }
     
-    if (showReelDetail || showFullComments || showComments) {
+    if (showReelDetail || showFullPost || showFullComments || showComments) {
       window.history.pushState(null, '', window.location.href)
       window.addEventListener('popstate', handlePopState)
       return () => window.removeEventListener('popstate', handlePopState)
     }
-  }, [showReelDetail, showFullComments, showComments])
+  }, [showReelDetail, showFullPost, showFullComments, showComments])
 
   // Check if current user has liked/saved/reposted - skip if already in post data
   useEffect(() => {
@@ -451,6 +454,23 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
     return null
   }
 
+  if (showFullPost) {
+    return (
+      <div className="fixed inset-0 bg-background z-50 flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <button onClick={() => setShowFullPost(false)} className="p-2 hover:bg-accent rounded-full">
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="text-lg font-semibold">Post</h1>
+          <div className="w-10" />
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          <PostCard post={post} currentUserId={currentUserId} feedType={feedType} onVideoClick={onVideoClick} onCommentClick={onCommentClick} />
+        </div>
+      </div>
+    )
+  }
+
   if (showReelDetail && post.postType === 'reel') {
     return <ReelsDetailScreen post={post} onClose={() => setShowReelDetail(false)} />
   }
@@ -535,7 +555,11 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
       )}
 
       {/* Content */}
-      <div className="pb-2" ref={mediaRef}>
+      <div className="pb-2" ref={mediaRef} onClick={(e) => {
+        if ((post.postType === 'text' || post.postType === 'image' || !post.postType) && !(e.target as HTMLElement).closest('button') && !expandedText) {
+          setShowFullPost(true)
+        }
+      }}>
         {post.textBgColor ? (
           <div
             className={`text-white text-center leading-relaxed p-4 rounded-xl mb-3 max-w-sm ${
@@ -550,7 +574,55 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             {post.content}
           </div>
         ) : (post.content && !(post.postType === 'video' && (feedType === 'home' || feedType === 'watch'))) ? (
-          <p className="text-gray-900 dark:text-white text-base leading-relaxed mb-3">{parseHashtags(post.content)}</p>
+          <div className="text-gray-900 dark:text-white text-base leading-relaxed mb-3">
+            {(() => {
+              const contentLength = post.content.length
+              let maxLines = 2
+              
+              if (post.postType === 'reel') {
+                maxLines = 2
+              } else if (post.postType === 'video') {
+                maxLines = 2
+              } else if (contentLength >= 1000) {
+                maxLines = 5
+              } else if (contentLength >= 400) {
+                maxLines = 3
+              } else {
+                maxLines = 2
+              }
+              
+              const needsTruncation = post.content.split('\n').length > maxLines || contentLength > maxLines * 80
+              
+              return (
+                <>
+                  <p className={expandedText ? '' : `line-clamp-${maxLines}`}>
+                    {parseHashtags(post.content)}
+                  </p>
+                  {needsTruncation && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (post.postType === 'video') {
+                          if (onVideoClick) {
+                            onVideoClick(post)
+                          } else {
+                            router.push(`/watch/${generateSlug(post.title || 'video', post.id)}`)
+                          }
+                        } else if (post.postType === 'reel') {
+                          setShowReelDetail(true)
+                        } else {
+                          setExpandedText(!expandedText)
+                        }
+                      }}
+                      className="text-blue-500 hover:underline text-sm mt-1"
+                    >
+                      {expandedText ? 'Show less' : 'more'}
+                    </button>
+                  )}
+                </>
+              )
+            })()}
+          </div>
         ) : null}
 
         {/* Display media from mediaUrls array */}

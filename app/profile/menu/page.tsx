@@ -13,7 +13,7 @@ export default function MenuPage() {
     try {
       await appwriteService.signOut()
       authStore.clearAuth()
-      window.location.reload()
+      router.push('/')
     } catch (error) {
       console.error('Sign out failed:', error)
     }
