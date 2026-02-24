@@ -818,29 +818,6 @@ class AppwriteService {
   }
 
   // Profile methods
-  async getProfileByUserId(userId: string) {
-    try {
-      // Primary: profile document ID matches userId
-      return await this.databases.getDocument(
-        this.databaseId,
-        this.collections.profiles,
-        userId
-      )
-    } catch {
-      try {
-        // Fallback: look up by userId field
-        const result = await this.databases.listDocuments(
-          this.databaseId,
-          this.collections.profiles,
-          [Query.equal('userId', userId), Query.limit(1)]
-        )
-        return result.documents[0] ?? null
-      } catch {
-        return null
-      }
-    }
-  }
-
   async updateProfile(userId: string, data: any) {
     try {
       const profile = await this.getProfileByUserId(userId)
