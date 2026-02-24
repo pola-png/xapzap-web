@@ -344,15 +344,13 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
     if (post.postType === 'image') {
       return (
         <div className={`w-full rounded-xl mb-3 overflow-hidden bg-gray-100 dark:bg-gray-800 ${
-          feedType === 'watch' ? 'max-h-[70vh]' : 'aspect-square'
+          feedType === 'watch' ? 'max-h-[70vh]' : ''
         }`}>
           {imageUrl && (
             <img
               src={imageUrl}
               alt="Post"
-              className={`w-full h-full ${
-                feedType === 'watch' ? 'object-contain' : 'object-cover'
-              }`}
+              className="w-full h-auto object-contain"
               loading="lazy"
             />
           )}
