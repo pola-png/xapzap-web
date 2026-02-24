@@ -42,6 +42,8 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   const [isFollowing, setIsFollowing] = useState<boolean | null>(null)
   const [shouldLoadMedia, setShouldLoadMedia] = useState(false)
   const [expandedText, setExpandedText] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [touchStartX, setTouchStartX] = useState(0)
   const mediaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -344,16 +346,44 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
     if (post.postType === 'image') {
       return (
         <div 
-          className="w-full rounded-xl mb-3 overflow-hidden bg-gray-100 dark:bg-gray-800 max-h-[500px] cursor-pointer"
-          onClick={() => setShowFullPost(true)}
+          className="w-full rounded-xl mb-3 overflow-hidden bg-gray-100 dark:bg-gray-800 relative"
+          style={{ aspectRatio: '1/1.2' }}
         >
-          {imageUrl && (
+          <div
+            className="w-full h-full cursor-pointer"
+            onClick={() => setShowFullPost(true)}
+            onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
+            onTouchEnd={(e) => {
+              const touchEndX = e.changedTouches[0].clientX
+              const diff = touchStartX - touchEndX
+              if (Math.abs(diff) > 50) {
+                e.stopPropagation()
+                if (diff > 0 && currentImageIndex < post.mediaUrls.length - 1) {
+                  setCurrentImageIndex(prev => prev + 1)
+                } else if (diff < 0 && currentImageIndex > 0) {
+                  setCurrentImageIndex(prev => prev - 1)
+                }
+              }
+            }}
+          >
             <img
-              src={imageUrl}
+              src={toProxyUrl(post.mediaUrls[currentImageIndex])}
               alt="Post"
               className="w-full h-full object-cover object-top"
               loading="lazy"
             />
+          </div>
+          {post.mediaUrls.length > 1 && (
+            <div className="absolute top-3 right-3 flex gap-1.5">
+              {post.mediaUrls.map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${
+                    i === currentImageIndex ? 'bg-white w-6' : 'bg-white/60'
+                  }`} 
+                />
+              ))}
+            </div>
           )}
         </div>
       )
@@ -364,7 +394,6 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
         <>
           <div
             className="relative w-full rounded-xl mb-3 bg-gray-900 cursor-pointer overflow-hidden"
-            style={{ aspectRatio: '4/3' }}
             onClick={() => {
               if (onVideoClick) {
                 onVideoClick(post)
@@ -377,7 +406,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
               <img
                 src={thumbnailUrl}
                 alt="Video thumbnail"
-                className="w-full h-full object-contain"
+                className="w-full h-auto object-contain"
                 loading="lazy"
               />
             )}
@@ -453,18 +482,43 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
     return null
   }
 
-  if (showFullPost) {
+  if (showFullPost && post.postType === 'image' && post.mediaUrls && post.mediaUrls.length > 0) {
+    const toProxyUrl = (url: string) => {
+      if (url.startsWith('/media/')) {
+        return `/api/image-proxy?path=${url.substring(1)}`
+      }
+      return url
+    }
+
     return (
-      <div className="fixed inset-0 bg-background z-50 flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <button onClick={() => setShowFullPost(false)} className="p-2 hover:bg-accent rounded-full">
-            <ArrowLeft size={20} />
+      <div className="fixed inset-0 bg-black z-50 flex flex-col">
+        <div className="flex items-center justify-between p-4 bg-black/80">
+          <button onClick={() => setShowFullPost(false)} className="p-2 hover:bg-white/10 rounded-full text-white">
+            <ArrowLeft size={24} />
           </button>
-          <h1 className="text-lg font-semibold">Post</h1>
+          <div className="text-white text-sm">{currentImageIndex + 1} / {post.mediaUrls.length}</div>
           <div className="w-10" />
         </div>
-        <div className="flex-1 overflow-y-auto">
-          <PostCard post={post} currentUserId={currentUserId || undefined} feedType={feedType} onVideoClick={onVideoClick} onCommentClick={onCommentClick} />
+        <div 
+          className="flex-1 relative flex items-center justify-center"
+          onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
+          onTouchEnd={(e) => {
+            const touchEndX = e.changedTouches[0].clientX
+            const diff = touchStartX - touchEndX
+            if (Math.abs(diff) > 50) {
+              if (diff > 0 && currentImageIndex < post.mediaUrls.length - 1) {
+                setCurrentImageIndex(prev => prev + 1)
+              } else if (diff < 0 && currentImageIndex > 0) {
+                setCurrentImageIndex(prev => prev - 1)
+              }
+            }
+          }}
+        >
+          <img
+            src={toProxyUrl(post.mediaUrls[currentImageIndex])}
+            alt="Post"
+            className="max-w-full max-h-full object-contain"
+          />
         </div>
       </div>
     )

@@ -139,7 +139,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
 
       {/* Mobile Layout */}
       <div className="lg:hidden">
-        {isHomeTab && (
+        {isHomeTab && pathname !== '/reels' && (
           <header className="sticky top-0 z-50 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))]">
             <div className="flex items-center justify-between px-4 py-3">
               <h1 className="text-xl font-bold text-[rgb(var(--text-primary))]">XapZap</h1>
@@ -149,7 +149,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
             </div>
           </header>
         )}
-        {isHomeTab && (
+        {isHomeTab && pathname !== '/reels' && (
           <div className="sticky top-14 z-40 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))]">
             <div className="flex overflow-x-auto scrollbar-hide -mb-px">
               <div className="flex gap-4 px-4 min-w-max sm:gap-6">

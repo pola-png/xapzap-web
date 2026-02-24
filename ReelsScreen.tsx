@@ -325,6 +325,7 @@ export function ReelsScreen() {
         {posts.map((post, index) => (
           <div key={post.id} className="h-screen w-screen relative" ref={el => { if (el) mediaRefs.current.set(post.id, el) }}>
             {shouldLoadMedia.get(post.id) ? (
+            <>
             <video
               ref={el => { videoRefs.current[index] = el }}
               src={post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls[0]}
@@ -348,6 +349,12 @@ export function ReelsScreen() {
                 }
               }}
             />
+            {videoRefs.current[index] && videoRefs.current[index]!.readyState < 3 && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <div className="animate-spin rounded-full h-10 w-10 border-3 border-white/30 border-t-white" />
+              </div>
+            )}
+            </>
             ) : (
               <div className="h-full w-full bg-gray-900" />
             )}

@@ -300,21 +300,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   }
 
   const handleVideoClick = () => {
-    if (isPlaying) {
-      setShowControls(true)
-      
-      if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current)
-      }
-
-      controlsTimeoutRef.current = setTimeout(() => {
-        if (isPlaying) {
-          setShowControls(false)
-        }
-      }, 2000)
-    } else {
-      togglePlay()
-    }
+    togglePlay()
   }
 
   const formatTime = (time: number) => {
@@ -517,8 +503,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           </div>
         )}
 
-        {/* Center Play/Controls - Show when paused OR when showControls is true */}
-        {(!isPlaying || showControls) && !selectedCommentForReplies && !showComments && (
+        {/* Center Play/Controls - Show only when paused */}
+        {!isPlaying && !selectedCommentForReplies && !showComments && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20 animate-in fade-in duration-200">
             <div className="flex items-center gap-3 sm:gap-4">
               <button
@@ -911,12 +897,13 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <Repeat2 size={24} />
             <span className="text-sm sm:text-base font-medium">{reposts || 0}</span>
           </button>
-          <button onClick={() => setShowComments(true)} className="flex items-center gap-2 hover:text-blue-500 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label={`Comments - ${comments || 0} comments`} onClickCapture={() => {
+          <button onClick={() => {
+            setShowComments(true)
             const video = videoRef.current
             if (video && !video.paused) {
               video.pause()
             }
-          }}>
+          }} className="flex items-center gap-2 hover:text-blue-500 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label={`Comments - ${comments || 0} comments`}>
             <MessageCircle size={24} />
             <span className="text-sm sm:text-base font-medium">{comments || 0}</span>
           </button>
@@ -1250,6 +1237,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
       {/* Full screen vertical video */}
       <div className="relative w-full h-full">
         {shouldLoadVideo ? (
+        <>
         <video
           ref={videoRef}
           src={post.mediaUrls && post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls && post.mediaUrls[0]}
@@ -1260,6 +1248,12 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           loop
           preload="auto"
         />
+        {!isPlaying && duration === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-white" />
+          </div>
+        )}
+        </>
         ) : (
           <div className="w-full h-full bg-gray-900" />
         )}
