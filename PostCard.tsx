@@ -437,14 +437,17 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
         return (
           <div className="relative">
             <video
+              ref={(el) => {
+                if (el) {
+                  el.muted = true
+                }
+              }}
               src={videoUrl}
               poster={thumbnailUrl}
               className="w-full rounded-xl mb-3 object-cover"
               style={{ aspectRatio: '9/16' }}
               controls
               preload="metadata"
-              autoPlay={false}
-              muted
             />
             {/* Title overlay on reels */}
             {post.title && (

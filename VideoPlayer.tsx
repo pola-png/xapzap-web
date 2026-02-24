@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react'
 import { cn } from './utils'
 
@@ -17,6 +17,18 @@ export function VideoPlayer({ src, poster, className, autoPlay = false, muted = 
   const [isMuted, setIsMuted] = useState(muted)
   const [showControls, setShowControls] = useState(true)
   const videoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    video.loop = true
+    video.muted = isMuted
+    
+    if (autoPlay) {
+      video.play().catch(() => {})
+    }
+  }, [autoPlay, isMuted])
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -57,9 +69,6 @@ export function VideoPlayer({ src, poster, className, autoPlay = false, muted = 
         src={src}
         poster={poster}
         className="w-full h-full object-cover"
-        autoPlay={autoPlay}
-        muted={muted}
-        loop
         playsInline
         onClick={togglePlay}
         onPlay={() => setIsPlaying(true)}

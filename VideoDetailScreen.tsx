@@ -197,6 +197,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     const video = videoRef.current
     if (!video || !shouldLoadVideo) return
 
+    video.muted = isMuted
+
     const handleLoadedMetadata = () => setDuration(video.duration)
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
     const handlePlay = async () => {
@@ -262,7 +264,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         navigator.mediaSession.setActionHandler('seekforward', null)
       }
     }
-  }, [shouldLoadVideo])
+  }, [shouldLoadVideo, isMuted])
 
   const togglePlay = () => {
     const video = videoRef.current
@@ -481,7 +483,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           poster={post.thumbnailUrl?.startsWith('/media/') ? `/api/image-proxy?path=${post.thumbnailUrl.substring(1)}` : post.thumbnailUrl}
           className="w-full h-full object-contain transition-opacity duration-300"
           onClick={handleVideoClick}
-          muted={isMuted}
           playsInline
           preload="metadata"
         />
@@ -1120,6 +1121,9 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
     const video = videoRef.current
     if (!video || !shouldLoadVideo) return
 
+    video.loop = true
+    video.muted = isMuted
+
     const handleLoadedMetadata = () => setDuration(video.duration)
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
     const handlePlay = () => setIsPlaying(true)
@@ -1147,7 +1151,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
       video.removeEventListener('pause', handlePause)
       video.removeEventListener('ended', handleEnded)
     }
-  }, [shouldLoadVideo])
+  }, [shouldLoadVideo, isMuted])
 
   const togglePlay = () => {
     const video = videoRef.current
@@ -1247,9 +1251,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           src={post.mediaUrls && post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls && post.mediaUrls[0]}
           className="w-full h-full object-cover"
           onClick={handleVideoClick}
-          muted={isMuted}
           playsInline
-          loop
           preload="auto"
         />
         {duration === 0 && (
