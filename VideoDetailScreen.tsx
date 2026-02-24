@@ -125,6 +125,20 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     }
   }, [showComments])
 
+  // Keep the actual video element in sync with isPlaying state
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    if (isPlaying) {
+      video.play().catch(() => {
+        // Ignore autoplay / play errors – UI state still reflects intent
+      })
+    } else {
+      video.pause()
+    }
+  }, [isPlaying])
+
   const loadComments = async () => {
     setLoadingComments(true)
     try {
@@ -1380,8 +1394,10 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 <span className="text-gray-300 text-sm">{formatTimeAgo(post.createdAt)}</span>
               </div>
             </div>
-            {post.content && (
-              <p className="text-white text-base leading-relaxed line-clamp-3">{post.content}</p>
+            {post.title && (
+              <p className="text-white text-base leading-relaxed line-clamp-3">
+                {post.title}
+              </p>
             )}
           </div>
         </div>

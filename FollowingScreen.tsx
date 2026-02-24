@@ -65,8 +65,15 @@ export function FollowingScreen() {
           timestamp: new Date(d.$createdAt || d.createdAt),
         }))
       )
-      setPosts(postsData)
-      feedStore.setFeed('following', postsData)
+
+      // In the following feed, hide long description text for video posts
+      // so cards focus on the title/media.
+      const adjusted = postsData.map(post =>
+        post.postType === 'video' ? { ...post, content: '' } : post
+      )
+
+      setPosts(adjusted)
+      feedStore.setFeed('following', adjusted)
     } catch (error) {
       console.error('Failed to load following posts:', error)
       // Fallback to all posts if following feed fails
@@ -79,7 +86,12 @@ export function FollowingScreen() {
             timestamp: new Date(d.$createdAt || d.createdAt),
           }))
         )
-        setPosts(fallbackPosts)
+
+        const adjustedFallback = fallbackPosts.map(post =>
+          post.postType === 'video' ? { ...post, content: '' } : post
+        )
+
+        setPosts(adjustedFallback)
       } catch (fallbackError) {
         console.error('Fallback also failed:', fallbackError)
         setPosts([])
