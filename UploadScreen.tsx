@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Upload, X, Video, Image, Newspaper, Film, Plus, Loader2, Sparkles } from 'lucide-react'
 import appwriteService from './appwriteService'
