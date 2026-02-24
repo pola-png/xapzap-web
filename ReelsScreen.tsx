@@ -5,7 +5,7 @@ import { Post } from './types'
 import appwriteService from './appwriteService'
 import { feedCache } from './lib/cache'
 import { useFeedStore } from './feedStore'
-import { Heart, MessageCircle, Share2, Bookmark, MoreVertical, Repeat2 } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Bookmark, MoreVertical, Repeat2, Eye } from 'lucide-react'
 import { OptimizedImage } from './components/OptimizedImage'
 import { useRouter } from 'next/navigation'
 import { generateSlug } from './lib/slug'
@@ -18,6 +18,7 @@ export function ReelsScreen() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(false)
   const [showNav, setShowNav] = useState(false)
+  const [showControls, setShowControls] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
   const touchStartY = useRef(0)
@@ -25,6 +26,7 @@ export function ReelsScreen() {
   const hasCountedView = useRef<Map<string, boolean>>(new Map())
   const hasEnded = useRef<Map<string, boolean>>(new Map())
   const navTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const [commentModalPost, setCommentModalPost] = useState<Post | null>(null)
   const [shouldLoadMedia, setShouldLoadMedia] = useState<Map<string, boolean>>(new Map())
@@ -323,13 +325,30 @@ export function ReelsScreen() {
                 const video = e.currentTarget
                 if (video.paused) {
                   video.play()
+                  setShowControls(true)
+                  if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
+                  controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 2000)
                 } else {
                   video.pause()
+                  setShowControls(true)
                 }
               }}
             />
             ) : (
               <div className="h-full w-full bg-gray-900" />
+            )}
+
+            {/* Center Play/Pause Button */}
+            {showControls && (
+              <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                <div className="w-20 h-20 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white animate-in fade-in duration-200">
+                  {videoRefs.current[index]?.paused ? (
+                    <Play size={40} fill="white" className="ml-1" />
+                  ) : (
+                    <Pause size={40} fill="white" />
+                  )}
+                </div>
+              </div>
             )}
 
             {/* Right Side Reactions */}
@@ -436,7 +455,13 @@ export function ReelsScreen() {
                     </div>
                   )}
                   <div>
-                    <span className="text-white font-bold text-lg block">{post.displayName || 'User'}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-1 text-gray-300 text-sm">
+                        <Eye size={14} />
+                        {post.views || 0}
+                      </span>
+                      <span className="text-white font-bold text-lg">{post.displayName || 'User'}</span>
+                    </div>
                     <span className="text-gray-300 text-sm">{formatTimeAgo(post.timestamp)}</span>
                   </div>
                 </div>

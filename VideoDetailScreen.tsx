@@ -299,17 +299,17 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   const handleVideoClick = () => {
     if (isPlaying) {
-      setShowControls(!showControls)
+      setShowControls(true)
       
       if (controlsTimeoutRef.current) {
         clearTimeout(controlsTimeoutRef.current)
       }
 
-      if (!showControls) {
-        controlsTimeoutRef.current = setTimeout(() => {
+      controlsTimeoutRef.current = setTimeout(() => {
+        if (isPlaying) {
           setShowControls(false)
-        }, 2000)
-      }
+        }
+      }, 2000)
     } else {
       togglePlay()
     }
@@ -540,17 +540,19 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                   togglePlay()
                 }}
                 className="w-16 h-16 sm:w-20 sm:h-20 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/60 transition-all transform hover:scale-110 active:scale-95 shadow-2xl"
-                aria-label={isPlaying ? "Pause video" : hasEnded ? "Rewatch video" : "Play video"}
+                aria-label={!isPlaying ? "Play video" : hasEnded ? "Rewatch video" : "Pause video"}
               >
-                {isPlaying ? (
-                  <Pause size={36} fill="white" />
-                ) : hasEnded ? (
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                    <path d="M3 3v5h5" />
-                  </svg>
+                {!isPlaying ? (
+                  hasEnded ? (
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                      <path d="M3 3v5h5" />
+                    </svg>
+                  ) : (
+                    <Play size={36} fill="white" className="ml-1" />
+                  )
                 ) : (
-                  <Play size={36} fill="white" className="ml-1" />
+                  <Pause size={36} fill="white" />
                 )}
               </button>
               <button
