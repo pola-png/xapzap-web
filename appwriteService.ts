@@ -1328,6 +1328,41 @@ class AppwriteService {
 
   // Storage methods
   async uploadFile(file: File, customFileId?: string) {
+    // For videos, enforce max 2 minutes for ordinary users.
+    // Admins, verified creators and premium creators can upload longer videos.
+    if (typeof window !== 'undefined' && typeof document !== 'undefined' && file.type.startsWith('video/')) {
+      let canUploadLongVideo = false
+
+      try {
+        const user = await this.getCurrentUser()
+        if (user) {
+          const isAdmin = await this.isCurrentUserAdmin()
+          const profile = await this.getProfileByUserId(user.$id)
+          const p: any = profile || {}
+          const isVerifiedCreator =
+            !!p.isVerifiedCreator ||
+            !!p.isVerified ||
+            p.verificationStatus === 'creator'
+          const isPremiumCreator =
+            !!p.isPremiumCreator ||
+            !!p.isPremium ||
+            p.subscriptionTier === 'pro' ||
+            p.subscription === 'premium'
+
+          canUploadLongVideo = isAdmin || isVerifiedCreator || isPremiumCreator
+        }
+      } catch (error) {
+        console.error('Failed to resolve user role for upload:', error)
+      }
+
+      const duration = await this.getVideoDuration(file)
+      if (!canUploadLongVideo && duration > 120) {
+        throw new Error(
+          'Videos and reels longer than 2 minutes are only available for Pro and verified creators. Please trim your video to 2 minutes or less in an editing app before uploading.'
+        )
+      }
+    }
+
     // Generate a valid fileId (max 36 chars, only a-zA-Z0-9._-)
     const fileId = customFileId || ID.unique()
 
@@ -1344,6 +1379,37 @@ class AppwriteService {
       id: uploadedFile.$id,
       url: fileUrl as string
     }
+  }
+
+  // Helper: read video duration on the client
+  private getVideoDuration(file: File): Promise<number> {
+    return new Promise((resolve) => {
+      try {
+        if (typeof document === 'undefined') {
+          resolve(0)
+          return
+        }
+
+        const url = URL.createObjectURL(file)
+        const video = document.createElement('video')
+        video.preload = 'metadata'
+        video.src = url
+
+        video.onloadedmetadata = () => {
+          const duration = video.duration || 0
+          URL.revokeObjectURL(url)
+          resolve(duration)
+        }
+
+        video.onerror = () => {
+          URL.revokeObjectURL(url)
+          resolve(0)
+        }
+      } catch (error) {
+        console.error('Error while reading video duration:', error)
+        resolve(0)
+      }
+    })
   }
 
   async getFileUrl(fileId: string) {

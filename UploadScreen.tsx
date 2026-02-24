@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Upload, X, Video, Image, Newspaper, Film, Plus, Loader2, Sparkles } from 'lucide-react'
 import appwriteService from './appwriteService'
 
@@ -9,6 +10,7 @@ interface UploadScreenProps {
 }
 
 export function UploadScreen({ onClose }: UploadScreenProps) {
+  const router = useRouter()
   const [selectedType, setSelectedType] = useState<'video' | 'reel' | 'image' | 'news' | null>(null)
   const [content, setContent] = useState('')
   const [title, setTitle] = useState('')
@@ -33,6 +35,10 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   const [canUseAi, setCanUseAi] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [verifiedColor, setVerifiedColor] = useState<string | null>(null)
+  const [isVerifiedCreator, setIsVerifiedCreator] = useState(false)
+  const [canUploadLongVideo, setCanUploadLongVideo] = useState(false)
+  const [videoDuration, setVideoDuration] = useState<number | null>(null)
+  const [durationError, setDurationError] = useState<string | null>(null)
 
   // Theme detection
   const [isDark, setIsDark] = useState(false)
@@ -68,9 +74,16 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           !!p.isVerifiedCreator ||
           !!p.isVerified ||
           p.verificationStatus === 'creator'
+        const isPremiumCreator =
+          !!p.isPremiumCreator ||
+          !!p.isPremium ||
+          p.subscriptionTier === 'pro' ||
+          p.subscription === 'premium'
 
         setIsAdmin(admin)
-        setCanUseAi(admin || isVerifiedCreator)
+        setIsVerifiedCreator(isVerifiedCreator)
+        setCanUseAi(admin || isVerifiedCreator || isPremiumCreator)
+        setCanUploadLongVideo(admin || isVerifiedCreator || isPremiumCreator)
 
         if (admin) {
           // Admin badge color
@@ -83,6 +96,8 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       } catch {
         setCanUseAi(false)
         setIsAdmin(false)
+        setIsVerifiedCreator(false)
+        setCanUploadLongVideo(false)
         setVerifiedColor(null)
       }
     }
@@ -116,6 +131,32 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     setSeoTitle((prev) => prev || baseTitle)
     setSeoDescription(baseDescription)
     setSeoKeywords((prev) => prev || baseKeywords)
+  }
+
+  const handleVideoMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const duration = e.currentTarget.duration || 0
+    setVideoDuration(duration)
+
+    if (!canUploadLongVideo && (selectedType === 'video' || selectedType === 'reel') && duration > 120) {
+      setDurationError(
+        'Videos and reels longer than 2 minutes are only available for Pro and verified creators. Please trim your video to 2 minutes or less in an editing app before uploading.'
+      )
+    } else {
+      setDurationError(null)
+    }
+  }
+
+  const handleVideoMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const duration = e.currentTarget.duration || 0
+    setVideoDuration(duration)
+
+    if (!canUploadLongVideo && (selectedType === 'video' || selectedType === 'reel') && duration > 120) {
+      setDurationError(
+        'Videos and reels longer than 2 minutes are only allowed for verified creators and admins. Please trim your video to 2 minutes or less in an editing app before uploading.'
+      )
+    } else {
+      setDurationError(null)
+    }
   }
 
   const contentTypes = [
@@ -943,14 +984,26 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                   : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
               }`}
             >
-              {previewUrl ? (
+                  {previewUrl ? (
                 <div className="relative w-full h-full">
                   {selectedType === 'image' ? (
                     <img src={previewUrl} alt="Preview" className="w-full h-full object-contain rounded-lg" />
                   ) : selectedType === 'reel' ? (
-                    <video src={previewUrl} className="w-full h-full object-contain rounded-lg" controls playsInline />
+                    <video
+                      src={previewUrl}
+                      className="w-full h-full object-contain rounded-lg"
+                      controls
+                      playsInline
+                      onLoadedMetadata={handleVideoMetadata}
+                    />
                   ) : (
-                    <video src={previewUrl} className="w-full h-full object-contain rounded-lg" controls playsInline />
+                    <video
+                      src={previewUrl}
+                      className="w-full h-full object-contain rounded-lg"
+                      controls
+                      playsInline
+                      onLoadedMetadata={handleVideoMetadata}
+                    />
                   )}
                   <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                     <p className="text-white text-sm font-medium">Tap to change</p>
@@ -963,6 +1016,12 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                 </div>
               )}
             </div>
+
+            {durationError && (
+              <p className="mt-2 px-4 text-sm font-medium text-red-500">
+                {durationError}
+              </p>
+            )}
 
             <div className="space-y-4 p-4">
 
@@ -1021,6 +1080,16 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
               )}
             </div>
           </div>
+        </div>
+
+        <div className="mt-4 flex justify-center">
+          <button
+            type="button"
+            onClick={() => router.push('/premium')}
+            className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-[#1DA1F2] to-purple-500 text-white text-sm font-semibold shadow-md hover:opacity-90 transition"
+          >
+            Upgrade to Pro Creator
+          </button>
         </div>
 
         <input
