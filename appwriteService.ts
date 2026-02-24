@@ -840,18 +840,6 @@ class AppwriteService {
       }
     }
   }
-        this.databaseId,
-        this.collections.profiles,
-        [
-          Query.equal('userId', userId),
-          Query.limit(1)
-        ]
-      )
-      return result.documents.length > 0 ? result.documents[0] : null
-    } catch {
-      return null
-    }
-  }
 
   async updateProfile(userId: string, data: any) {
     try {
