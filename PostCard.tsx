@@ -570,12 +570,12 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           <div className="flex-1 min-w-0">
             <button
               onClick={() => router.push(`/profile/${post.userId}`)}
-              className="text-gray-900 dark:text-white font-bold text-base hover:underline transition-all text-left"
+              className="text-gray-900 dark:text-white font-bold text-[15px] hover:underline transition-all text-left"
               aria-label={`View ${userProfile?.displayName || 'User'}'s profile`}
             >
               {userProfile?.displayName || 'User'}
             </button>
-            <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">{formatTimeAgo(post.createdAt)}</span>
+            <span className="text-gray-500 dark:text-gray-400 text-[13px] ml-2">{formatTimeAgo(post.createdAt)}</span>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -634,7 +634,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             {post.content}
           </div>
         ) : (post.content && !(post.postType === 'video' && (feedType === 'home' || feedType === 'watch'))) ? (
-          <div className="text-gray-900 dark:text-white text-base leading-[1.5] mb-3 font-normal">
+          <div className="text-gray-900 dark:text-white text-base leading-[1.5] mb-3">
             {(() => {
               const contentLength = post.content.length
               let maxLines = 2
