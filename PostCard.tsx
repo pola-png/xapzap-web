@@ -343,14 +343,15 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
 
     if (post.postType === 'image') {
       return (
-        <div className={`w-full rounded-xl mb-3 overflow-hidden bg-gray-100 dark:bg-gray-800 ${
-          feedType === 'watch' ? 'max-h-[70vh]' : ''
-        }`}>
+        <div 
+          className="w-full rounded-xl mb-3 overflow-hidden bg-gray-100 dark:bg-gray-800 max-h-[500px] cursor-pointer"
+          onClick={() => setShowFullPost(true)}
+        >
           {imageUrl && (
             <img
               src={imageUrl}
               alt="Post"
-              className="w-full h-auto object-contain"
+              className="w-full h-full object-cover object-top"
               loading="lazy"
             />
           )}
@@ -376,7 +377,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
               <img
                 src={thumbnailUrl}
                 alt="Video thumbnail"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
                 loading="lazy"
               />
             )}
@@ -430,7 +431,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             <img
               src={thumbnailUrl}
               alt="Reel thumbnail"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-top"
             />
             {/* Reel overlay */}
             <div className="absolute inset-0 bg-black/20 flex items-center justify-center">

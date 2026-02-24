@@ -480,7 +480,7 @@ export function ReelsScreen() {
                   </div>
                 </div>
                 {post.content && (
-                  <p className="text-white text-base leading-relaxed line-clamp-3">{post.content}</p>
+                  <p className="text-white text-base leading-relaxed line-clamp-2">{post.content}</p>
                 )}
               </div>
             </div>
