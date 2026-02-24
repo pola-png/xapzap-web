@@ -631,7 +631,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             {post.content}
           </div>
         ) : (post.content && !(post.postType === 'video' && (feedType === 'home' || feedType === 'watch'))) ? (
-          <div className="text-gray-900 dark:text-white text-[15px] leading-[1.6] mb-3 font-medium">
+          <div className="text-gray-900 dark:text-white text-base leading-[1.5] mb-3 font-normal">
             {(() => {
               const contentLength = post.content.length
               let maxLines = 2

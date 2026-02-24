@@ -491,20 +491,6 @@ export function ReelsScreen() {
                 )}
               </div>
             </div>
-
-            {/* Scroll Indicator */}
-            <div className="absolute right-1/2 translate-x-1/2 top-4 flex flex-col gap-1 z-10">
-              {posts.map((_, i) => (
-                <div 
-                  key={i}
-                  className={`h-1 rounded-full transition-all ${
-                    i === currentIndex 
-                      ? 'w-8 bg-white' 
-                      : 'w-1 bg-white/50'
-                  }`}
-                />
-              ))}
-            </div>
           </div>
         ))}
       </div>

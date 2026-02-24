@@ -484,7 +484,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           muted={isMuted}
           playsInline
           preload="metadata"
-          autoPlay
         />
         ) : (
           <div className="w-full h-full bg-gray-900" />
@@ -647,8 +646,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <div className="w-12 h-1 bg-border rounded-full" />
           </div>
           <div className="flex-1 overflow-y-auto px-6 py-4">
-            {post.title && <h3 className="text-foreground font-bold text-2xl mb-4 leading-tight">{post.title}</h3>}
-            {post.content && <p className="text-muted-foreground text-base leading-relaxed whitespace-pre-wrap">{parseHashtags(post.content)}</p>}
+            {post.title && <h3 className="text-foreground font-bold text-2xl mb-4 leading-snug">{post.title}</h3>}
+            {post.content && <p className="text-muted-foreground text-base leading-[1.5] whitespace-pre-wrap font-normal">{parseHashtags(post.content)}</p>}
           </div>
         </div>
       )}
