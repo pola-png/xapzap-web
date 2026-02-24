@@ -1,5 +1,4 @@
 'use client'
-// @ts-nocheck
 
 import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -134,8 +133,8 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     setSeoKeywords((prev) => prev || baseKeywords)
   }
 
-  const handleVideoMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    const duration = e.currentTarget.duration || 0
+  const handleVideoMetadata = (e: any) => {
+    const duration = e.currentTarget?.duration || 0
     setVideoDuration(duration)
 
     if (!canUploadLongVideo && (selectedType === 'video' || selectedType === 'reel') && duration > 120) {
