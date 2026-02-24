@@ -1,9 +1,13 @@
-'use client'
+﻿'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Upload, X, Video, Image, Newspaper, Film, Plus, Loader2, Sparkles } from 'lucide-react'
 import appwriteService from './appwriteService'
+
+const VIDEO_DURATION_LIMIT_SECONDS = 120
+const DURATION_GUARD_MESSAGE =
+  'Videos and reels longer than 2 minutes are only allowed for verified creators and premium users. Please trim your video to 2 minutes or less in an editing app before uploading.'
 
 interface UploadScreenProps {
   onClose: () => void
@@ -105,6 +109,11 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     loadRole()
   }, [])
 
+  const overDurationLimit =
+    !canUploadLongVideo &&
+    (selectedType === 'video' || selectedType === 'reel') &&
+    (videoDuration ?? 0) > VIDEO_DURATION_LIMIT_SECONDS
+
   const handleGenerateSeoFromContent = () => {
     // Extra safety: only allow AI/SEO helpers
     // for authorized users (admin or verified creators)
@@ -137,10 +146,8 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     const duration = e.currentTarget?.duration || 0
     setVideoDuration(duration)
 
-    if (!canUploadLongVideo && (selectedType === 'video' || selectedType === 'reel') && duration > 120) {
-      setDurationError(
-        'Videos and reels longer than 2 minutes are only allowed for verified creators and admins. Please trim your video to 2 minutes or less in an editing app before uploading.'
-      )
+    if (!canUploadLongVideo && (selectedType === 'video' || selectedType === 'reel') && duration > VIDEO_DURATION_LIMIT_SECONDS) {
+      setDurationError(DURATION_GUARD_MESSAGE)
     } else {
       setDurationError(null)
     }
@@ -266,6 +273,10 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
 
   const handleUpload = async () => {
     if (!selectedType) return
+    if (overDurationLimit) {
+      setDurationError(DURATION_GUARD_MESSAGE)
+      return
+    }
 
     console.log('Starting upload process...')
     setUploading(true)
@@ -425,17 +436,17 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   }
 
   const renderTypeSelection = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-0">
       {contentTypes.map((type) => {
         const Icon = type.icon
         return (
           <button
             key={type.id}
             onClick={() => setSelectedType(type.id)}
-            className={`p-6 border-2 border-dashed rounded-xl hover:border-blue-500 transition-colors text-center ${
+            className={`p-6 rounded-xl transition-colors text-center ${
               isDark
-                ? 'border-gray-600 hover:bg-gray-800 text-gray-200'
-                : 'border-gray-300 hover:bg-blue-50 text-gray-700'
+                ? 'hover:bg-gray-800 text-gray-200'
+                : 'hover:bg-blue-50 text-gray-700'
             }`}
           >
             <Icon size={48} className={`mx-auto mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
@@ -476,18 +487,18 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     const Icon = currentType.icon
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 max-w-6xl mx-auto">
         {/* Left Side - Media Preview */}
-        <div className="space-y-4">
+        <div className="space-y-0">
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Preview</h2>
 
           {/* Media Upload Area */}
           <div
             onClick={() => fileInputRef.current?.click()}
-            className={`aspect-video max-w-sm max-h-48 mx-auto rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
+            className={`aspect-video max-w-sm max-h-48 mx-auto rounded-lg cursor-pointer transition-colors flex items-center justify-center ${
               isDark
-                ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
-                : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
+                ? 'hover:bg-gray-700 bg-gray-800'
+                : 'hover:bg-gray-50 bg-gray-100'
             }`}
           >
             {previewUrl ? (
@@ -516,17 +527,17 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
 
           {/* Custom Thumbnail Upload (for videos only) */}
           {(selectedType === 'video' || selectedType === 'reel') && (
-            <div className="space-y-2">
+            <div className="space-y-0">
               <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Custom Thumbnail (Optional)
               </label>
               <div
                 onClick={() => thumbnailInputRef.current?.click()}
-                className={`aspect-video rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
-                  isDark
-                    ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
-                    : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
-                }`}
+                className={`aspect-video rounded-lg cursor-pointer transition-colors flex items-center justify-center ${
+                    isDark
+                      ? 'hover:bg-gray-700 bg-gray-800'
+                      : 'hover:bg-gray-50 bg-gray-100'
+                  }`}
               >
                 {thumbnailPreviewUrl ? (
                   <div className="relative w-full h-full">
@@ -567,8 +578,8 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         </div>
 
         {/* Right Side - Form Fields */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
+        <div className="space-y-0">
+          <div className="flex items-center gap-0">
             <Icon size={24} className="text-blue-500" />
             <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Details</h2>
           </div>
@@ -584,10 +595,10 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder={selectedType === 'video' ? 'Add a title to your video' : 'Enter news title'}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                className={`w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 ${
                   isDark
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                    : 'border-gray-300 text-gray-900'
+                    ? 'bg-gray-700 text-white placeholder-gray-400'
+                    : 'text-gray-900'
                 }`}
               />
             </div>
@@ -602,10 +613,10 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Tell viewers about your video"
                 rows={3}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+                className={`w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none ${
                   isDark
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                    : 'border-gray-300 text-gray-900'
+                    ? 'bg-gray-700 text-white placeholder-gray-400'
+                    : 'text-gray-900'
                 }`}
               />
             </div>
@@ -626,10 +637,10 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                 'Write a caption...'
               }
               rows={selectedType === 'reel' ? 2 : 4}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+              className={`w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none ${
                 isDark
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                  : 'border-gray-300 text-gray-900'
+                  ? 'bg-gray-700 text-white placeholder-gray-400'
+                  : 'text-gray-900'
               }`}
             />
           </div>
@@ -638,12 +649,12 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           {content.trim() && !selectedFile && selectedType === null && (
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Text Background (Optional)</label>
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-0 flex-wrap">
                 {textColors.map((color, index) => (
                   <button
                     key={color}
                     onClick={() => setTextBgColor(color)}
-                    className={`w-8 h-8 rounded-full border-2 ${textBgColor === color ? 'border-gray-800' : 'border-gray-300'}`}
+                    className="w-8 h-8 rounded-full"
                     style={{ backgroundColor: color }}
                     aria-label={`Select background color ${index + 1}`}
                     title={`Color ${index + 1}`}
@@ -652,11 +663,11 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                 {textBgColor && (
                   <button
                     onClick={() => setTextBgColor('')}
-                    className={`px-3 py-1 text-sm border rounded-full transition-colors ${
-                      isDark
-                        ? 'border-gray-600 hover:bg-gray-700 text-gray-300'
-                        : 'border-gray-300 hover:bg-gray-50 text-gray-700'
-                    }`}
+                        className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                          isDark
+                            ? 'hover:bg-gray-700 text-gray-300'
+                            : 'hover:bg-gray-50 text-gray-700'
+                        }`}
                     title="Clear background color"
                   >
                     Clear
@@ -680,13 +691,13 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           )}
 
           {/* Actions */}
-          <div className="flex gap-3 pt-6">
+          <div className="flex gap-0 pt-6">
             <button
               onClick={() => setSelectedType(null)}
-              className={`flex-1 px-4 py-2 border rounded-lg transition-colors ${
+              className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
                 isDark
-                  ? 'border-gray-600 hover:bg-gray-700 text-gray-300'
-                  : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+                  ? 'hover:bg-gray-700 text-gray-300'
+                  : 'hover:bg-gray-50 text-gray-700'
               }`}
               title="Go back to type selection"
             >
@@ -695,7 +706,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
             <button
               onClick={handleUpload}
               disabled={uploading || (!content.trim() && !selectedFile)}
-              className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-0"
               title={uploading ? "Uploading post..." : "Create and publish post"}
             >
               {uploading ? (
@@ -721,7 +732,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     return (
       <div className={`fixed inset-0 z-50 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="h-full flex flex-col">
-          <div className="flex items-center justify-between p-4 border-b border-border">
+          <div className="flex items-center justify-between p-4">
             <button
               onClick={() => setShowDescriptionModal(false)}
               className="p-2 hover:bg-accent rounded-full"
@@ -759,7 +770,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     return (
       <div className={`fixed inset-0 z-50 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="h-full flex flex-col">
-          <div className="flex items-center justify-between p-4 border-b border-border">
+          <div className="flex items-center justify-between p-4">
             <button
               onClick={() => setShowThumbnailModal(false)}
               className="p-2 hover:bg-accent rounded-full"
@@ -785,7 +796,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
               className="hidden"
               aria-label="Upload thumbnail"
             />
-            <div className="space-y-4">
+            <div className="space-y-0">
               <div
                 onClick={() => {
                   console.log('Thumbnail button clicked in modal');
@@ -798,10 +809,10 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                     console.log('Input element not found in modal');
                   }
                 }}
-                className={`aspect-video rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
+                className={`aspect-video rounded-lg cursor-pointer transition-colors flex items-center justify-center ${
                   isDark
-                    ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
-                    : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
+                    ? 'hover:bg-gray-700 bg-gray-800'
+                    : 'hover:bg-gray-50 bg-gray-100'
                 }`}
               >
                 {thumbnailPreviewUrl ? (
@@ -825,7 +836,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                     setCustomThumbnail(null)
                     setThumbnailPreviewUrl(null)
                   }}
-                  className="w-full px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50"
+                className="w-full px-4 py-2 text-red-500 rounded-lg hover:bg-red-50"
                 >
                   Remove thumbnail
                 </button>
@@ -856,17 +867,17 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-0">
               {contentTypes.map((type) => {
                 const Icon = type.icon
                 return (
                   <button
                     key={type.id}
                     onClick={() => setSelectedType(type.id)}
-                    className={`p-4 rounded-xl border transition-colors text-center ${
+                    className={`p-4 rounded-xl transition-colors text-center ${
                       isDark
-                        ? 'border-gray-600 hover:bg-gray-700 text-gray-200'
-                        : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                        ? 'hover:bg-gray-700 text-gray-200'
+                        : 'hover:bg-gray-50 text-gray-700'
                     }`}
                   >
                     <Icon size={32} className={`mx-auto mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
@@ -886,7 +897,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     <div className={`h-screen ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
       <div className="h-full flex flex-col">
         {/* Header */}
-        <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+        <div className={`flex items-center justify-between p-4`}>
               <button
                 onClick={() => setSelectedType(null)}
                 className={`p-2 rounded-full transition-colors ${
@@ -904,7 +915,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           </h1>
           <button
             onClick={handleUpload}
-            disabled={uploading || (!content.trim() && !selectedFile)}
+            disabled={uploading || overDurationLimit || (!content.trim() && !selectedFile)}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {uploading ? 'Posting...' : 'Post'}
@@ -913,9 +924,9 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="space-y-4">
+          <div className="space-y-0">
             {/* Form Fields */}
-            <div className="space-y-4">
+          <div className="space-y-0">
               {/* Title (for videos and news) */}
               {(selectedType === 'video' || selectedType === 'news') && (
                 <input
@@ -923,10 +934,10 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder={selectedType === 'video' ? 'Add a title...' : 'News title...'}
-                  className={`w-full px-3 py-3 border-b focus:outline-none text-lg ${
+                  className={`w-full px-3 py-3 focus:outline-none text-lg ${
                     isDark
-                      ? 'bg-gray-900 border-gray-700 text-white placeholder-gray-400'
-                      : 'bg-white border-gray-300 text-gray-900'
+                      ? 'bg-gray-900 text-white placeholder-gray-400'
+                      : 'bg-white text-gray-900'
                   }`}
                 />
               )}
@@ -935,9 +946,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
               {selectedType === 'video' && (
                 <div
                   onClick={() => setShowDescriptionModal(true)}
-                  className={`p-3 border-b cursor-pointer ${
-                    isDark ? 'border-gray-700' : 'border-gray-300'
-                  }`}
+                  className="p-3 cursor-pointer"
                 >
                   <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Description</p>
                   <p className={`text-base ${description.trim() ? (isDark ? 'text-white' : 'text-gray-900') : (isDark ? 'text-gray-500' : 'text-gray-400')}`}>
@@ -953,10 +962,10 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Write a caption..."
                   rows={3}
-                  className={`w-full px-3 py-3 border-b focus:outline-none resize-none text-lg ${
+                  className={`w-full px-3 py-3 focus:outline-none resize-none text-lg ${
                     isDark
-                      ? 'bg-gray-900 border-gray-700 text-white placeholder-gray-400'
-                      : 'bg-white border-gray-300 text-gray-900'
+                      ? 'bg-gray-900 text-white placeholder-gray-400'
+                      : 'bg-white text-gray-900'
                   }`}
                 />
               )}
@@ -965,11 +974,11 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
             {/* Media Preview */}
             <div
               onClick={() => fileInputRef.current?.click()}
-              className={`${selectedType === 'reel' ? 'h-[480px]' : selectedType === 'image' ? 'h-[480px]' : 'aspect-video'} rounded-lg border-2 border-dashed cursor-pointer hover:border-blue-500 transition-colors flex items-center justify-center ${
-                isDark
-                  ? 'border-gray-600 hover:bg-gray-700 bg-gray-800'
-                  : 'border-gray-300 hover:bg-gray-50 bg-gray-100'
-              }`}
+            className={`${selectedType === 'reel' ? 'h-[480px]' : selectedType === 'image' ? 'h-[480px]' : 'aspect-video'} rounded-lg cursor-pointer transition-colors flex items-center justify-center ${
+              isDark
+                ? 'hover:bg-gray-700 bg-gray-800'
+                : 'hover:bg-gray-50 bg-gray-100'
+            }`}
             >
                   {previewUrl ? (
                 <div className="relative w-full h-full">
@@ -1004,24 +1013,53 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
               )}
             </div>
 
-            {durationError && (
-              <p className="mt-2 px-4 text-sm font-medium text-red-500">
-                {durationError}
-              </p>
+            {(durationError || overDurationLimit) && (
+              <div
+                className={`mt-2 mx-4 px-4 py-3 rounded-lg ${isDark ? 'bg-red-500/10' : 'bg-red-50'}`}
+                aria-live="polite"
+              >
+                <p className={`text-sm font-semibold ${isDark ? 'text-red-200' : 'text-red-700'}`}>
+                  {DURATION_GUARD_MESSAGE}
+                </p>
+                <p className={`mt-1 text-xs ${isDark ? 'text-red-200/80' : 'text-red-700/80'}`}>
+                  Posting is disabled until the clip is within 2 minutes or your account is upgraded.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-0">
+                  <button
+                    type="button"
+                    onClick={() => router.push('/premium')}
+                    className="inline-flex items-center px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-semibold shadow-sm hover:opacity-90 transition"
+                  >
+                    Upgrade to Premium
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${
+                      isDark ? 'text-red-100 hover:bg-red-500/10' : 'text-red-700 hover:bg-red-100'
+                    }`}
+                  >
+                    Replace video
+                  </button>
+                </div>
+              </div>
             )}
 
-            <div className="space-y-4 p-4">
+            <div className="space-y-0 p-4">
+              {(selectedType === 'video' || selectedType === 'reel') && (
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Videos up to 2 minutes unless you&apos;re a verified creator or premium user.
+                </p>
+              )}
 
               {/* Thumbnail (for videos/reels) */}
               {(selectedType === 'video' || selectedType === 'reel') && (
                 <div
                   onClick={() => setShowThumbnailModal(true)}
-                  className={`p-3 border-b cursor-pointer ${
-                    isDark ? 'border-gray-700' : 'border-gray-300'
-                  }`}
+                  className="p-3 cursor-pointer"
                 >
                   <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Thumbnail</p>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-0">
                     {thumbnailPreviewUrl ? (
                       <img src={thumbnailPreviewUrl} alt="Thumbnail" className="w-12 h-12 rounded object-cover" />
                     ) : (
@@ -1038,14 +1076,14 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
 
               {/* Text Background Color (only for text-only posts) */}
               {content.trim() && !selectedFile && (
-                <div className={`p-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-300'}`}>
+                <div className="p-3">
                   <p className={`text-sm mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Background Color</p>
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-0 flex-wrap">
                     {textColors.map((color, index) => (
                       <button
                         key={color}
                         onClick={() => setTextBgColor(color)}
-                        className={`w-8 h-8 rounded-full border-2 ${textBgColor === color ? 'border-gray-800' : 'border-gray-300'}`}
+                        className="w-8 h-8 rounded-full"
                         style={{ backgroundColor: color }}
                         aria-label={`Select background color ${index + 1}`}
                       />
@@ -1053,10 +1091,10 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                     {textBgColor && (
                       <button
                         onClick={() => setTextBgColor('')}
-                        className={`px-3 py-1 text-sm border rounded-full ${
+                        className={`px-3 py-1 text-sm rounded-full ${
                           isDark
-                            ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                            : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                            ? 'text-gray-300 hover:bg-gray-700'
+                            : 'text-gray-700 hover:bg-gray-50'
                         }`}
                       >
                         Clear
@@ -1067,16 +1105,6 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
               )}
             </div>
           </div>
-        </div>
-
-        <div className="mt-4 flex justify-center">
-          <button
-            type="button"
-            onClick={() => router.push('/premium')}
-            className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-[#1DA1F2] to-purple-500 text-white text-sm font-semibold shadow-md hover:opacity-90 transition"
-          >
-            Upgrade to Pro Creator
-          </button>
         </div>
 
         <input
@@ -1102,3 +1130,4 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     </div>
   )
 }
+
