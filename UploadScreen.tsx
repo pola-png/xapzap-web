@@ -139,19 +139,6 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
 
     if (!canUploadLongVideo && (selectedType === 'video' || selectedType === 'reel') && duration > 120) {
       setDurationError(
-        'Videos and reels longer than 2 minutes are only available for Pro and verified creators. Please trim your video to 2 minutes or less in an editing app before uploading.'
-      )
-    } else {
-      setDurationError(null)
-    }
-  }
-
-  const handleVideoMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    const duration = e.currentTarget.duration || 0
-    setVideoDuration(duration)
-
-    if (!canUploadLongVideo && (selectedType === 'video' || selectedType === 'reel') && duration > 120) {
-      setDurationError(
         'Videos and reels longer than 2 minutes are only allowed for verified creators and admins. Please trim your video to 2 minutes or less in an editing app before uploading.'
       )
     } else {
