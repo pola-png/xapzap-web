@@ -16,6 +16,7 @@ export function StoryBar() {
   const [stories, setStories] = useState<Story[]>([])
   const authStore = useAuthStore()
   const currentUserAvatar = authStore.currentUserAvatar
+  const currentUserId = authStore.currentUserId
 
   useEffect(() => {
     loadStories()
@@ -52,23 +53,35 @@ export function StoryBar() {
   return (
     <div className="h-[110px] overflow-x-auto scrollbar-hide border-b border-[rgb(var(--border-color))]">
       <div className="flex items-center h-full px-4 gap-4">
-        <button className="flex-shrink-0 flex flex-col items-center gap-2">
-          <div className="relative w-[68px] h-[68px] flex items-center justify-center">
-            <div className="w-[68px] h-[68px] rounded-full bg-[rgb(var(--bg-secondary))] flex items-center justify-center">
-              <div className="w-[62px] h-[62px] rounded-full bg-[rgb(var(--bg-primary))] border-2 border-[rgb(var(--bg-secondary))] flex items-center justify-center overflow-hidden">
-                {currentUserAvatar ? (
-                  <img src={currentUserAvatar.startsWith('/media/') ? `/api/image-proxy?path=${currentUserAvatar.substring(1)}` : currentUserAvatar} alt="Your Story" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-2xl">👤</span>
-                )}
-              </div>
-              <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-[#1DA1F2] border-2 border-[rgb(var(--bg-primary))] flex items-center justify-center">
-                <Plus size={14} className="text-white" strokeWidth={3} />
+        {currentUserId && (
+          <button className="flex-shrink-0 flex flex-col items-center gap-2">
+            <div className="relative w-[68px] h-[68px] flex items-center justify-center">
+              <div className="w-[68px] h-[68px] rounded-full bg-[rgb(var(--bg-secondary))] flex items-center justify-center">
+                <div className="w-[62px] h-[62px] rounded-full bg-[rgb(var(--bg-primary))] border-2 border-[rgb(var(--bg-secondary))] flex items-center justify-center overflow-hidden">
+                  {currentUserAvatar ? (
+                    <img
+                      src={
+                        currentUserAvatar.startsWith('/media/')
+                          ? `/api/image-proxy?path=${currentUserAvatar.substring(1)}`
+                          : currentUserAvatar
+                      }
+                      alt="Your Story"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-2xl">👤</span>
+                  )}
+                </div>
+                <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-[#1DA1F2] border-2 border-[rgb(var(--bg-primary))] flex items-center justify-center">
+                  <Plus size={14} className="text-white" strokeWidth={3} />
+                </div>
               </div>
             </div>
-          </div>
-          <span className="text-xs text-[rgb(var(--text-primary))] text-center w-[68px] truncate">Your Story</span>
-        </button>
+            <span className="text-xs text-[rgb(var(--text-primary))] text-center w-[68px] truncate">
+              Your Story
+            </span>
+          </button>
+        )}
         {stories.map((story) => (
           <button key={story.id} className="flex-shrink-0 flex flex-col items-center gap-2">
             <div className="relative w-[68px] h-[68px] flex items-center justify-center">

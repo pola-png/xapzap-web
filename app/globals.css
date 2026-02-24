@@ -73,6 +73,8 @@ body {
   padding: 0;
   background-color: rgb(var(--bg-primary));
   color: rgb(var(--text-primary));
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
@@ -87,4 +89,21 @@ body {
 /* Hide bottom navigation when video detail screen is open */
 body.hide-bottom-nav nav[class*="fixed bottom-0"] {
   display: none;
+}
+
+/* Responsive typography tweaks */
+@media (max-width: 768px) {
+  body {
+    font-size: 17px;
+  }
+
+  .post-title {
+    font-size: 1.125rem; /* 18px */
+    font-weight: 600;
+  }
+
+  .navigation-tab {
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
 }

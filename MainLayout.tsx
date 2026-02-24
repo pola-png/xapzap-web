@@ -237,7 +237,7 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
                     key={item.index}
                     onClick={() => handleTabChange(item.index)}
                     className={cn(
-                      "px-3 py-4 text-sm font-semibold whitespace-nowrap border-b-2 flex-shrink-0",
+                      "navigation-tab px-3 py-4 text-sm font-semibold whitespace-nowrap border-b-2 flex-shrink-0",
                       currentTab === item.index
                         ? "border-[#1DA1F2] text-[#1DA1F2]"
                         : "border-transparent text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--text-primary))]/50 hover:text-[rgb(var(--text-primary))]"

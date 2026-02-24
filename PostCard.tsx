@@ -696,7 +696,9 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
 
         {post.postType === 'news' && post.title && (
           <div className="border-l-4 border-blue-500 pl-4 mb-3">
-            <h3 className="font-extrabold text-xl text-gray-900 dark:text-white leading-snug">{post.title}</h3>
+            <h3 className="post-title font-extrabold text-xl text-gray-900 dark:text-white leading-snug">
+              {post.title}
+            </h3>
           </div>
         )}
       </div>
