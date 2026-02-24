@@ -149,8 +149,8 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
             </div>
           </header>
         )}
-        {isHomeTab && pathname !== '/reels' && (
-          <div className="sticky top-14 z-40 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))]">
+        {isHomeTab && (
+          <div className={`sticky z-40 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))] ${pathname === '/reels' ? 'top-0' : 'top-14'}`}>
             <div className="flex overflow-x-auto scrollbar-hide -mb-px">
               <div className="flex gap-4 px-4 min-w-max sm:gap-6">
                 {sidebarItems.map((item) => (

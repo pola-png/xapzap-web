@@ -55,9 +55,13 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
     }
     
     if (showReelDetail || showFullPost || showFullComments || showComments) {
+      document.body.style.overflow = 'hidden'
       window.history.pushState(null, '', window.location.href)
       window.addEventListener('popstate', handlePopState)
-      return () => window.removeEventListener('popstate', handlePopState)
+      return () => {
+        document.body.style.overflow = ''
+        window.removeEventListener('popstate', handlePopState)
+      }
     }
   }, [showReelDetail, showFullPost, showFullComments, showComments])
 
@@ -418,7 +422,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           </div>
           {post.title && (
             <div className="mb-3 px-2">
-              <h3 className="text-gray-900 dark:text-white font-semibold text-lg line-clamp-2">{post.title}</h3>
+              <h3 className="text-gray-900 dark:text-white font-bold text-xl leading-snug line-clamp-2">{post.title}</h3>
             </div>
           )}
         </>
@@ -493,7 +497,11 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col">
         <div className="flex items-center justify-between p-4 bg-black/80">
-          <button onClick={() => setShowFullPost(false)} className="p-2 hover:bg-white/10 rounded-full text-white">
+          <button onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setShowFullPost(false)
+          }} className="p-2 hover:bg-white/10 rounded-full text-white">
             <ArrowLeft size={24} />
           </button>
           <div className="text-white text-sm">{currentImageIndex + 1} / {post.mediaUrls.length}</div>
@@ -613,17 +621,17 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           <div
             className={`text-white text-center leading-relaxed p-4 rounded-xl mb-3 max-w-sm ${
               (post.content?.length || 0) < 50
-                ? 'text-2xl font-extrabold'
+                ? 'text-3xl font-black'
                 : (post.content?.length || 0) < 100
-                ? 'text-xl font-bold'
-                : 'text-lg font-semibold'
+                ? 'text-2xl font-extrabold'
+                : 'text-xl font-bold'
             }`}
             style={{ backgroundColor: post.textBgColor ? `#${post.textBgColor.toString(16).padStart(6, '0')}` : undefined }}
           >
             {post.content}
           </div>
         ) : (post.content && !(post.postType === 'video' && (feedType === 'home' || feedType === 'watch'))) ? (
-          <div className="text-gray-900 dark:text-white text-base leading-relaxed mb-3">
+          <div className="text-gray-900 dark:text-white text-[15px] leading-[1.6] mb-3 font-medium">
             {(() => {
               const contentLength = post.content.length
               let maxLines = 2
@@ -679,7 +687,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
 
         {post.postType === 'news' && post.title && (
           <div className="border-l-4 border-blue-500 pl-4 mb-3">
-            <h3 className="font-bold text-lg text-gray-900 dark:text-white">{post.title}</h3>
+            <h3 className="font-extrabold text-xl text-gray-900 dark:text-white leading-snug">{post.title}</h3>
           </div>
         )}
       </div>

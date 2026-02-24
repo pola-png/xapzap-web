@@ -195,7 +195,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   useEffect(() => {
     const video = videoRef.current
-    if (!video) return
+    if (!video || !shouldLoadVideo) return
 
     const handleLoadedMetadata = () => setDuration(video.duration)
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
@@ -262,7 +262,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         navigator.mediaSession.setActionHandler('seekforward', null)
       }
     }
-  }, [])
+  }, [shouldLoadVideo])
 
   const togglePlay = () => {
     const video = videoRef.current
@@ -275,10 +275,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     
     if (video.paused) {
       video.play()
-      setIsPlaying(true)
     } else {
       video.pause()
-      setIsPlaying(false)
     }
   }
 
@@ -300,7 +298,14 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   }
 
   const handleVideoClick = () => {
-    togglePlay()
+    const video = videoRef.current
+    if (!video) return
+    
+    if (video.paused) {
+      video.play()
+    } else {
+      video.pause()
+    }
   }
 
   const formatTime = (time: number) => {
@@ -486,7 +491,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         )}
 
         {/* Speaker Icon - Top Right */}
-        {showControls && (
+        {!isPlaying && (
           <button
             onClick={toggleMute}
             className="absolute top-3 right-3 sm:top-4 sm:right-4 w-9 h-9 sm:w-10 sm:h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/80 transition-all hover:scale-110 active:scale-95 z-10 animate-in fade-in slide-in-from-top-2 duration-200"
@@ -497,7 +502,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         )}
 
         {/* Duration - Bottom Right */}
-        {showControls && (
+        {!isPlaying && (
           <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 px-2.5 py-1.5 bg-black/70 backdrop-blur-md rounded-lg text-white text-xs font-medium z-10 animate-in fade-in slide-in-from-bottom-2 duration-200">
             {formatTime(currentTime)} / {formatTime(duration)}
           </div>
@@ -582,7 +587,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         {post.title && (
           <div>
             <div className="flex items-baseline gap-2">
-              <p className="text-foreground font-bold text-xl sm:text-2xl truncate flex-1">
+              <p className="text-foreground font-extrabold text-2xl truncate flex-1 leading-tight">
                 {post.title.length > 39 ? post.title.substring(0, 39) : post.title}
               </p>
               {post.title.length > 39 && (

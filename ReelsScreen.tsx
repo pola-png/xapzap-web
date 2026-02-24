@@ -505,7 +505,6 @@ export function ReelsScreen() {
                 />
               ))}
             </div>
-          </div>
         ))}
       </div>
       {commentModalPost && (
