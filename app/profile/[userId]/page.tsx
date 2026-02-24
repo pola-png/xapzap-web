@@ -340,7 +340,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-[rgb(var(--bg-primary))]">
       {/* Cover Photo */}
-      <div className="relative h-48 bg-gradient-to-br from-blue-600 to-purple-700 group">
+      <div className="relative h-48 bg-gradient-to-br from-blue-600 to-purple-700 dark:from-[#0f172a] dark:to-[#1e293b] group">
         {profile.coverUrl && shouldLoadCover && (
           <img
             src={profile.coverUrl.startsWith('/media/') ? `/api/image-proxy?path=${profile.coverUrl.substring(1)}` : profile.coverUrl}
@@ -453,22 +453,22 @@ export default function ProfilePage() {
       <div className="px-4 pt-16 pb-4">
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-white mb-1">
+            <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))] mb-1">
               {profile.displayName}
             </h1>
-            <div className="flex items-center gap-2 mb-2">
-              <p className="text-gray-400">@{profile.username}</p>
+            <div className="flex items-center gap-2 mb-2 text-[rgb(var(--text-secondary))]">
+              <p>@{profile.username}</p>
               {profile.category && (
-                <span className="text-gray-400">• {profile.category}</span>
+                <span>• {profile.category}</span>
               )}
             </div>
 
             {profile.bio && (
-              <p className="text-white mb-2">{profile.bio}</p>
+              <p className="text-[rgb(var(--text-primary))] mb-2">{profile.bio}</p>
             )}
 
             {profile.joinedAt && (
-              <div className="flex items-center text-gray-400 text-sm mb-3">
+              <div className="flex items-center text-[rgb(var(--text-secondary))] text-sm mb-3">
                 <Calendar className="w-4 h-4 mr-1" />
                 Joined {new Date(profile.joinedAt).toLocaleDateString('en-US', {
                   month: 'long',
@@ -480,8 +480,8 @@ export default function ProfilePage() {
             {/* Stats */}
             <div className="flex gap-6 mb-4">
               <div className="text-center">
-                <div className="text-xl font-bold text-white">{stats.posts}</div>
-                <div className="text-sm text-gray-400">Posts</div>
+                <div className="text-xl font-bold text-[rgb(var(--text-primary))]">{stats.posts}</div>
+                <div className="text-sm text-[rgb(var(--text-secondary))]">Posts</div>
               </div>
               <div className="text-center">
                 <div className="text-xl font-bold text-white">{stats.followers}</div>
@@ -501,21 +501,21 @@ export default function ProfilePage() {
             <>
               <button
                 onClick={() => router.push('/profile/edit')}
-                className="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                className="flex-1 bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))] py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <Settings className="w-4 h-4" />
                 Edit Profile
               </button>
               <button
                 onClick={handleShare}
-                className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
+                className="bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))] p-2 rounded-lg transition-colors"
                 aria-label="Share profile"
               >
                 <Share className="w-5 h-5" />
               </button>
               <button
                 onClick={() => router.push('/profile/menu')}
-                className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
+                className="bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))] p-2 rounded-lg transition-colors"
                 aria-label="Menu"
               >
                 <Menu className="w-5 h-5" />
@@ -594,7 +594,7 @@ export default function ProfilePage() {
         )}
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-800 mb-4">
+        <div className="flex border-b border-[rgb(var(--border-color))] mb-4">
           {(['posts', 'videos', 'news', 'all'] as TabType[]).map((tab) => (
             <button
               key={tab}
