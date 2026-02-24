@@ -20,16 +20,17 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
 
   useEffect(() => {
     loadUserData()
-    // Prefetch all routes
+    // Prefetch the most likely next routes eagerly
     router.prefetch('/watch')
     router.prefetch('/reels')
-    router.prefetch('/live')
-    router.prefetch('/news')
-    router.prefetch('/following')
-    router.prefetch('/chat')
-    router.prefetch('/notifications')
-    router.prefetch('/profile')
-    router.prefetch('/upload')
+
+    // Defer lower-priority prefetches to avoid blocking first paint
+    const timeout = setTimeout(() => {
+      router.prefetch('/profile')
+      router.prefetch('/notifications')
+    }, 3000)
+
+    return () => clearTimeout(timeout)
   }, [])
 
   const loadUserData = async () => {
@@ -66,7 +67,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
   return (
     <div className="min-h-screen bg-[rgb(var(--bg-primary))]">
       {/* Desktop Layout */}
-      <div className="hidden lg:flex h-screen flex-col">
+      <div className="hidden lg:flex flex-col min-h-screen">
         {/* Header */}
         <header className="fixed top-0 left-0 right-0 z-50 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))] px-6 py-3 flex items-center justify-between">
           <h1 className="text-xl font-bold text-[rgb(var(--text-primary))]">XapZap</h1>
@@ -77,14 +78,22 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
             </button>
             <button onClick={() => handleNavClick('/chat')} className={cn("p-2 rounded-lg relative", pathname === '/chat' ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Chat">
               <MessageCircle size={24} />
-              {unreadChats > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadChats}</span>}
+              {unreadChats > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-sm rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">
+                  {unreadChats}
+                </span>
+              )}
             </button>
             <button onClick={handleCreateClick} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]" aria-label="Create">
               <PlusSquare size={24} />
             </button>
             <button onClick={() => handleNavClick('/notifications')} className={cn("p-2 rounded-lg relative", pathname === '/notifications' ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Notifications">
               <Bell size={24} />
-              {unreadNotifications > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadNotifications}</span>}
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-sm rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">
+                  {unreadNotifications}
+                </span>
+              )}
             </button>
             <button onClick={() => handleNavClick('/profile')} className={cn("p-2 rounded-lg", pathname.startsWith('/profile') ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Profile">
               <User size={24} />
@@ -123,7 +132,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
                     )}
                   >
                     <Icon size={20} />
-                    <span className="text-[15px]">{item.label}</span>
+                    <span className="text-base">{item.label}</span>
                   </button>
                 )
               })}
@@ -131,7 +140,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
           </aside>
 
           {/* Main Content */}
-          <main className="ml-[200px] flex-1 overflow-y-auto">
+          <main className="ml-[200px] flex-1">
             {children}
           </main>
         </div>
@@ -194,7 +203,11 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
                   aria-label={item.label}
                 >
                   <Icon size={24} />
-                  {item.badge && item.badge > 0 && <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{item.badge}</span>}
+                  {item.badge && item.badge > 0 && (
+                    <span className="absolute top-1 right-1 bg-red-500 text-white text-sm rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">
+                      {item.badge}
+                    </span>
+                  )}
                 </button>
               )
             })}

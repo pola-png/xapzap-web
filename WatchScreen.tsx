@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { PostCard } from './PostCard'
 import { CommentModal } from './CommentModal'
-import { VideoDetailScreen } from './VideoDetailScreen'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { feedCache } from './lib/cache'
+import { generateSlug } from './lib/slug'
 import { useFeedStore } from './feedStore'
 
 export function WatchScreen() {
@@ -19,7 +19,6 @@ export function WatchScreen() {
   const [hasLoaded, setHasLoaded] = useState(false)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [showComments, setShowComments] = useState(false)
-  const [showVideoDetail, setShowVideoDetail] = useState(false)
 
   useEffect(() => {
     const postId = searchParams.get('post')
@@ -127,16 +126,8 @@ export function WatchScreen() {
   }
 
   const handleVideoClick = (post: Post) => {
-    setSelectedPost(post)
-    setShowVideoDetail(true)
-  }
-
-  if (showVideoDetail && selectedPost) {
-    return (
-      <div className="fixed inset-0 z-50">
-        <VideoDetailScreen post={selectedPost} onClose={() => setShowVideoDetail(false)} />
-      </div>
-    )
+    const slug = generateSlug(post.caption || post.title || 'video', post.id)
+    router.push(`/watch/${slug}`)
   }
 
   if (showComments && selectedPost) {

@@ -47,21 +47,27 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   const mediaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const handlePopState = () => {
-      if (showReelDetail) setShowReelDetail(false)
-      else if (showFullPost) setShowFullPost(false)
-      else if (showFullComments) setShowFullComments(false)
-      else if (showComments) setShowComments(false)
+    const hasOpenOverlay = showReelDetail || showFullPost || showFullComments || showComments
+
+    if (!hasOpenOverlay) {
+      return
     }
-    
-    if (showReelDetail || showFullPost || showFullComments || showComments) {
-      document.body.style.overflow = 'hidden'
-      window.history.pushState(null, '', window.location.href)
-      window.addEventListener('popstate', handlePopState)
-      return () => {
-        document.body.style.overflow = ''
-        window.removeEventListener('popstate', handlePopState)
-      }
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handlePopState = () => {
+      setShowReelDetail(false)
+      setShowFullPost(false)
+      setShowFullComments(false)
+      setShowComments(false)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('popstate', handlePopState)
     }
   }, [showReelDetail, showFullPost, showFullComments, showComments])
 

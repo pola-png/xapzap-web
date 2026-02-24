@@ -23,36 +23,27 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [user, setUser] = useState<any>(null)
   const [userAvatar, setUserAvatar] = useState('')
+  const [hasLoadedUser, setHasLoadedUser] = useState(false)
 
   useEffect(() => {
-    loadUserData()
-    if (!isGuest) {
-      loadBadges()
-      setupRealtimeSubscriptions()
-    }
-  }, [isGuest, authRefreshTrigger])
+    let cleanup: (() => void) | undefined
 
-  // Force refresh user data when authentication state might have changed
-  useEffect(() => {
-    const checkAuthState = async () => {
-      try {
-        const currentUser = await appwriteService.getCurrentUser()
-        if (!currentUser && user) {
-          // User logged out, clear data
-          setUser(null)
-          setUserAvatar('')
-        }
-      } catch (error) {
-        // User not authenticated
-        setUser(null)
-        setUserAvatar('')
+    const init = async () => {
+      await loadUserData()
+      setHasLoadedUser(true)
+
+      if (!isGuest && user) {
+        await loadBadges()
+        cleanup = setupRealtimeSubscriptions()
       }
     }
 
-    // Check auth state periodically
-    const interval = setInterval(checkAuthState, 1000)
-    return () => clearInterval(interval)
-  }, [user])
+    init()
+
+    return () => {
+      if (cleanup) cleanup()
+    }
+  }, [isGuest, authRefreshTrigger])
 
   const loadUserData = async () => {
     try {
@@ -157,14 +148,22 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
             </button>
             <button onClick={() => handleTabChange(1)} className={cn("p-2 rounded-lg relative", currentTab === 1 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Chat">
               <MessageCircle size={24} />
-              {unreadChats > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadChats}</span>}
+              {unreadChats > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-sm rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">
+                  {unreadChats}
+                </span>
+              )}
             </button>
             <button onClick={handleCreateClick} className="p-2 rounded-lg text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]" aria-label="Create">
               <PlusSquare size={24} />
             </button>
             <button onClick={() => handleTabChange(3)} className={cn("p-2 rounded-lg relative", currentTab === 3 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Notifications">
               <Bell size={24} />
-              {unreadNotifications > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">{unreadNotifications}</span>}
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-sm rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">
+                  {unreadNotifications}
+                </span>
+              )}
             </button>
             <button onClick={() => handleTabChange(4)} className={cn("p-2 rounded-lg", currentTab === 4 ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:text-[#1DA1F2]")} aria-label="Profile">
               <User size={24} />

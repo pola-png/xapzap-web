@@ -58,11 +58,13 @@ export function FollowingScreen() {
       }
 
       const result = await appwriteService.fetchFollowingFeed(user.$id)
-      const postsData = result.documents.map((d: any) => ({
-        ...d,
-        id: d.$id,
-        timestamp: new Date(d.$createdAt || d.createdAt),
-      })) as Post[]
+      const postsData: Post[] = await Promise.all(
+        result.documents.map(async (d: any) => ({
+          ...d,
+          id: d.$id,
+          timestamp: new Date(d.$createdAt || d.createdAt),
+        }))
+      )
       setPosts(postsData)
       feedStore.setFeed('following', postsData)
     } catch (error) {
@@ -70,11 +72,14 @@ export function FollowingScreen() {
       // Fallback to all posts if following feed fails
       try {
         const result = await appwriteService.fetchPosts()
-        setPosts(result.documents.map((d: any) => ({
-          ...d,
-          id: d.$id,
-          timestamp: new Date(d.$createdAt || d.createdAt),
-        })) as Post[])
+        const fallbackPosts: Post[] = await Promise.all(
+          result.documents.map(async (d: any) => ({
+            ...d,
+            id: d.$id,
+            timestamp: new Date(d.$createdAt || d.createdAt),
+          }))
+        )
+        setPosts(fallbackPosts)
       } catch (fallbackError) {
         console.error('Fallback also failed:', fallbackError)
         setPosts([])

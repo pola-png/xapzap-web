@@ -1310,7 +1310,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
               <Heart size={24} className={liked ? 'fill-red-500' : ''} />
             </div>
-            <span className="text-xs font-bold">{likes || 0}</span>
+            <span className="text-sm font-bold">{likes || 0}</span>
           </button>
 
           <button
@@ -1321,7 +1321,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
               <MessageCircle size={24} />
             </div>
-            <span className="text-xs font-bold">{comments || 0}</span>
+            <span className="text-sm font-bold">{comments || 0}</span>
           </button>
 
           <button
@@ -1332,7 +1332,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
               <Repeat2 size={24} className={reposted ? 'fill-green-500' : ''} />
             </div>
-            <span className="text-xs font-bold">{reposts || 0}</span>
+            <span className="text-sm font-bold">{reposts || 0}</span>
           </button>
 
           <button
@@ -1343,7 +1343,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
               <Bookmark size={24} className={saved ? 'fill-yellow-500' : ''} />
             </div>
-            <span className="text-xs font-bold">Save</span>
+            <span className="text-sm font-bold">Save</span>
           </button>
 
           <button
@@ -1354,7 +1354,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
               <Share size={24} />
             </div>
-            <span className="text-xs font-bold">Share</span>
+            <span className="text-sm font-bold">Share</span>
           </button>
         </div>
 

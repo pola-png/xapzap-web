@@ -59,9 +59,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'),
 }
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-export const revalidate = 0
+// Allow Next.js to statically optimize the shell where possible.
+// Individual pages that need always-fresh data can opt into dynamic behavior.
 
 export default function RootLayout({
   children,

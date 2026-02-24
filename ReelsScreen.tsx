@@ -388,7 +388,7 @@ export function ReelsScreen() {
                     className={post.isLiked ? 'fill-red-500 text-red-500' : 'text-white'}
                   />
                 </div>
-                <span className="text-white text-xs font-bold">
+                <span className="text-white text-sm font-bold">
                   {post.likes || 0}
                 </span>
               </button>
@@ -404,7 +404,7 @@ export function ReelsScreen() {
                 <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all">
                   <MessageCircle size={24} className="text-white" />
                 </div>
-                <span className="text-white text-xs font-bold">
+                <span className="text-white text-sm font-bold">
                   {post.comments || 0}
                 </span>
               </button>
@@ -423,7 +423,7 @@ export function ReelsScreen() {
                     className={post.isReposted ? 'text-green-500' : 'text-white'}
                   />
                 </div>
-                <span className="text-white text-xs font-bold">
+                <span className="text-white text-sm font-bold">
                   {post.reposts || 0}
                 </span>
               </button>
@@ -442,7 +442,7 @@ export function ReelsScreen() {
                     className={post.isSaved ? 'fill-yellow-500 text-yellow-500' : 'text-white'}
                   />
                 </div>
-                <span className="text-white text-xs font-bold">Save</span>
+                <span className="text-white text-sm font-bold">Save</span>
               </button>
 
               {/* Share */}
@@ -456,7 +456,7 @@ export function ReelsScreen() {
                 <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all">
                   <Share2 size={24} className="text-white" />
                 </div>
-                <span className="text-white text-xs font-bold">Share</span>
+                <span className="text-white text-sm font-bold">Share</span>
               </button>
             </div>
 
