@@ -484,12 +484,12 @@ export default function ProfilePage() {
                 <div className="text-sm text-[rgb(var(--text-secondary))]">Posts</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold text-white">{stats.followers}</div>
-                <div className="text-sm text-gray-400">Followers</div>
+                <div className="text-xl font-bold text-[rgb(var(--text-primary))]">{stats.followers}</div>
+                <div className="text-sm text-[rgb(var(--text-secondary))]">Followers</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold text-white">{stats.following}</div>
-                <div className="text-sm text-gray-400">Following</div>
+                <div className="text-xl font-bold text-[rgb(var(--text-primary))]">{stats.following}</div>
+                <div className="text-sm text-[rgb(var(--text-secondary))]">Following</div>
               </div>
             </div>
           </div>
