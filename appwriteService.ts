@@ -164,6 +164,10 @@ class AppwriteService {
     }
   }
 
+  async getProfileByUserId(userId: string) {
+    return this.getProfileByUserIdPrimary(userId)
+  }
+
   // Posts methods with different algorithms
   async fetchPosts(limit = 20, cursor?: string) {
     const queries = [
@@ -180,7 +184,7 @@ class AppwriteService {
   }
 
   // Profiles
-  async getProfileByUserId(userId: string) {
+  async getProfileByUserIdPrimary(userId: string) {
     try {
       // Primary: profile document ID matches userId
       return await this.databases.getDocument(
