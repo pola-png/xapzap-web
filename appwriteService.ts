@@ -31,7 +31,9 @@ class AppwriteService {
     notifications: 'notifications',
     postBoosts: 'post_boosts',
     news: 'news',
-    adRevenue: 'ad_revenue_events'
+    adRevenue: 'ad_revenue_events',
+    postAggregates: 'post_aggregates',
+    feedEvents: 'feed_events'
   }
 
   private readonly mediaBucketId = '6915baaa00381391d7b2'
@@ -177,7 +179,7 @@ class AppwriteService {
     )
   }
 
-  // For You feed - personalized mix
+  // For You feed - ranked by recency, engagement, and simple diversity
   async fetchForYouFeed(userId?: string, limit = 20, cursor?: string) {
     try {
       // Get posts from last 9 months for variety
@@ -186,7 +188,7 @@ class AppwriteService {
 
       let queries: any[] = [
         Query.greaterThanEqual('$createdAt', nineMonthsAgo.toISOString()),
-        Query.limit(limit * 2) // Get more to filter/score
+        Query.limit(limit * 3), // fetch extra to allow diversity
       ]
       if (cursor) queries.push(Query.cursorAfter(cursor))
 
@@ -196,21 +198,50 @@ class AppwriteService {
         queries
       )
 
-      // Score posts based on engagement and recency
-      const scoredPosts = result.documents.map(post => {
-        const ageInHours = (Date.now() - new Date(post.$createdAt).getTime()) / (1000 * 60 * 60)
-        const engagement = (post.likes || 0) + (post.comments || 0) * 2 + (post.reposts || 0) * 3 + (post.views || 0) * 0.1
-        const recencyScore = Math.max(0, 168 - ageInHours) // Higher score for posts within 7 days
-        const totalScore = engagement + recencyScore
+      const now = Date.now()
+
+      // Score posts based on engagement, recency, and optional aggregates
+      const scoredPosts = (result.documents as any[]).map(post => {
+        const ageInHours =
+          (now - new Date(post.$createdAt || post.createdAt).getTime()) /
+          (1000 * 60 * 60)
+
+        const baseEngagement =
+          (post.likes || 0) +
+          (post.comments || 0) * 2 +
+          (post.reposts || 0) * 3 +
+          (post.views || 0) * 0.1
+
+        // If post_aggregates are being maintained, they can be joined here in the future.
+        // For now, rely on the live engagement fields.
+        const recencyScore = Math.max(0, 168 - ageInHours) // 7-day window
+
+        const totalScore = baseEngagement + recencyScore
 
         return { ...post, score: totalScore }
       })
 
-      // Sort by score and return top posts
+      // Sort by score
       scoredPosts.sort((a, b) => b.score - a.score)
+
+      // Simple diversity: limit consecutive posts from same creator
+      const seenPerCreator: Record<string, number> = {}
+      const diversified: any[] = []
+
+      for (const post of scoredPosts) {
+        const creatorId = post.userId || post.creatorId || ''
+        if (creatorId) {
+          const count = seenPerCreator[creatorId] ?? 0
+          if (count >= 3) continue
+          seenPerCreator[creatorId] = count + 1
+        }
+        diversified.push(post)
+        if (diversified.length >= limit) break
+      }
+
       return {
         ...result,
-        documents: scoredPosts.slice(0, limit)
+        documents: diversified,
       }
     } catch (error) {
       // Fallback to regular fetch
@@ -1138,7 +1169,124 @@ class AppwriteService {
         postId,
         { [field]: newValue }
       )
+
+      // Keep post_aggregates in sync for key fields
+      if (['comments', 'reposts', 'shares', 'impressions'].includes(field)) {
+        await this.updatePostAggregateFromPost(postId, post)
+      }
     } catch {}
+  }
+
+  // Feed & ranking metrics
+  async logFeedEvent(data: {
+    userId: string
+    postId: string
+    creatorId: string
+    feed: 'home' | 'watch' | 'reels' | 'following' | 'news'
+    eventType:
+      | 'impression'
+      | 'open'
+      | 'view_start'
+      | 'view_complete'
+      | 'like'
+      | 'comment'
+      | 'repost'
+      | 'save'
+      | 'share'
+      | 'skip'
+    position: number
+    durationMs?: number | null
+  }) {
+    try {
+      await this.databases.createDocument(
+        this.databaseId,
+        this.collections.feedEvents,
+        ID.unique(),
+        {
+          userId: data.userId,
+          postId: data.postId,
+          creatorId: data.creatorId,
+          feed: data.feed,
+          eventType: data.eventType,
+          position: data.position,
+          durationMs: data.durationMs ?? null,
+        }
+      )
+    } catch (error) {
+      console.error('Failed to log feed event:', error)
+    }
+  }
+
+  async getPostAggregate(postId: string) {
+    try {
+      const result = await this.databases.listDocuments(
+        this.databaseId,
+        this.collections.postAggregates,
+        [Query.equal('postId', postId), Query.limit(1)]
+      )
+      return result.documents[0] ?? null
+    } catch (error) {
+      console.error('Failed to load post aggregates:', error)
+      return null
+    }
+  }
+
+  // Helper to upsert a post_aggregates document based on the latest post data
+  private async updatePostAggregateFromPost(postId: string, postDoc?: any) {
+    try {
+      const post =
+        postDoc ||
+        (await this.databases.getDocument(
+          this.databaseId,
+          this.collections.posts,
+          postId
+        ))
+
+      const creatorId = post.userId || post.creatorId || ''
+      const comments = post.comments || 0
+      const reposts = post.reposts || 0
+      const shares = post.shares || 0
+      const impressions = post.impressions || 0
+
+      const engagementNumerator = comments + reposts + shares
+      const engagementRate =
+        impressions > 0 ? Math.min(1, engagementNumerator / impressions) : 0
+
+      // Find existing aggregate, if any
+      const existing = await this.databases.listDocuments(
+        this.databaseId,
+        this.collections.postAggregates,
+        [Query.equal('postId', postId), Query.limit(1)]
+      )
+
+      const data = {
+        postId,
+        creatorId,
+        comments,
+        reposts,
+        shares,
+        impressions,
+        engagementRate,
+      }
+
+      if (existing.documents.length > 0) {
+        await this.databases.updateDocument(
+          this.databaseId,
+          this.collections.postAggregates,
+          existing.documents[0].$id,
+          data
+        )
+      } else {
+        await this.databases.createDocument(
+          this.databaseId,
+          this.collections.postAggregates,
+          ID.unique(),
+          data
+        )
+      }
+    } catch (error) {
+      console.error('Failed to update post aggregates:', error)
+    }
   }
 
   async deletePost(postId: string) {

@@ -315,7 +315,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-[rgb(var(--bg-primary))] flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
       </div>
     )
@@ -323,7 +323,7 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-[rgb(var(--bg-primary))] flex items-center justify-center">
         <div className="text-white text-center">
           <p className="text-xl mb-4">Profile not found</p>
           <button
@@ -338,7 +338,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-[rgb(var(--bg-primary))]">
       {/* Cover Photo */}
       <div className="relative h-48 bg-gradient-to-br from-blue-600 to-purple-700 group">
         {profile.coverUrl && shouldLoadCover && (
@@ -528,8 +528,8 @@ export default function ProfilePage() {
                 disabled={followLoading}
                 className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
                   isFollowing
-                    ? 'bg-gray-800 hover:bg-gray-700 text-white'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    ? 'bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))]'
+                    : 'bg-xapzap-blue hover:bg-xapzap-darkBlue text-white'
                 }`}
               >
                 {followLoading ? (
@@ -548,14 +548,14 @@ export default function ProfilePage() {
               </button>
               <button
                 onClick={handleMessage}
-                className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
+                className="bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))] p-2 rounded-lg transition-colors"
                 aria-label="Message user"
               >
                 <MessageCircle className="w-5 h-5" />
               </button>
               <button
                 onClick={handleShare}
-                className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
+                className="bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))] p-2 rounded-lg transition-colors"
                 aria-label="Share profile"
               >
                 <Share className="w-5 h-5" />
@@ -566,27 +566,27 @@ export default function ProfilePage() {
 
         {/* Creator Tools */}
         {isCurrentUser && (
-          <div className="bg-gray-900 rounded-xl p-4 mb-6">
-            <h3 className="text-white font-semibold mb-3">Creator Tools</h3>
+          <div className="bg-[rgb(var(--bg-secondary))] rounded-xl p-4 mb-6">
+            <h3 className="text-[rgb(var(--text-primary))] font-semibold mb-3">Creator Tools</h3>
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => router.push('/dashboard')}
-                className="bg-gray-800 hover:bg-gray-700 p-3 rounded-lg transition-colors flex items-center gap-3"
+                className="bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 p-3 rounded-lg transition-colors flex items-center gap-3"
               >
                 <BarChart3 className="w-5 h-5 text-blue-400" />
                 <div className="text-left">
-                  <div className="text-white font-medium text-sm">Dashboard</div>
-                  <div className="text-gray-400 text-xs">Insights & performance</div>
+                  <div className="text-[rgb(var(--text-primary))] font-medium text-sm">Dashboard</div>
+                  <div className="text-[rgb(var(--text-secondary))] text-xs">Insights & performance</div>
                 </div>
               </button>
               <button
                 onClick={() => router.push('/monetization')}
-                className="bg-gray-800 hover:bg-gray-700 p-3 rounded-lg transition-colors flex items-center gap-3"
+                className="bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 p-3 rounded-lg transition-colors flex items-center gap-3"
               >
                 <DollarSign className="w-5 h-5 text-green-400" />
                 <div className="text-left">
-                  <div className="text-white font-medium text-sm">Monetization</div>
-                  <div className="text-gray-400 text-xs">Earnings & eligibility</div>
+                  <div className="text-[rgb(var(--text-primary))] font-medium text-sm">Monetization</div>
+                  <div className="text-[rgb(var(--text-secondary))] text-xs">Earnings & eligibility</div>
                 </div>
               </button>
             </div>
