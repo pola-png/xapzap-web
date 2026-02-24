@@ -201,7 +201,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
     const handlePlay = async () => {
       setIsPlaying(true)
-      setShowControls(false)
       if (!hasCountedView.current) {
         hasCountedView.current = true
         try {
@@ -211,7 +210,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         }
       }
     }
-    const handlePause = () => setIsPlaying(false)
+    const handlePause = () => {
+      setIsPlaying(false)
+      setShowControls(true)
+    }
     const handleEnded = () => {
       setHasEnded(true)
       setIsPlaying(false)

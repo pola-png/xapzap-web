@@ -99,6 +99,10 @@ export function ReelsScreen() {
         }
       }
     })
+
+    if (currentIndex >= posts.length - 3) {
+      loadReels()
+    }
   }, [currentIndex, posts])
 
   const handleVideoPlay = async (postId: string) => {
@@ -120,14 +124,18 @@ export function ReelsScreen() {
   }
 
   const loadReels = async () => {
+    if (loading) return
     const isInitialLoad = posts.length === 0
     if (isInitialLoad) setLoading(true)
     try {
       const result = await appwriteService.fetchReelsFeed(20)
       const user = await appwriteService.getCurrentUser()
       
+      const newPosts: Post[] = []
       for (const d of result.documents) {
         const doc: any = d
+        if (posts.some(p => p.id === doc.$id)) continue
+        
         const profile = await appwriteService.getProfileByUserId(doc.userId)
         const interactions = user ? await Promise.all([
           appwriteService.isPostLikedBy(user.$id, doc.$id),
@@ -146,10 +154,11 @@ export function ReelsScreen() {
           isReposted: interactions[2]
         }
         
-        setPosts(prev => [...prev, enrichedPost as Post])
+        newPosts.push(enrichedPost as Post)
       }
       
-      feedStore.setFeed('reels', posts)
+      setPosts(prev => [...prev, ...newPosts])
+      feedStore.setFeed('reels', [...posts, ...newPosts])
     } catch (error) {
       console.error('Failed to load reels:', error)
     } finally {
@@ -295,14 +304,19 @@ export function ReelsScreen() {
         body:has(.reels-fullscreen) .safe-area-inset-bottom {
           display: ${showNav ? 'block' : 'none'} !important;
         }
+        body:has(.reels-fullscreen) {
+          overscroll-behavior: none;
+          overflow: hidden;
+        }
       `}</style>
       <div 
         ref={containerRef}
-        className="reels-fullscreen fixed inset-0 bg-black overflow-hidden"
+        className="reels-fullscreen fixed inset-0 bg-black overflow-hidden touch-none"
         onWheel={handleWheel}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onClick={handleScreenTap}
+        style={{ overscrollBehavior: 'none' }}
       >
       <div 
         className="h-full transition-transform duration-300 ease-out"
@@ -314,7 +328,7 @@ export function ReelsScreen() {
             <video
               ref={el => { videoRefs.current[index] = el }}
               src={post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls[0]}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
               loop
               playsInline
               muted={false}
