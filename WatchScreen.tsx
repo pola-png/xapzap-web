@@ -126,7 +126,7 @@ export function WatchScreen() {
   }
 
   const handleVideoClick = (post: Post) => {
-    const slug = generateSlug(post.caption || post.title || 'video', post.id)
+    const slug = generateSlug(post.title || post.content || 'video', post.id)
     router.push(`/watch/${slug}`)
   }
 
