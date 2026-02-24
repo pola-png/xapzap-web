@@ -179,6 +179,30 @@ class AppwriteService {
     )
   }
 
+  // Profiles
+  async getProfileByUserId(userId: string) {
+    try {
+      // Primary: profile document ID matches userId
+      return await this.databases.getDocument(
+        this.databaseId,
+        this.collections.profiles,
+        userId
+      )
+    } catch {
+      try {
+        // Fallback: look up by userId field
+        const result = await this.databases.listDocuments(
+          this.databaseId,
+          this.collections.profiles,
+          [Query.equal('userId', userId), Query.limit(1)]
+        )
+        return result.documents[0] ?? null
+      } catch {
+        return null
+      }
+    }
+  }
+
   // For You feed - ranked by recency, engagement, and simple diversity
   async fetchForYouFeed(userId?: string, limit = 20, cursor?: string) {
     try {

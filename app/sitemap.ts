@@ -35,8 +35,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (videos.documents.length === 0) break
 
       videos.documents.forEach((post: any) => {
+        if (post.isSeoIndexable === false) {
+          return
+        }
+        const slug = post.slug || generateSlug(post.caption || post.title || 'video', post.$id)
         allUrls.push({
-          url: `${baseUrl}/watch/${generateSlug(post.caption || post.title || 'video', post.$id)}`,
+          url: `${baseUrl}/watch/${slug}`,
           lastModified: new Date(post.$updatedAt || post.$createdAt),
           changeFrequency: 'weekly',
           priority: 1.0,
@@ -58,8 +62,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (reels.documents.length === 0) break
 
       reels.documents.forEach((post: any) => {
+        if (post.isSeoIndexable === false) {
+          return
+        }
+        const slug = post.slug || generateSlug(post.caption || 'reel', post.$id)
         allUrls.push({
-          url: `${baseUrl}/reels/${generateSlug(post.caption || 'reel', post.$id)}`,
+          url: `${baseUrl}/reels/${slug}`,
           lastModified: new Date(post.$updatedAt || post.$createdAt),
           changeFrequency: 'weekly',
           priority: 1.0,
@@ -81,8 +89,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (news.documents.length === 0) break
 
       news.documents.forEach((post: any) => {
+        if (post.isSeoIndexable === false) {
+          return
+        }
+        const slug = post.slug || generateSlug(post.title || post.caption || 'article', post.$id)
         allUrls.push({
-          url: `${baseUrl}/news/${generateSlug(post.title || post.caption || 'article', post.$id)}`,
+          url: `${baseUrl}/news/${slug}`,
           lastModified: new Date(post.$updatedAt || post.$createdAt),
           changeFrequency: 'daily',
           priority: 1.0,

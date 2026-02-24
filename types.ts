@@ -7,6 +7,16 @@ export interface Post {
   displayName: string
   avatarUrl: string
   content: string
+  caption?: string
+  // SEO fields (for video/reel/news; image/text can leave empty)
+  slug?: string
+  seoTitle?: string
+  seoDescription?: string
+  seoKeywords?: string
+  seoCategory?: string
+  language?: string
+  aiSeoGenerated?: boolean
+  isSeoIndexable?: boolean
   postType: 'text' | 'image' | 'video' | 'reel' | 'news' | 'stories'
   title?: string
   thumbnailUrl?: string

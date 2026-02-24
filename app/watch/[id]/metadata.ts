@@ -13,9 +13,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const postId = extractIdFromSlug(params.id)
     const post = await appwriteService.getPost(postId)
     const profile = await appwriteService.getProfileByUserId(post.userId)
-    
-    const title = `${post.caption || post.title || 'Video'} by ${profile?.displayName || 'User'}`
-    const description = post.content || post.caption || `Watch ${profile?.displayName || 'User'}'s video on XapZap. ${post.views || 0} views, ${post.likes || 0} likes.`
+    // Respect per-post SEO overrides when present
+    const baseTitle = post.seoTitle || post.title || post.caption || 'Video'
+    const title = `${baseTitle} by ${profile?.displayName || 'User'}`
+    const description =
+      post.seoDescription ||
+      post.content ||
+      post.caption ||
+      `Watch ${profile?.displayName || 'User'}'s video on XapZap. ${post.views || 0} views, ${post.likes || 0} likes.`
     const thumbnailUrl = post.thumbnailUrl?.startsWith('http') 
       ? post.thumbnailUrl 
       : post.thumbnailUrl?.startsWith('/media/') 
@@ -26,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title,
       description,
-      keywords: `video, ${profile?.displayName}, xapzap, watch, ${post.caption || ''}`,
+      keywords: post.seoKeywords || `video, ${profile?.displayName}, xapzap, watch, ${post.caption || ''}`,
       authors: [{ name: profile?.displayName || 'XapZap User' }],
       openGraph: {
         title,
@@ -66,12 +71,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       alternates: {
         canonical: url,
       },
-      robots: {
-        index: true,
-        follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-      },
+      robots: post.isSeoIndexable === false
+        ? {
+            index: false,
+            follow: false,
+          }
+        : {
+            index: true,
+            follow: true,
+            'max-video-preview': -1,
+            'max-image-preview': 'large',
+          },
     }
   } catch (error) {
     return {

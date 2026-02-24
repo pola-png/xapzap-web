@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Upload, X, Video, Image, Newspaper, Film, Plus, Loader2 } from 'lucide-react'
+import { Upload, X, Video, Image, Newspaper, Film, Plus, Loader2, Sparkles } from 'lucide-react'
 import appwriteService from './appwriteService'
 
 interface UploadScreenProps {
@@ -25,6 +25,15 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const thumbnailInputRef = useRef<HTMLInputElement>(null)
 
+  // SEO / AI (video + reel only, gated by role)
+  const [seoTitle, setSeoTitle] = useState('')
+  const [seoDescription, setSeoDescription] = useState('')
+  const [seoKeywords, setSeoKeywords] = useState('')
+  const [seoCategory, setSeoCategory] = useState('')
+  const [canUseAi, setCanUseAi] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [verifiedColor, setVerifiedColor] = useState<string | null>(null)
+
   // Theme detection
   const [isDark, setIsDark] = useState(false)
 
@@ -36,6 +45,78 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     setIsDark(shouldBeDark)
     document.documentElement.classList.toggle('dark', shouldBeDark)
   }, [])
+
+  // Determine who can use AI features (admin or verified creator)
+  useEffect(() => {
+    const loadRole = async () => {
+      try {
+        const user = await appwriteService.getCurrentUser()
+        if (!user) {
+          setCanUseAi(false)
+          setIsAdmin(false)
+          setVerifiedColor(null)
+          return
+        }
+
+        const [admin, profile] = await Promise.all([
+          appwriteService.isCurrentUserAdmin().catch(() => false),
+          appwriteService.getProfileByUserId(user.$id),
+        ])
+
+        const p: any = profile || {}
+        const isVerifiedCreator =
+          !!p.isVerifiedCreator ||
+          !!p.isVerified ||
+          p.verificationStatus === 'creator'
+
+        setIsAdmin(admin)
+        setCanUseAi(admin || isVerifiedCreator)
+
+        if (admin) {
+          // Admin badge color
+          setVerifiedColor('#FFD700')
+        } else if (isVerifiedCreator && p.verifiedColor) {
+          setVerifiedColor(p.verifiedColor as string)
+        } else {
+          setVerifiedColor(null)
+        }
+      } catch {
+        setCanUseAi(false)
+        setIsAdmin(false)
+        setVerifiedColor(null)
+      }
+    }
+
+    loadRole()
+  }, [])
+
+  const handleGenerateSeoFromContent = () => {
+    // Extra safety: only allow AI/SEO helpers
+    // for authorized users (admin or verified creators)
+    if (!canUseAi) return
+    if (selectedType !== 'video' && selectedType !== 'reel') return
+
+    const baseTitle = title || (description || content).slice(0, 60)
+    const baseDescription =
+      seoDescription ||
+      description ||
+      (content.length > 160 ? `${content.slice(0, 157)}...` : content)
+
+    // Very simple keyword suggestion from hashtags and category
+    const hashtagMatches = (content.match(/#\w+/g) || []).map((h) =>
+      h.replace('#', '').toLowerCase()
+    )
+    const baseKeywords = Array.from(
+      new Set([
+        ...hashtagMatches,
+        seoCategory,
+      ].filter(Boolean))
+    ).join(', ')
+
+    setSeoTitle((prev) => prev || baseTitle)
+    setSeoDescription(baseDescription)
+    setSeoKeywords((prev) => prev || baseKeywords)
+  }
 
   const contentTypes = [
     { id: 'video', label: 'Video', icon: Video, description: 'Upload a video post' },
