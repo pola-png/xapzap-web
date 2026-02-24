@@ -1119,7 +1119,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   useEffect(() => {
     const video = videoRef.current
-    if (!video) return
+    if (!video || !shouldLoadVideo) return
 
     const handleLoadedMetadata = () => setDuration(video.duration)
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
@@ -1148,16 +1148,16 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
       video.removeEventListener('pause', handlePause)
       video.removeEventListener('ended', handleEnded)
     }
-  }, [])
+  }, [shouldLoadVideo])
 
   const togglePlay = () => {
     const video = videoRef.current
     if (!video) return
 
-    if (isPlaying) {
-      video.pause()
-    } else {
+    if (video.paused) {
       video.play()
+    } else {
+      video.pause()
     }
   }
 
@@ -1253,7 +1253,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           loop
           preload="auto"
         />
-        {!isPlaying && duration === 0 && (
+        {duration === 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-white" />
           </div>
@@ -1284,10 +1284,13 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </div>
 
         {/* Center Play Button */}
-        {!isPlaying && (
+        {!isPlaying && duration > 0 && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <button
-              onClick={togglePlay}
+              onClick={(e) => {
+                e.stopPropagation()
+                togglePlay()
+              }}
               className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110"
               aria-label="Play reel"
             >

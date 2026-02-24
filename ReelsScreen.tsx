@@ -477,11 +477,11 @@ export function ReelsScreen() {
                   )}
                   <div>
                     <div className="flex items-center gap-2">
+                      <span className="text-white font-bold text-lg">{post.displayName || 'User'}</span>
                       <span className="flex items-center gap-1 text-gray-300 text-sm">
                         <Eye size={14} />
                         {post.views || 0}
                       </span>
-                      <span className="text-white font-bold text-lg">{post.displayName || 'User'}</span>
                     </div>
                     <span className="text-gray-300 text-sm">{formatTimeAgo(post.timestamp)}</span>
                   </div>
