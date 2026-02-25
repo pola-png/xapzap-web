@@ -407,6 +407,7 @@ export function ReelsScreen() {
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    handleScreenTap()
     touchStartY.current = e.touches[0].clientY
   }
 
@@ -614,6 +615,9 @@ export function ReelsScreen() {
               onLoadedMetadata={() => {
                 setVideoReadyMap(prev => new Map(prev).set(post.id, true))
               }}
+              onLoadedData={() => {
+                setVideoReadyMap(prev => new Map(prev).set(post.id, true))
+              }}
               preload={index === currentIndex ? "auto" : (Math.abs(index - currentIndex) === 1 ? "metadata" : "none")}
               onClick={(e) => {
                 e.stopPropagation()
@@ -639,7 +643,7 @@ export function ReelsScreen() {
               </div>
             )}
             {index === currentIndex && !isVideoReady && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none">
                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-white" />
               </div>
             )}
