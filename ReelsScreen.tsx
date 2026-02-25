@@ -17,6 +17,7 @@ export function ReelsScreen() {
   const [posts, setPosts] = useState<Post[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [viewportHeight, setViewportHeight] = useState(0)
   const [showNav, setShowNav] = useState(false)
   const [showControls, setShowControls] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -31,6 +32,32 @@ export function ReelsScreen() {
   const [commentModalPost, setCommentModalPost] = useState<Post | null>(null)
   const [shouldLoadMedia, setShouldLoadMedia] = useState<Map<string, boolean>>(new Map())
   const mediaRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+
+  const toProxyUrl = (url?: string) => {
+    if (!url) return ''
+    return url.startsWith('/media/') ? `/api/image-proxy?path=${url.substring(1)}` : url
+  }
+
+  const getVideoSource = (post: Post) => {
+    const rawMediaUrls = (post as any).mediaUrls
+    const mediaUrls = Array.isArray(rawMediaUrls)
+      ? rawMediaUrls
+      : (typeof rawMediaUrls === 'string' && rawMediaUrls ? [rawMediaUrls] : [])
+    const primaryMedia = mediaUrls.find((url: string) => typeof url === 'string' && url.length > 0)
+    const legacyVideoUrl = (post as any).videoUrl as string | undefined
+    return toProxyUrl(primaryMedia || legacyVideoUrl)
+  }
+
+  const getThumbnailSource = (post: Post) => {
+    const thumbnailUrl = (post as any).thumbnailUrl as string | undefined
+    if (thumbnailUrl) return toProxyUrl(thumbnailUrl)
+    const rawMediaUrls = (post as any).mediaUrls
+    const mediaUrls = Array.isArray(rawMediaUrls)
+      ? rawMediaUrls
+      : (typeof rawMediaUrls === 'string' && rawMediaUrls ? [rawMediaUrls] : [])
+    const firstMedia = mediaUrls.find((url: string) => typeof url === 'string' && url.length > 0)
+    return toProxyUrl(firstMedia)
+  }
 
   useEffect(() => {
     const cached = feedStore.getFeed('reels')
@@ -60,6 +87,25 @@ export function ReelsScreen() {
   }, [])
 
   useEffect(() => {
+    const updateViewportHeight = () => setViewportHeight(window.innerHeight)
+    updateViewportHeight()
+    window.addEventListener('resize', updateViewportHeight)
+    return () => window.removeEventListener('resize', updateViewportHeight)
+  }, [])
+
+  useEffect(() => {
+    if (showNav) {
+      document.body.classList.remove('hide-bottom-nav')
+    } else {
+      document.body.classList.add('hide-bottom-nav')
+    }
+
+    return () => {
+      document.body.classList.remove('hide-bottom-nav')
+    }
+  }, [showNav])
+
+  useEffect(() => {
     const observers = new Map<string, IntersectionObserver>()
     
     posts.forEach(post => {
@@ -81,6 +127,19 @@ export function ReelsScreen() {
     
     return () => observers.forEach(obs => obs.disconnect())
   }, [posts])
+
+  useEffect(() => {
+    if (posts.length === 0) return
+    setShouldLoadMedia(prev => {
+      const next = new Map(prev)
+      const indicesToPreload = [currentIndex - 1, currentIndex, currentIndex + 1]
+      indicesToPreload.forEach(index => {
+        const post = posts[index]
+        if (post) next.set(post.id, true)
+      })
+      return next
+    })
+  }, [currentIndex, posts])
 
   useEffect(() => {
     videoRefs.current.forEach((video, index) => {
@@ -318,21 +377,45 @@ export function ReelsScreen() {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onClick={handleScreenTap}
-        style={{ overscrollBehavior: 'none' }}
+        style={{ 
+          overscrollBehavior: 'none',
+          height: viewportHeight ? `${viewportHeight}px` : '100vh'
+        }}
       >
       <div 
         className="h-full transition-transform duration-300 ease-out"
-        style={{ transform: `translateY(-${currentIndex * 100}vh)` }}
+        style={{
+          transform: viewportHeight
+            ? `translateY(-${currentIndex * viewportHeight}px)`
+            : `translateY(-${currentIndex * 100}vh)`
+        }}
       >
-        {posts.map((post, index) => (
-          <div key={post.id} className="h-screen w-screen relative" ref={el => { if (el) mediaRefs.current.set(post.id, el) }}>
+        {posts.map((post, index) => {
+          const videoSource = getVideoSource(post)
+          const thumbnailSource = getThumbnailSource(post)
+          const canRenderVideo = Boolean(videoSource)
+
+          if (!canRenderVideo) {
+            videoRefs.current[index] = null
+          }
+
+          return (
+          <div
+            key={post.id}
+            className="w-screen relative"
+            style={{ height: viewportHeight ? `${viewportHeight}px` : '100vh' }}
+            ref={el => { if (el) mediaRefs.current.set(post.id, el) }}
+          >
             {shouldLoadMedia.get(post.id) ? (
             <>
+            {canRenderVideo ? (
             <video
               ref={el => { videoRefs.current[index] = el }}
-              src={post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls[0]}
+              src={videoSource}
+              poster={thumbnailSource || undefined}
               className="h-full w-full object-cover"
               playsInline
+              preload="metadata"
               onPlay={() => handleVideoPlay(post.id)}
               onEnded={() => handleVideoEnded(post.id)}
               onClick={(e) => {
@@ -349,6 +432,15 @@ export function ReelsScreen() {
                 }
               }}
             />
+            ) : (
+              <div className="h-full w-full bg-black flex items-center justify-center">
+                {thumbnailSource ? (
+                  <img src={thumbnailSource} alt="Reel thumbnail" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="text-white/80 text-sm">Reel media unavailable</div>
+                )}
+              </div>
+            )}
             {videoRefs.current[index] && videoRefs.current[index]!.readyState < 3 && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                 <div className="animate-spin rounded-full h-10 w-10 border-3 border-white/30 border-t-white" />
@@ -373,7 +465,10 @@ export function ReelsScreen() {
             )}
 
             {/* Right Side Reactions */}
-            <div className="absolute right-3 bottom-24 flex flex-col items-center gap-4 z-10">
+            <div
+              className="absolute right-3 flex flex-col items-center gap-4 z-10"
+              style={{ bottom: 'calc(env(safe-area-inset-bottom) + 6rem)' }}
+            >
               {/* Like */}
               <button 
                 onClick={(e) => {
@@ -461,7 +556,10 @@ export function ReelsScreen() {
             </div>
 
             {/* Bottom Info */}
-            <div className="absolute bottom-0 left-0 right-20 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 z-10">
+            <div
+              className="absolute bottom-0 left-0 right-20 bg-gradient-to-t from-black/90 via-black/60 to-transparent px-6 pt-6 z-10"
+              style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)' }}
+            >
               <div className="max-w-md">
                 <div className="flex items-center gap-3 mb-3">
                   {post.avatarUrl ? (
@@ -492,7 +590,7 @@ export function ReelsScreen() {
               </div>
             </div>
           </div>
-        ))}
+          )})}
       </div>
       {commentModalPost && (
         <CommentModal
