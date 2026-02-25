@@ -331,7 +331,7 @@ export function ReelsScreen() {
             <video
               ref={el => { videoRefs.current[index] = el }}
               src={post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls[0]}
-              className="h-full w-full object-contain"
+              className="h-full w-full object-cover"
               playsInline
               onPlay={() => handleVideoPlay(post.id)}
               onEnded={() => handleVideoEnded(post.id)}

@@ -1184,9 +1184,13 @@ class AppwriteService {
 
       // Keep post_aggregates in sync for key fields
       if (['comments', 'reposts', 'shares', 'impressions'].includes(field)) {
-        await this.updatePostAggregateFromPost(postId, post)
+        const updatedPost = { ...post, [field]: newValue }
+        await this.updatePostAggregateFromPost(postId, updatedPost)
       }
-    } catch {}
+    } catch (error) {
+      console.error(`Failed to increment post field ${field} for post ${postId}:`, error)
+      throw error
+    }
   }
 
   // Feed & ranking metrics
@@ -1210,18 +1214,32 @@ class AppwriteService {
     durationMs?: number | null
   }) {
     try {
+      // Keep payload within Appwrite schema constraints.
+      const userId = String(data.userId || '').trim()
+      const postId = String(data.postId || '').trim()
+      const creatorId = String(data.creatorId || '').trim()
+      const position = Math.min(65536, Math.max(1, Math.floor(Number(data.position) || 1)))
+      const durationMs =
+        data.durationMs === null || data.durationMs === undefined
+          ? null
+          : Math.min(2147483647, Math.max(0, Math.floor(Number(data.durationMs) || 0)))
+
+      if (!userId || !postId || !creatorId) {
+        throw new Error('logFeedEvent requires non-empty userId, postId, and creatorId')
+      }
+
       await this.databases.createDocument(
         this.databaseId,
         this.collections.feedEvents,
         ID.unique(),
         {
-          userId: data.userId,
-          postId: data.postId,
-          creatorId: data.creatorId,
+          userId,
+          postId,
+          creatorId,
           feed: data.feed,
           eventType: data.eventType,
-          position: data.position,
-          durationMs: data.durationMs ?? null,
+          position,
+          durationMs,
         }
       )
     } catch (error) {
@@ -1254,11 +1272,15 @@ class AppwriteService {
           postId
         ))
 
-      const creatorId = post.userId || post.creatorId || ''
-      const comments = post.comments || 0
-      const reposts = post.reposts || 0
-      const shares = post.shares || 0
-      const impressions = post.impressions || 0
+      const creatorId = String(post.userId || post.creatorId || '').trim()
+      const comments = Math.max(0, Math.floor(Number(post.comments) || 0))
+      const reposts = Math.max(0, Math.floor(Number(post.reposts) || 0))
+      const shares = Math.max(0, Math.floor(Number(post.shares) || 0))
+      const impressions = Math.max(0, Math.floor(Number(post.impressions) || 0))
+
+      if (!creatorId) {
+        throw new Error(`Cannot upsert post_aggregates for post ${postId}: missing creatorId`)
+      }
 
       const engagementNumerator = comments + reposts + shares
       const engagementRate =
