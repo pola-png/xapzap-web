@@ -10,7 +10,7 @@ import { normalizeWasabiImageArray, normalizeWasabiImage } from './lib/wasabi'
 import { feedCache } from './lib/cache'
 import { generateSlug } from './lib/slug'
 import { parseHashtags } from './lib/hashtag'
-import { formatTimeAgo } from './utils'
+import { formatCount, formatTimeAgo } from './utils'
 import { CommentModal } from './CommentModal'
 import { CommentScreen } from './CommentScreen'
 import { ReelsDetailScreen } from './VideoDetailScreen'
@@ -155,6 +155,21 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
       commentsHistoryActiveRef.current = true
     }
     setShowComments(true)
+    
+    const logCommentEvent = async () => {
+      const user = await appwriteService.getCurrentUser()
+      if (user && post.userId) {
+        await appwriteService.logFeedEvent({
+          userId: user.$id,
+          postId: post.id,
+          creatorId: post.userId,
+          feed: feedType,
+          eventType: 'comment',
+          position: 0
+        })
+      }
+    }
+    logCommentEvent()
   }
 
   const closeComments = () => {
@@ -268,14 +283,26 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
       tracked = true
       try {
         await appwriteService.incrementPostField(post.id, 'impressions', 1)
+        
+        const user = await appwriteService.getCurrentUser()
+        if (user && post.userId) {
+          await appwriteService.logFeedEvent({
+            userId: user.$id,
+            postId: post.id,
+            creatorId: post.userId,
+            feed: feedType,
+            eventType: 'impression',
+            position: 0
+          })
+        }
       } catch (error) {
         console.error('Failed to track impression:', error)
       }
     }
 
-    const timer = setTimeout(trackImpression, 1000) // Track after 1 second
+    const timer = setTimeout(trackImpression, 1000)
     return () => clearTimeout(timer)
-  }, [post.id])
+  }, [post.id, post.userId, feedType])
 
   // Subscribe to realtime updates for this post
   useEffect(() => {
@@ -293,21 +320,15 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   }, [post.id])
 
   const handleLike = async () => {
-    // Check if user is authenticated
     const currentUser = await appwriteService.getCurrentUser()
-    if (!currentUser) {
-      // Guest users can't like - silently ignore or show message
-      return
-    }
+    if (!currentUser) return
 
     const wasLiked = liked
     const prevLikes = likes
 
-    // Optimistic update
     setLiked(!wasLiked)
     setLikes(wasLiked ? Math.max(0, likes - 1) : likes + 1)
     
-    // Update cache
     const cached = feedCache.getInteraction(post.id, currentUser.$id)
     if (cached) {
       feedCache.setInteraction(post.id, currentUser.$id, { ...cached, liked: !wasLiked })
@@ -318,10 +339,19 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
         await appwriteService.unlikePost(post.id)
       } else {
         await appwriteService.likePost(post.id)
+        if (post.userId) {
+          await appwriteService.logFeedEvent({
+            userId: currentUser.$id,
+            postId: post.id,
+            creatorId: post.userId,
+            feed: feedType,
+            eventType: 'like',
+            position: 0
+          })
+        }
       }
     } catch (error) {
       console.error('Failed to toggle like:', error)
-      // Revert on error
       setLiked(wasLiked)
       setLikes(prevLikes)
       if (cached) {
@@ -331,19 +361,12 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   }
 
   const handleSave = async () => {
-    // Check if user is authenticated
     const currentUser = await appwriteService.getCurrentUser()
-    if (!currentUser) {
-      // Guest users can't save - silently ignore
-      return
-    }
+    if (!currentUser) return
 
     const wasSaved = saved
-
-    // Optimistic update
     setSaved(!wasSaved)
     
-    // Update cache
     const cached = feedCache.getInteraction(post.id, currentUser.$id)
     if (cached) {
       feedCache.setInteraction(post.id, currentUser.$id, { ...cached, saved: !wasSaved })
@@ -351,9 +374,18 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
 
     try {
       await appwriteService.savePost(post.id)
+      if (!wasSaved && post.userId) {
+        await appwriteService.logFeedEvent({
+          userId: currentUser.$id,
+          postId: post.id,
+          creatorId: post.userId,
+          feed: feedType,
+          eventType: 'save',
+          position: 0
+        })
+      }
     } catch (error) {
       console.error('Failed to toggle save:', error)
-      // Revert on error
       setSaved(wasSaved)
       if (cached) {
         feedCache.setInteraction(post.id, currentUser.$id, { ...cached, saved: wasSaved })
@@ -362,21 +394,15 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   }
 
   const handleRepost = async () => {
-    // Check if user is authenticated
     const currentUser = await appwriteService.getCurrentUser()
-    if (!currentUser) {
-      // Guest users can't repost - silently ignore
-      return
-    }
+    if (!currentUser) return
 
     const wasReposted = reposted
     const prevReposts = reposts
 
-    // Optimistic update
     setReposted(!wasReposted)
     setReposts(wasReposted ? Math.max(0, reposts - 1) : reposts + 1)
     
-    // Update cache
     const cached = feedCache.getInteraction(post.id, currentUser.$id)
     if (cached) {
       feedCache.setInteraction(post.id, currentUser.$id, { ...cached, reposted: !wasReposted })
@@ -384,9 +410,18 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
 
     try {
       await appwriteService.repostPost(post.id)
+      if (!wasReposted && post.userId) {
+        await appwriteService.logFeedEvent({
+          userId: currentUser.$id,
+          postId: post.id,
+          creatorId: post.userId,
+          feed: feedType,
+          eventType: 'repost',
+          position: 0
+        })
+      }
     } catch (error) {
       console.error('Failed to toggle repost:', error)
-      // Revert on error
       setReposted(wasReposted)
       setReposts(prevReposts)
       if (cached) {
@@ -407,6 +442,18 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           text: post.content || '',
           url: postUrl
         })
+        
+        const user = await appwriteService.getCurrentUser()
+        if (user && post.userId) {
+          await appwriteService.logFeedEvent({
+            userId: user.$id,
+            postId: post.id,
+            creatorId: post.userId,
+            feed: feedType,
+            eventType: 'share',
+            position: 0
+          })
+        }
       }
     } catch (error) {
       console.error('Failed to share:', error)
@@ -806,15 +853,15 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           <div className="flex flex-col items-center gap-3">
             <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 text-gray-500 dark:text-gray-400 ${liked ? 'text-red-500' : ''}`} aria-label="Like">
               <Heart size={24} className={liked ? 'fill-red-500' : ''} />
-              <span className="text-sm font-bold">{likes || 0}</span>
+              <span className="text-sm font-bold">{formatCount(likes)}</span>
             </button>
             <button onClick={openComments} className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-gray-500 dark:text-gray-400" aria-label="Comment">
               <MessageCircle size={24} />
-              <span className="text-sm font-bold">{post.comments || 0}</span>
+              <span className="text-sm font-bold">{formatCount(post.comments || 0)}</span>
             </button>
             <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label="Repost">
               <Repeat2 size={24} className={reposted ? 'fill-green-500' : ''} />
-              <span className="text-sm font-bold">{reposts || 0}</span>
+              <span className="text-sm font-bold">{formatCount(reposts)}</span>
             </button>
             <button onClick={handleSave} className={`flex items-center gap-2 hover:text-yellow-500 transition-colors p-2 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label="Bookmark">
               <Bookmark size={24} className={saved ? 'fill-yellow-500' : ''} />
@@ -834,21 +881,21 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             <button onClick={handleShare} className={`flex items-center justify-center hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label="Share post">
               <Share size={20} />
             </button>
-            <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 rounded-lg ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label={`Repost - ${reposts || 0} reposts`}>
+            <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 rounded-lg ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label={`Repost - ${formatCount(reposts)} reposts`}>
               <Repeat2 size={20} className={reposted ? 'fill-green-500' : ''} />
-              <span className="text-sm font-bold">{reposts || 0}</span>
+              <span className="text-sm font-bold">{formatCount(reposts)}</span>
             </button>
-            <button className={`flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label={`View impressions - ${post.impressions || 0} impressions`}>
+            <button className={`flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label={`View impressions - ${formatCount(post.impressions || 0)} impressions`}>
               <BarChart2 size={20} />
-              <span className="text-sm font-bold">{post.impressions || 0}</span>
+              <span className="text-sm font-bold">{formatCount(post.impressions || 0)}</span>
             </button>
-            <button onClick={openComments} className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label={`View comments - ${post.comments || 0} comments`}>
+            <button onClick={openComments} className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label={`View comments - ${formatCount(post.comments || 0)} comments`}>
               <MessageCircle size={20} />
-              <span className="text-sm font-bold">{post.comments || 0}</span>
+              <span className="text-sm font-bold">{formatCount(post.comments || 0)}</span>
             </button>
-            <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 rounded-lg ${liked ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label={`Like post - ${likes || 0} likes`}>
+            <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 rounded-lg ${liked ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label={`Like post - ${formatCount(likes)} likes`}>
               <Heart size={20} className={liked ? 'fill-red-500' : ''} />
-              <span className="text-sm font-bold">{likes || 0}</span>
+              <span className="text-sm font-bold">{formatCount(likes)}</span>
             </button>
           </div>
         )}

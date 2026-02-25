@@ -29,3 +29,22 @@ export function formatTimeAgo(date: Date | string): string {
   }
   return `${months[past.getMonth()]} ${past.getDate()}, ${past.getFullYear()}`
 }
+
+export function formatCount(value: number | string | null | undefined): string {
+  const numericValue = Number(value)
+  if (!Number.isFinite(numericValue)) return '0'
+
+  if (Math.abs(numericValue) < 1000) {
+    return `${Math.trunc(numericValue)}`
+  }
+
+  return new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  })
+    .format(numericValue)
+    .replace('K', 'k')
+    .replace('M', 'm')
+    .replace('B', 'b')
+    .replace('T', 't')
+}

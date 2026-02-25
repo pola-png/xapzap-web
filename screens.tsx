@@ -4,6 +4,7 @@ import { Search, X, User, Hash, TrendingUp } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import appwriteService from './appwriteService'
 import { PostCard } from './PostCard'
+import { formatCount } from './utils'
 
 interface SearchScreenProps {
   onClose: () => void
@@ -143,7 +144,7 @@ export function SearchScreen({ onClose }: SearchScreenProps) {
               </div>
               <div className="flex-1">
                 <p className="font-semibold">{result.data.tag}</p>
-                <p className="text-sm text-muted-foreground">{result.data.count.toLocaleString()} posts</p>
+                <p className="text-sm text-muted-foreground">{formatCount(result.data.count)} posts</p>
               </div>
               <TrendingUp size={16} className="text-muted-foreground" />
             </div>

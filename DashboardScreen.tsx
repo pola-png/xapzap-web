@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { BarChart3, Users, Eye, TrendingUp, Activity } from 'lucide-react'
 import appwriteService from './appwriteService'
-import { cn } from './utils'
+import { formatCount } from './utils'
 
 export function DashboardScreen() {
   const [stats, setStats] = useState({
@@ -81,7 +81,7 @@ export function DashboardScreen() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Posts</p>
-              <p className="text-3xl font-bold">{stats.posts.toLocaleString()}</p>
+              <p className="text-3xl font-bold">{formatCount(stats.posts)}</p>
             </div>
           </div>
         </div>
@@ -93,7 +93,7 @@ export function DashboardScreen() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Followers</p>
-              <p className="text-3xl font-bold">{stats.followers.toLocaleString()}</p>
+              <p className="text-3xl font-bold">{formatCount(stats.followers)}</p>
             </div>
           </div>
         </div>
@@ -105,7 +105,7 @@ export function DashboardScreen() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Impressions</p>
-              <p className="text-3xl font-bold">{stats.impressions.toLocaleString()}</p>
+              <p className="text-3xl font-bold">{formatCount(stats.impressions)}</p>
             </div>
           </div>
         </div>
@@ -117,7 +117,7 @@ export function DashboardScreen() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Views</p>
-              <p className="text-3xl font-bold">{stats.views.toLocaleString()}</p>
+              <p className="text-3xl font-bold">{formatCount(stats.views)}</p>
             </div>
           </div>
         </div>

@@ -6,7 +6,7 @@ import { Post } from './types'
 import appwriteService from './appwriteService'
 import { normalizeWasabiImage } from './lib/wasabi'
 import { parseHashtags } from './lib/hashtag'
-import { formatTimeAgo } from './utils'
+import { formatCount, formatTimeAgo } from './utils'
 import { CommentModal } from './CommentModal'
 import { CommentScreen } from './CommentScreen'
 import { useAuthStore } from './authStore'
@@ -586,7 +586,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 )}
                 <span className="flex items-center gap-1.5 text-muted-foreground/70">
                   <Eye size={16} />
-                  {views || 0}
+                  {formatCount(views)}
                 </span>
                 <span className="text-muted-foreground/70">{formatTimeAgo(post.createdAt)}</span>
               </div>
@@ -883,9 +883,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <button onClick={handleShare} className="flex items-center justify-center hover:text-blue-500 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label="Share">
             <Share size={24} />
           </button>
-          <button onClick={handleRepost} className={`flex items-center gap-2 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400 hover:text-green-500'}`} aria-label={`Reposts - ${reposts || 0} reposts`}>
+          <button onClick={handleRepost} className={`flex items-center gap-2 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400 hover:text-green-500'}`} aria-label={`Reposts - ${formatCount(reposts)} reposts`}>
             <Repeat2 size={24} />
-            <span className="text-sm sm:text-base font-medium">{reposts || 0}</span>
+            <span className="text-sm sm:text-base font-medium">{formatCount(reposts)}</span>
           </button>
           <button onClick={() => {
             setShowComments(true)
@@ -893,17 +893,17 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             if (video && !video.paused) {
               video.pause()
             }
-          }} className="flex items-center gap-2 hover:text-blue-500 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label={`Comments - ${comments || 0} comments`}>
+          }} className="flex items-center gap-2 hover:text-blue-500 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label={`Comments - ${formatCount(comments)} comments`}>
             <MessageCircle size={24} />
-            <span className="text-sm sm:text-base font-medium">{comments || 0}</span>
+            <span className="text-sm sm:text-base font-medium">{formatCount(comments)}</span>
           </button>
           <button
             onClick={handleLike}
             className={`flex items-center gap-2 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 ${liked ? 'text-red-500' : 'text-gray-500 dark:text-gray-400 hover:text-red-500'}`}
-            aria-label={`Like - ${likes || 0} likes`}
+            aria-label={`Like - ${formatCount(likes)} likes`}
           >
             <Heart size={24} className={liked ? 'fill-red-500' : ''} />
-            <span className="text-sm sm:text-base font-medium">{likes || 0}</span>
+            <span className="text-sm sm:text-base font-medium">{formatCount(likes)}</span>
           </button>
         </div>
         {/* Comments Section - Scrollable */}

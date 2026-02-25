@@ -8,7 +8,7 @@ import { Heart, MessageCircle, Share2, Bookmark, Repeat2, Eye, Play, Pause } fro
 import { useRouter } from 'next/navigation'
 import { generateSlug } from './lib/slug'
 import { CommentModal } from './CommentModal'
-import { formatTimeAgo } from './utils'
+import { formatCount, formatTimeAgo } from './utils'
 
 export function ReelsScreen() {
   const feedStore = useFeedStore()
@@ -224,12 +224,24 @@ export function ReelsScreen() {
 
   useEffect(() => {
     if (!activePost || impressionTracked.current.has(activePost.id)) return
-    const impressionTimer = setTimeout(() => {
-      appwriteService.incrementPostField(activePost.id, 'impressions', 1)
+    const impressionTimer = setTimeout(async () => {
+      await appwriteService.incrementPostField(activePost.id, 'impressions', 1)
       impressionTracked.current.add(activePost.id)
+      
+      const user = await appwriteService.getCurrentUser()
+      if (user && activePost.userId) {
+        await appwriteService.logFeedEvent({
+          userId: user.$id,
+          postId: activePost.id,
+          creatorId: activePost.userId,
+          feed: 'reels',
+          eventType: 'impression',
+          position: currentIndex + 1
+        })
+      }
     }, 1000)
     return () => clearTimeout(impressionTimer)
-  }, [activePostId])
+  }, [activePostId, currentIndex])
 
   useEffect(() => {
     if (!hasLoadedInitial && currentIndex === 0 && posts.length === 1) {
@@ -247,12 +259,38 @@ export function ReelsScreen() {
     if (!hasCountedView.current.get(postId)) {
       hasCountedView.current.set(postId, true)
       await appwriteService.incrementPostField(postId, 'views', 1)
+      
+      const user = await appwriteService.getCurrentUser()
+      const post = posts.find(p => p.id === postId)
+      if (user && post?.userId) {
+        await appwriteService.logFeedEvent({
+          userId: user.$id,
+          postId,
+          creatorId: post.userId,
+          feed: 'reels',
+          eventType: 'view_start',
+          position: currentIndex + 1
+        })
+      }
     }
   }
 
-  const handleVideoEnded = (postId: string) => {
+  const handleVideoEnded = async (postId: string) => {
     hasEnded.current.set(postId, true)
     hasCountedView.current.set(postId, false)
+    
+    const user = await appwriteService.getCurrentUser()
+    const post = posts.find(p => p.id === postId)
+    if (user && post?.userId) {
+      await appwriteService.logFeedEvent({
+        userId: user.$id,
+        postId,
+        creatorId: post.userId,
+        feed: 'reels',
+        eventType: 'view_complete',
+        position: currentIndex + 1
+      })
+    }
   }
 
   const handleScreenTap = () => {
@@ -368,6 +406,16 @@ export function ReelsScreen() {
             await appwriteService.unlikePost(postId)
           } else {
             await appwriteService.likePost(postId)
+            if (post.userId) {
+              await appwriteService.logFeedEvent({
+                userId: user.$id,
+                postId,
+                creatorId: post.userId,
+                feed: 'reels',
+                eventType: 'like',
+                position: currentIndex + 1
+              })
+            }
           }
         } catch (error) {
           console.error('Failed to toggle like:', error)
@@ -384,6 +432,16 @@ export function ReelsScreen() {
         
         try {
           await appwriteService.savePost(postId)
+          if (!wasSaved && post.userId) {
+            await appwriteService.logFeedEvent({
+              userId: user.$id,
+              postId,
+              creatorId: post.userId,
+              feed: 'reels',
+              eventType: 'save',
+              position: currentIndex + 1
+            })
+          }
         } catch (error) {
           console.error('Failed to toggle save:', error)
           setPosts(prev => prev.map(p => 
@@ -392,6 +450,16 @@ export function ReelsScreen() {
         }
       } else if (action === 'comment') {
         setCommentModalPost(post)
+        if (post.userId) {
+          await appwriteService.logFeedEvent({
+            userId: user.$id,
+            postId,
+            creatorId: post.userId,
+            feed: 'reels',
+            eventType: 'comment',
+            position: currentIndex + 1
+          })
+        }
       } else if (action === 'repost') {
         const wasReposted = post.isReposted
         const prevReposts = post.reposts || 0
@@ -406,6 +474,16 @@ export function ReelsScreen() {
         
         try {
           await appwriteService.repostPost(postId)
+          if (!wasReposted && post.userId) {
+            await appwriteService.logFeedEvent({
+              userId: user.$id,
+              postId,
+              creatorId: post.userId,
+              feed: 'reels',
+              eventType: 'repost',
+              position: currentIndex + 1
+            })
+          }
         } catch (error) {
           console.error('Failed to toggle repost:', error)
           setPosts(prev => prev.map(p => 
@@ -418,6 +496,16 @@ export function ReelsScreen() {
             title: post.content || 'Check out this reel',
             url: window.location.origin + `/reels/${generateSlug(post.content || 'reel', postId)}`
           })
+          if (post.userId) {
+            await appwriteService.logFeedEvent({
+              userId: user.$id,
+              postId,
+              creatorId: post.userId,
+              feed: 'reels',
+              eventType: 'share',
+              position: currentIndex + 1
+            })
+          }
         }
       }
     } catch (error) {
@@ -595,7 +683,7 @@ export function ReelsScreen() {
                   />
                 </div>
                 <span className="text-white text-sm font-bold">
-                  {post.likes || 0}
+                  {formatCount(post.likes || 0)}
                 </span>
               </button>
 
@@ -611,7 +699,7 @@ export function ReelsScreen() {
                   <MessageCircle size={24} className="text-white" />
                 </div>
                 <span className="text-white text-sm font-bold">
-                  {post.comments || 0}
+                  {formatCount(post.comments || 0)}
                 </span>
               </button>
 
@@ -630,7 +718,7 @@ export function ReelsScreen() {
                   />
                 </div>
                 <span className="text-white text-sm font-bold">
-                  {post.reposts || 0}
+                  {formatCount(post.reposts || 0)}
                 </span>
               </button>
 
@@ -689,7 +777,7 @@ export function ReelsScreen() {
                       <span className="text-white font-bold text-lg">{post.displayName || 'User'}</span>
                       <span className="flex items-center gap-1 text-gray-300 text-sm">
                         <Eye size={14} />
-                        {post.views || 0}
+                        {formatCount(post.views || 0)}
                       </span>
                     </div>
                     <span className="text-gray-300 text-sm">{formatTimeAgo(post.timestamp)}</span>

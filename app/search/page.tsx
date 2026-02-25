@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Search, X, User, Hash, TrendingUp, ArrowLeft } from 'lucide-react'
 import appwriteService from '../../appwriteService'
 import { PostCard } from '../../PostCard'
+import { formatCount } from '../../utils'
 
 interface SearchResult {
   type: 'post' | 'user' | 'hashtag'
@@ -173,7 +174,7 @@ export default function SearchPage() {
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-white">{result.data.tag}</p>
-                <p className="text-sm text-gray-400">{result.data.count?.toLocaleString() || 0} posts</p>
+                <p className="text-sm text-gray-400">{formatCount(result.data.count || 0)} posts</p>
               </div>
               <TrendingUp size={16} className="text-gray-400" />
             </div>
