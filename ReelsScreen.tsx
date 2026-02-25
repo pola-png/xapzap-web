@@ -16,6 +16,7 @@ export function ReelsScreen() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(false)
   const [hasLoadedInitial, setHasLoadedInitial] = useState(false)
+  const [isPageVisible, setIsPageVisible] = useState(true)
   const [viewportHeight, setViewportHeight] = useState(0)
   const [showNav, setShowNav] = useState(false)
   const [showControls, setShowControls] = useState(false)
@@ -34,8 +35,6 @@ export function ReelsScreen() {
   const [videoReadyMap, setVideoReadyMap] = useState<Map<string, boolean>>(new Map())
   const mediaRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const currentIndexRef = useRef(0)
-  const postsRef = useRef<Post[]>([])
-  const commentModalPostRef = useRef<Post | null>(null)
 
   const toProxyUrl = (url?: string) => {
     if (!url) return ''
@@ -52,39 +51,13 @@ export function ReelsScreen() {
     return toProxyUrl(primaryMedia || legacyVideoUrl)
   }
 
-  const pauseAllReelVideos = () => {
-    videoRefs.current.forEach((video) => {
-      if (video && !video.paused) {
+  const pauseAllVideos = (except?: HTMLVideoElement | null) => {
+    if (typeof document === 'undefined') return
+    document.querySelectorAll('video').forEach((video) => {
+      if (video !== except && !video.paused) {
         video.pause()
       }
     })
-  }
-
-  const pauseAllReelVideosExcept = (allowedVideo: HTMLVideoElement | null = null) => {
-    videoRefs.current.forEach((video) => {
-      if (video && video !== allowedVideo && !video.paused) {
-        video.pause()
-      }
-    })
-  }
-
-  const playOnlyActiveReel = (postId: string, index: number, video: HTMLVideoElement | null) => {
-    if (!video) return
-    if (index !== currentIndexRef.current) {
-      video.pause()
-      return
-    }
-    const activePost = postsRef.current[index]
-    if (!activePost || activePost.id !== postId) {
-      video.pause()
-      return
-    }
-    if (commentModalPostRef.current || document.hidden || userPaused.current.get(postId)) {
-      video.pause()
-      return
-    }
-    pauseAllReelVideosExcept(video)
-    video.play().catch(() => {})
   }
 
   useEffect(() => {
@@ -128,38 +101,20 @@ export function ReelsScreen() {
   }, [currentIndex])
 
   useEffect(() => {
-    postsRef.current = posts
-  }, [posts])
-
-  useEffect(() => {
-    commentModalPostRef.current = commentModalPost
-  }, [commentModalPost])
-
-  useEffect(() => {
-    const pauseEverything = () => {
-      pauseAllReelVideos()
-    }
-
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        pauseEverything()
-        return
-      }
-
-      const liveIndex = currentIndexRef.current
-      const livePost = postsRef.current[liveIndex]
-      const liveVideo = videoRefs.current[liveIndex]
-      if (!livePost || !liveVideo) return
-      playOnlyActiveReel(livePost.id, liveIndex, liveVideo)
+      const visible = !document.hidden
+      setIsPageVisible(visible)
+      if (!visible) pauseAllVideos()
     }
 
+    setIsPageVisible(!document.hidden)
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('pagehide', pauseEverything)
-    window.addEventListener('blur', pauseEverything)
+    window.addEventListener('pagehide', () => pauseAllVideos())
+    window.addEventListener('blur', () => pauseAllVideos())
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('pagehide', pauseEverything)
-      window.removeEventListener('blur', pauseEverything)
+      window.removeEventListener('pagehide', () => pauseAllVideos())
+      window.removeEventListener('blur', () => pauseAllVideos())
     }
   }, [])
 
@@ -223,36 +178,33 @@ export function ReelsScreen() {
     })
   }, [posts])
 
+  const activePost = posts[currentIndex]
+  const activePostId = activePost?.id
+  const activeVideoReady = activePostId ? Boolean(videoReadyMap.get(activePostId)) : false
+
   useEffect(() => {
-    const activePost = posts[currentIndex]
-    videoRefs.current.forEach((video, index) => {
-      if (!video) return
-      video.loop = true
-      if (
-        index === currentIndex &&
-        activePost &&
-        !commentModalPost &&
-        !document.hidden &&
-        !userPaused.current.get(activePost.id)
-      ) {
-        playOnlyActiveReel(activePost.id, index, video)
-      } else {
-        video.pause()
-      }
-    })
+    const activeVideo = videoRefs.current[currentIndex]
+    pauseAllVideos(activeVideo)
 
-    let impressionTimer: NodeJS.Timeout | null = null
-    if (activePost && !impressionTracked.current.has(activePost.id)) {
-      impressionTimer = setTimeout(() => {
-        appwriteService.incrementPostField(activePost.id, 'impressions', 1)
-        impressionTracked.current.add(activePost.id)
-      }, 1000)
+    if (!activePost || !activeVideo) return
+    activeVideo.loop = true
+
+    if (commentModalPost || !isPageVisible || userPaused.current.get(activePost.id) || !activeVideoReady) {
+      activeVideo.pause()
+      return
     }
 
-    return () => {
-      if (impressionTimer) clearTimeout(impressionTimer)
-    }
-  }, [currentIndex, commentModalPost, posts.length])
+    activeVideo.play().catch(() => {})
+  }, [currentIndex, commentModalPost, activePostId, activeVideoReady, isPageVisible])
+
+  useEffect(() => {
+    if (!activePost || impressionTracked.current.has(activePost.id)) return
+    const impressionTimer = setTimeout(() => {
+      appwriteService.incrementPostField(activePost.id, 'impressions', 1)
+      impressionTracked.current.add(activePost.id)
+    }, 1000)
+    return () => clearTimeout(impressionTimer)
+  }, [activePostId])
 
   useEffect(() => {
     if (!hasLoadedInitial && currentIndex === 0 && posts.length === 1) {
@@ -286,7 +238,7 @@ export function ReelsScreen() {
 
   useEffect(() => {
     return () => {
-      pauseAllReelVideos()
+      pauseAllVideos()
     }
   }, [])
 
@@ -447,7 +399,7 @@ export function ReelsScreen() {
 
   useEffect(() => {
     if (!commentModalPost) return
-    pauseAllReelVideos()
+    pauseAllVideos()
   }, [commentModalPost])
 
   if (loading && posts.length === 0) {
@@ -488,6 +440,7 @@ export function ReelsScreen() {
         onPointerDown={handleScreenTap}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        onClick={handleScreenTap}
         style={{ 
           overscrollBehavior: 'none',
           height: viewportHeight ? `${viewportHeight}px` : '100vh'
@@ -530,32 +483,32 @@ export function ReelsScreen() {
                 const video = e.currentTarget
                 if (
                   index !== currentIndexRef.current ||
-                  commentModalPostRef.current ||
-                  document.hidden
+                  commentModalPost ||
+                  !isPageVisible
                 ) {
                   video.pause()
                   return
                 }
-                pauseAllReelVideosExcept(video)
+                pauseAllVideos(video)
                 void handleVideoPlay(post.id)
               }}
               onEnded={() => handleVideoEnded(post.id)}
-              onLoadedMetadata={(e) => {
+              onLoadedMetadata={() => {
                 setVideoReadyMap(prev => new Map(prev).set(post.id, true))
-                playOnlyActiveReel(post.id, index, e.currentTarget)
               }}
-              onLoadedData={(e) => {
+              onLoadedData={() => {
                 setVideoReadyMap(prev => new Map(prev).set(post.id, true))
-                playOnlyActiveReel(post.id, index, e.currentTarget)
               }}
               preload={index === currentIndex ? "auto" : (Math.abs(index - currentIndex) === 1 ? "metadata" : "none")}
               onClick={(e) => {
                 e.stopPropagation()
                 handleScreenTap()
                 const video = e.currentTarget
+                if (index !== currentIndexRef.current) return
                 if (video.paused) {
                   userPaused.current.set(post.id, false)
-                  playOnlyActiveReel(post.id, index, video)
+                  pauseAllVideos(video)
+                  video.play().catch(() => {})
                   setShowControls(true)
                   if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
                   controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 2000)
