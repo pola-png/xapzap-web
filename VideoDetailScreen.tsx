@@ -55,6 +55,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+  const hasAutoPlayed = useRef(false)
   const hasCountedView = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -124,20 +125,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       loadComments()
     }
   }, [showComments])
-
-  // Keep the actual video element in sync with isPlaying state
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-
-    if (isPlaying) {
-      video.play().catch(() => {
-        // Ignore autoplay / play errors – UI state still reflects intent
-      })
-    } else {
-      video.pause()
-    }
-  }, [isPlaying])
 
   const loadComments = async () => {
     setLoadingComments(true)
@@ -211,8 +198,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     const video = videoRef.current
     if (!video || !shouldLoadVideo) return
 
-    video.muted = isMuted
-
     const handleLoadedMetadata = () => setDuration(video.duration)
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
     const handlePlay = async () => {
@@ -250,7 +235,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         artwork: post.thumbnailUrl ? [{ src: post.thumbnailUrl }] : []
       })
 
-      navigator.mediaSession.setActionHandler('play', () => video.play())
+      navigator.mediaSession.setActionHandler('play', () => {
+        video.play().catch(() => {})
+      })
       navigator.mediaSession.setActionHandler('pause', () => video.pause())
       navigator.mediaSession.setActionHandler('seekbackward', () => {
         video.currentTime = Math.max(0, video.currentTime - 10)
@@ -260,10 +247,13 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       })
     }
 
-    // Auto-play when component mounts
-    video.play().catch(() => {
-      // Handle autoplay failure silently
-    })
+    // Auto-play only once when the detail screen mounts.
+    if (!hasAutoPlayed.current) {
+      hasAutoPlayed.current = true
+      video.play().catch(() => {
+        // Handle autoplay failure silently
+      })
+    }
 
     return () => {
       video.removeEventListener('loadedmetadata', handleLoadedMetadata)
@@ -278,7 +268,13 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         navigator.mediaSession.setActionHandler('seekforward', null)
       }
     }
-  }, [shouldLoadVideo, isMuted])
+  }, [post.displayName, post.id, post.thumbnailUrl, post.title, shouldLoadVideo])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !shouldLoadVideo) return
+    video.muted = isMuted
+  }, [isMuted, shouldLoadVideo])
 
   const togglePlay = () => {
     const video = videoRef.current
@@ -290,7 +286,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     }
     
     if (video.paused) {
-      video.play()
+      video.play().catch(() => {})
     } else {
       video.pause()
     }
@@ -318,7 +314,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     if (!video) return
     
     if (video.paused) {
-      video.play()
+      video.play().catch(() => {})
     } else {
       video.pause()
     }
@@ -1096,6 +1092,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+  const hasAutoPlayed = useRef(false)
 
   useEffect(() => {
     setShouldLoadVideo(true)
@@ -1136,7 +1133,6 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
     if (!video || !shouldLoadVideo) return
 
     video.loop = true
-    video.muted = isMuted
 
     const handleLoadedMetadata = () => setDuration(video.duration)
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
@@ -1153,10 +1149,13 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
     video.addEventListener('pause', handlePause)
     video.addEventListener('ended', handleEnded)
 
-    // Auto-play when component mounts
-    video.play().catch(() => {
-      // Handle autoplay failure silently
-    })
+    // Auto-play only once when the detail screen mounts.
+    if (!hasAutoPlayed.current) {
+      hasAutoPlayed.current = true
+      video.play().catch(() => {
+        // Handle autoplay failure silently
+      })
+    }
 
     return () => {
       video.removeEventListener('loadedmetadata', handleLoadedMetadata)
@@ -1165,14 +1164,20 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
       video.removeEventListener('pause', handlePause)
       video.removeEventListener('ended', handleEnded)
     }
-  }, [shouldLoadVideo, isMuted])
+  }, [shouldLoadVideo])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !shouldLoadVideo) return
+    video.muted = isMuted
+  }, [isMuted, shouldLoadVideo])
 
   const togglePlay = () => {
     const video = videoRef.current
     if (!video) return
 
     if (video.paused) {
-      video.play()
+      video.play().catch(() => {})
     } else {
       video.pause()
     }
@@ -1328,7 +1333,13 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           </button>
 
           <button
-            onClick={() => setShowComments(true)}
+            onClick={() => {
+              setShowComments(true)
+              const video = videoRef.current
+              if (video && !video.paused) {
+                video.pause()
+              }
+            }}
             className="flex flex-col items-center gap-1 text-white"
             aria-label="View comments"
           >
@@ -1416,3 +1427,4 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
     </>
   )
 }
+
