@@ -55,9 +55,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
-  const hasAutoPlayed = useRef(false)
   const hasCountedView = useRef(false)
-  const isUserPausedRef = useRef(false)
+  const isUserPausedRef = useRef(true)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -199,16 +198,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     const video = videoRef.current
     if (!video || !shouldLoadVideo) return
 
-    const playVideo = () => {
-      isUserPausedRef.current = false
-      video.play().catch(() => {})
-    }
-
-    const pauseVideo = () => {
-      isUserPausedRef.current = true
-      video.pause()
-    }
-
     const handleLoadedMetadata = () => setDuration(video.duration)
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
     const handlePlay = async () => {
@@ -243,30 +232,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     video.addEventListener('pause', handlePause)
     video.addEventListener('ended', handleEnded)
 
-    // Setup media session for device controls
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: post.title || 'Video',
-        artist: post.displayName || 'User',
-        artwork: post.thumbnailUrl ? [{ src: post.thumbnailUrl }] : []
-      })
-
-      navigator.mediaSession.setActionHandler('play', playVideo)
-      navigator.mediaSession.setActionHandler('pause', pauseVideo)
-      navigator.mediaSession.setActionHandler('seekbackward', () => {
-        video.currentTime = Math.max(0, video.currentTime - 10)
-      })
-      navigator.mediaSession.setActionHandler('seekforward', () => {
-        video.currentTime = Math.min(video.duration, video.currentTime + 10)
-      })
-    }
-
-    // Auto-play only once when the detail screen mounts.
-    if (!hasAutoPlayed.current) {
-      hasAutoPlayed.current = true
-      playVideo()
-    }
-
     return () => {
       video.pause()
       video.removeEventListener('loadedmetadata', handleLoadedMetadata)
@@ -274,14 +239,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       video.removeEventListener('play', handlePlay)
       video.removeEventListener('pause', handlePause)
       video.removeEventListener('ended', handleEnded)
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.setActionHandler('play', null)
-        navigator.mediaSession.setActionHandler('pause', null)
-        navigator.mediaSession.setActionHandler('seekbackward', null)
-        navigator.mediaSession.setActionHandler('seekforward', null)
-      }
     }
-  }, [post.displayName, post.id, post.thumbnailUrl, post.title, shouldLoadVideo])
+  }, [post.id, shouldLoadVideo])
 
   useEffect(() => {
     const video = videoRef.current
