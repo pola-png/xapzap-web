@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Eye, Loader2 } from 'lucide-react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
@@ -10,14 +10,8 @@ import { formatTimeAgo } from './utils'
 import { CommentModal } from './CommentModal'
 import { CommentScreen } from './CommentScreen'
 import { useAuthStore } from './authStore'
-
-interface VideoDetailScreenProps {
-  post: Post
-  onClose: () => void
-  isGuest?: boolean
-  onGuestAction?: () => void
-}
-
+import { useSingleVideoPlayback } from './useSingleVideoPlayback'
+import type { VideoDetailScreenProps } from './WatchVideoDetailScreen'
 
 // Vertical video detail screen (for Reels)
 export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestAction }: VideoDetailScreenProps) {
@@ -38,14 +32,60 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [showFullComments, setShowFullComments] = useState(false)
   const [shouldLoadVideo, setShouldLoadVideo] = useState(false)
 
-  const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
-  const hasAutoPlayed = useRef(false)
-  const hasCountedView = useRef(false)
 
   useEffect(() => {
     setShouldLoadVideo(true)
   }, [])
+
+  const handleDurationChange = useCallback((value: number) => {
+    setDuration(value)
+  }, [])
+
+  const handleTimeProgress = useCallback((value: number) => {
+    setCurrentTime(value)
+  }, [])
+
+  const handlePlaybackPlay = useCallback(() => {
+    setIsPlaying(true)
+    setHasEnded(false)
+  }, [])
+
+  const handlePlaybackPause = useCallback(() => {
+    setIsPlaying(false)
+  }, [])
+
+  const handlePlaybackEnded = useCallback(() => {
+    setHasEnded(true)
+    setIsPlaying(false)
+  }, [])
+
+  const handleCountView = useCallback(async () => {
+    try {
+      await appwriteService.incrementPostField(post.id, 'views', 1)
+    } catch (error) {
+      console.error('Failed to track reel view:', error)
+    }
+  }, [post.id])
+
+  const {
+    videoRef,
+    isVideoReady,
+    playVideo,
+    pauseVideo,
+  } = useSingleVideoPlayback({
+    postId: post.id,
+    shouldLoadVideo,
+    muted: isMuted,
+    shouldPause: showComments || showFullComments,
+    onDurationChange: handleDurationChange,
+    onTimeUpdate: handleTimeProgress,
+    onPlay: handlePlaybackPlay,
+    onPause: handlePlaybackPause,
+    onEnded: handlePlaybackEnded,
+    onCountView: handleCountView,
+    loop: false,
+  })
 
   useEffect(() => {
     const handlePopState = () => {
@@ -77,62 +117,6 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
     return unsubscribe
   }, [post.id])
 
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video || !shouldLoadVideo) return
-
-    video.loop = false
-
-    const handleLoadedMetadata = () => setDuration(video.duration)
-    const handleTimeUpdate = () => setCurrentTime(video.currentTime)
-    const handlePlay = async () => {
-      setIsPlaying(true)
-      setHasEnded(false)
-      if (!hasCountedView.current) {
-        hasCountedView.current = true
-        try {
-          await appwriteService.incrementPostField(post.id, 'views', 1)
-        } catch (error) {
-          console.error('Failed to track reel view:', error)
-        }
-      }
-    }
-    const handlePause = () => setIsPlaying(false)
-    const handleEnded = () => {
-      setHasEnded(true)
-      setIsPlaying(false)
-      hasCountedView.current = false
-    }
-
-    video.addEventListener('loadedmetadata', handleLoadedMetadata)
-    video.addEventListener('timeupdate', handleTimeUpdate)
-    video.addEventListener('play', handlePlay)
-    video.addEventListener('pause', handlePause)
-    video.addEventListener('ended', handleEnded)
-
-    // Auto-play only once when the detail screen mounts.
-    if (!hasAutoPlayed.current) {
-      hasAutoPlayed.current = true
-      video.play().catch(() => {
-        // Handle autoplay failure silently
-      })
-    }
-
-    return () => {
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata)
-      video.removeEventListener('timeupdate', handleTimeUpdate)
-      video.removeEventListener('play', handlePlay)
-      video.removeEventListener('pause', handlePause)
-      video.removeEventListener('ended', handleEnded)
-    }
-  }, [shouldLoadVideo])
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video || !shouldLoadVideo) return
-    video.muted = isMuted
-  }, [isMuted, shouldLoadVideo])
-
   const togglePlay = () => {
     const video = videoRef.current
     if (!video) return
@@ -143,9 +127,9 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
     }
 
     if (video.paused) {
-      video.play().catch(() => {})
+      playVideo()
     } else {
-      video.pause()
+      pauseVideo()
     }
   }
 
@@ -239,7 +223,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           playsInline
           preload="auto"
         />
-        {duration === 0 && (
+        {!isVideoReady && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-white" />
           </div>
@@ -308,10 +292,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <button
             onClick={() => {
               setShowComments(true)
-              const video = videoRef.current
-              if (video && !video.paused) {
-                video.pause()
-              }
+              pauseVideo()
             }}
             className="flex flex-col items-center gap-1 text-white"
             aria-label="View comments"

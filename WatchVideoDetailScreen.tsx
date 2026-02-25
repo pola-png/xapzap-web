@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Eye, Loader2 } from 'lucide-react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
@@ -10,6 +10,7 @@ import { formatTimeAgo } from './utils'
 import { CommentModal } from './CommentModal'
 import { CommentScreen } from './CommentScreen'
 import { useAuthStore } from './authStore'
+import { useSingleVideoPlayback } from './useSingleVideoPlayback'
 
 export interface VideoDetailScreenProps {
   post: Post
@@ -52,56 +53,63 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const authStore = useAuthStore()
   const currentUserAvatar = authStore.currentUserAvatar || ''
   const [shouldLoadVideo, setShouldLoadVideo] = useState(false)
-  const [isPageVisible, setIsPageVisible] = useState(true)
-  const [isVideoReady, setIsVideoReady] = useState(false)
 
-  const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
-  const hasCountedView = useRef(false)
-  const userPaused = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
-
-  const pauseAllVideos = (except?: HTMLVideoElement | null) => {
-    if (typeof document === 'undefined') return
-    document.querySelectorAll('video').forEach((video) => {
-      if (video !== except) {
-        video.pause()
-      }
-    })
-  }
 
   useEffect(() => {
     setShouldLoadVideo(true)
   }, [])
 
-  useEffect(() => {
-    userPaused.current = false
-    setIsVideoReady(false)
-    hasCountedView.current = false
+  const handleDurationChange = useCallback((value: number) => {
+    setDuration(value)
+  }, [])
+
+  const handleTimeProgress = useCallback((value: number) => {
+    setCurrentTime(value)
+  }, [])
+
+  const handlePlaybackPlay = useCallback(() => {
+    setIsPlaying(true)
+    setHasEnded(false)
+  }, [])
+
+  const handlePlaybackPause = useCallback(() => {
+    setIsPlaying(false)
+    setShowControls(true)
+  }, [])
+
+  const handlePlaybackEnded = useCallback(() => {
+    setHasEnded(true)
+    setIsPlaying(false)
+  }, [])
+
+  const handleCountView = useCallback(async () => {
+    try {
+      await appwriteService.incrementPostField(post.id, 'views', 1)
+    } catch (error) {
+      console.error('Failed to track view:', error)
+    }
   }, [post.id])
 
-  useEffect(() => {
-    const pauseEverything = () => {
-      pauseAllVideos()
-    }
-
-    const handleVisibilityChange = () => {
-      const visible = !document.hidden
-      setIsPageVisible(visible)
-      if (!visible) pauseEverything()
-    }
-
-    setIsPageVisible(!document.hidden)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('pagehide', pauseEverything)
-    window.addEventListener('blur', pauseEverything)
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('pagehide', pauseEverything)
-      window.removeEventListener('blur', pauseEverything)
-    }
-  }, [])
+  const {
+    videoRef,
+    pauseAllVideos,
+    playVideo,
+    pauseVideo,
+  } = useSingleVideoPlayback({
+    postId: post.id,
+    shouldLoadVideo,
+    muted: isMuted,
+    shouldPause: showComments || selectedCommentForReplies !== null || commentInputFocused,
+    onDurationChange: handleDurationChange,
+    onTimeUpdate: handleTimeProgress,
+    onPlay: handlePlaybackPlay,
+    onPause: handlePlaybackPause,
+    onEnded: handlePlaybackEnded,
+    onCountView: handleCountView,
+    loop: false,
+  })
 
   useEffect(() => {
     const handlePopState = () => {
@@ -234,88 +242,6 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     }
   }
 
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video || !shouldLoadVideo) return
-
-    const handleLoadStart = () => setIsVideoReady(false)
-    const handleLoadedMetadata = () => {
-      setDuration(video.duration)
-      if (video.readyState >= 2) setIsVideoReady(true)
-    }
-    const handleCanPlay = () => setIsVideoReady(true)
-    const handleTimeUpdate = () => setCurrentTime(video.currentTime)
-    const handlePlay = async () => {
-      pauseAllVideos(video)
-      setIsPlaying(true)
-      if (!hasCountedView.current) {
-        hasCountedView.current = true
-        try {
-          await appwriteService.incrementPostField(post.id, 'views', 1)
-        } catch (error) {
-          console.error('Failed to track view:', error)
-        }
-      }
-    }
-    const handlePause = () => {
-      setIsPlaying(false)
-      setShowControls(true)
-    }
-    const handleEnded = () => {
-      setHasEnded(true)
-      setIsPlaying(false)
-      hasCountedView.current = false
-    }
-
-    video.addEventListener('loadstart', handleLoadStart)
-    video.addEventListener('loadedmetadata', handleLoadedMetadata)
-    video.addEventListener('canplay', handleCanPlay)
-    video.addEventListener('timeupdate', handleTimeUpdate)
-    video.addEventListener('play', handlePlay)
-    video.addEventListener('pause', handlePause)
-    video.addEventListener('ended', handleEnded)
-
-    return () => {
-      video.pause()
-      video.removeEventListener('loadstart', handleLoadStart)
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata)
-      video.removeEventListener('canplay', handleCanPlay)
-      video.removeEventListener('timeupdate', handleTimeUpdate)
-      video.removeEventListener('play', handlePlay)
-      video.removeEventListener('pause', handlePause)
-      video.removeEventListener('ended', handleEnded)
-    }
-  }, [post.id, shouldLoadVideo])
-
-  useEffect(() => {
-    const video = videoRef.current
-    pauseAllVideos(video)
-    if (!video || !shouldLoadVideo) return
-
-    const shouldPause =
-      !isPageVisible ||
-      showComments ||
-      selectedCommentForReplies !== null ||
-      commentInputFocused ||
-      userPaused.current ||
-      !isVideoReady
-
-    if (shouldPause) {
-      video.pause()
-      return
-    }
-
-    if (video.paused) {
-      video.play().catch(() => {})
-    }
-  }, [post.id, shouldLoadVideo, isPageVisible, showComments, selectedCommentForReplies, commentInputFocused, isVideoReady])
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video || !shouldLoadVideo) return
-    video.muted = isMuted
-  }, [isMuted, shouldLoadVideo])
-
   const togglePlay = () => {
     const video = videoRef.current
     if (!video) return
@@ -326,12 +252,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     }
 
     if (video.paused) {
-      userPaused.current = false
-      pauseAllVideos(video)
-      video.play().catch(() => {})
+      playVideo()
     } else {
-      userPaused.current = true
-      video.pause()
+      pauseVideo()
     }
   }
 
@@ -357,12 +280,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     if (!video) return
     
     if (video.paused) {
-      userPaused.current = false
-      pauseAllVideos(video)
-      video.play().catch(() => {})
+      playVideo()
     } else {
-      userPaused.current = true
-      video.pause()
+      pauseVideo()
     }
   }
 
