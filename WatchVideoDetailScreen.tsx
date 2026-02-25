@@ -25,7 +25,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [isMuted, setIsMuted] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
-  const [showControls, setShowControls] = useState(true)
+  const [showControls, setShowControls] = useState(false)
   const [liked, setLiked] = useState(post.isLiked || false)
   const [likes, setLikes] = useState(post.likes || 0)
   const [reposts, setReposts] = useState(post.reposts || 0)
@@ -72,6 +72,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const handlePlaybackPlay = useCallback(() => {
     setIsPlaying(true)
     setHasEnded(false)
+    setShowControls(false)
   }, [])
 
   const handlePlaybackPause = useCallback(() => {
@@ -110,6 +111,18 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     onCountView: handleCountView,
     loop: false,
   })
+
+  const showPlaybackControls = useCallback((autoHide: boolean) => {
+    setShowControls(true)
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current)
+    }
+    if (autoHide) {
+      controlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false)
+      }, 2000)
+    }
+  }, [])
 
   useEffect(() => {
     const handlePopState = () => {
@@ -253,8 +266,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
     if (video.paused) {
       playVideo()
+      showPlaybackControls(true)
     } else {
       pauseVideo()
+      showPlaybackControls(false)
     }
   }
 
@@ -275,15 +290,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     video.currentTime = percent * duration
   }
 
-  const handleVideoClick = () => {
-    const video = videoRef.current
-    if (!video) return
-    
-    if (video.paused) {
-      playVideo()
-    } else {
-      pauseVideo()
-    }
+  const handleVideoSurfaceTap = () => {
+    if (selectedCommentForReplies || showComments) return
+    showPlaybackControls(isPlaying)
   }
 
   const formatTime = (time: number) => {
@@ -456,9 +465,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <video
           ref={videoRef}
           src={post.mediaUrls && post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls && post.mediaUrls[0]}
-          poster={post.thumbnailUrl?.startsWith('/media/') ? `/api/image-proxy?path=${post.thumbnailUrl.substring(1)}` : post.thumbnailUrl}
           className="w-full h-full object-contain transition-opacity duration-300"
-          onClick={handleVideoClick}
+          onClick={handleVideoSurfaceTap}
           playsInline
           autoPlay={false}
           preload="metadata"
@@ -486,8 +494,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         )}
 
         {/* Center Play/Controls - Show only when paused */}
-        {!isPlaying && !selectedCommentForReplies && !showComments && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 animate-in fade-in duration-200">
+        {showControls && !selectedCommentForReplies && !showComments && (
+          <div className={`absolute inset-0 flex items-center justify-center animate-in fade-in duration-200 ${isPlaying ? 'bg-black/10' : 'bg-black/20'}`}>
             <div className="flex items-center gap-3 sm:gap-4">
               <button
                 onClick={(e) => {
