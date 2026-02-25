@@ -189,7 +189,15 @@ export function ReelsScreen() {
   const handleScreenTap = () => {
     setShowNav(true)
     if (navTimeoutRef.current) clearTimeout(navTimeoutRef.current)
-    navTimeoutRef.current = setTimeout(() => setShowNav(false), 2000)
+    navTimeoutRef.current = setTimeout(() => setShowNav(false), 3500)
+  }
+
+  const pauseAllReelVideos = () => {
+    videoRefs.current.forEach((video) => {
+      if (video && !video.paused) {
+        video.pause()
+      }
+    })
   }
 
   const loadReels = async () => {
@@ -347,6 +355,15 @@ export function ReelsScreen() {
     }
   }
 
+  useEffect(() => {
+    if (!commentModalPost) return
+    const activePost = posts[currentIndex]
+    if (activePost) {
+      userPaused.current.set(activePost.id, true)
+    }
+    pauseAllReelVideos()
+  }, [commentModalPost, currentIndex, posts])
+
   if (loading && posts.length === 0) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black">
@@ -428,6 +445,7 @@ export function ReelsScreen() {
               onEnded={() => handleVideoEnded(post.id)}
               onClick={(e) => {
                 e.stopPropagation()
+                handleScreenTap()
                 const video = e.currentTarget
                 if (video.paused) {
                   userPaused.current.set(post.id, false)
@@ -451,8 +469,8 @@ export function ReelsScreen() {
                 )}
               </div>
             )}
-            {videoRefs.current[index] && videoRefs.current[index]!.readyState < 3 && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+            {index === currentIndex && videoRefs.current[index] && videoRefs.current[index]!.readyState < 2 && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="animate-spin rounded-full h-10 w-10 border-3 border-white/30 border-t-white" />
               </div>
             )}
@@ -464,7 +482,7 @@ export function ReelsScreen() {
             {/* Center Play/Pause Button */}
             {showControls && (
               <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                <div className="w-20 h-20 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white animate-in fade-in duration-200">
+                <div className="w-20 h-20 rounded-full bg-black/25 flex items-center justify-center text-white animate-in fade-in duration-200">
                   {videoRefs.current[index]?.paused ? (
                     <Play size={40} fill="white" className="ml-1" />
                   ) : (
