@@ -193,7 +193,13 @@ export function ReelsScreen() {
     if (!activePost || !activeVideo) return
     activeVideo.loop = true
 
-    if (commentModalPost || !isPageVisible || userPaused.current.get(activePost.id) || !activeVideoReady) {
+    if (
+      commentModalPost ||
+      !isPageVisible ||
+      userPaused.current.get(activePost.id) ||
+      !activeVideoReady ||
+      activeVideo.readyState < 2
+    ) {
       activeVideo.pause()
       return
     }
@@ -497,10 +503,10 @@ export function ReelsScreen() {
                 void handleVideoPlay(post.id)
               }}
               onEnded={() => handleVideoEnded(post.id)}
-              onLoadedMetadata={() => {
-                setVideoReadyMap(prev => new Map(prev).set(post.id, true))
+              onLoadStart={() => {
+                setVideoReadyMap(prev => new Map(prev).set(post.id, false))
               }}
-              onLoadedData={() => {
+              onCanPlay={() => {
                 setVideoReadyMap(prev => new Map(prev).set(post.id, true))
               }}
               preload={index === currentIndex ? "auto" : (Math.abs(index - currentIndex) === 1 ? "metadata" : "none")}
