@@ -149,22 +149,10 @@ export function ReelsScreen() {
 
       const liveIndex = currentIndexRef.current
       const activeVideo = videoRefs.current[liveIndex]
-      const activePost = postsRef.current[liveIndex]
-      const canStayPlaying = Boolean(
-        activeVideo &&
-        activePost &&
-        startedVideo === activeVideo &&
-        !commentModalPostRef.current &&
-        !document.hidden &&
-        !userPaused.current.get(activePost.id)
-      )
-
-      if (!canStayPlaying) {
+      
+      if (startedVideo !== activeVideo) {
         startedVideo.pause()
-        return
       }
-
-      pauseAllReelVideosExcept(startedVideo)
     }
 
     const pauseEverything = () => {
@@ -180,9 +168,9 @@ export function ReelsScreen() {
 
       const liveIndex = currentIndexRef.current
       const activeVideo = videoRefs.current[liveIndex]
-      const activePost = postsRef.current[liveIndex]
-      if (!activeVideo || !activePost) return
-      playOnlyActiveReel(activePost.id, liveIndex, activeVideo)
+      if (activeVideo) {
+        activeVideo.play().catch(() => {})
+      }
     }
 
     document.addEventListener('play', handleAnyVideoPlay, true)
@@ -539,6 +527,7 @@ export function ReelsScreen() {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onClick={handleScreenTap}
+        onTouchMove={handleScreenTap}
         style={{ 
           overscrollBehavior: 'none',
           height: viewportHeight ? `${viewportHeight}px` : '100vh'
