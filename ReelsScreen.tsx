@@ -35,6 +35,8 @@ export function ReelsScreen() {
   const [videoReadyMap, setVideoReadyMap] = useState<Map<string, boolean>>(new Map())
   const mediaRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const activeCanPlayCleanupRef = useRef<(() => void) | null>(null)
+  const currentIndexRef = useRef(0)
+  const commentModalPostRef = useRef<Post | null>(null)
 
   const toProxyUrl = (url?: string) => {
     if (!url) return ''
@@ -84,6 +86,14 @@ export function ReelsScreen() {
     window.addEventListener('resize', updateViewportHeight)
     return () => window.removeEventListener('resize', updateViewportHeight)
   }, [])
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex
+  }, [currentIndex])
+
+  useEffect(() => {
+    commentModalPostRef.current = commentModalPost
+  }, [commentModalPost])
 
   useEffect(() => {
     if (showNav) {
@@ -173,9 +183,13 @@ export function ReelsScreen() {
       } else {
         const handleCanPlay = () => {
           activeCanPlayCleanupRef.current = null
-          if (commentModalPost) return
+          const liveIndex = currentIndexRef.current
+          const liveActiveVideo = videoRefs.current[liveIndex]
+          const liveActivePost = posts[liveIndex]
+          if (commentModalPostRef.current) return
+          if (!liveActivePost || liveActivePost.id !== activePost.id) return
+          if (liveActiveVideo !== activeVideo) return
           if (userPaused.current.get(activePost.id)) return
-          if (videoRefs.current[currentIndex] !== activeVideo) return
           playActiveVideo()
         }
         activeVideo.addEventListener('canplay', handleCanPlay, { once: true })
@@ -231,6 +245,16 @@ export function ReelsScreen() {
       }
     })
   }
+
+  useEffect(() => {
+    return () => {
+      pauseAllReelVideos()
+      if (activeCanPlayCleanupRef.current) {
+        activeCanPlayCleanupRef.current()
+        activeCanPlayCleanupRef.current = null
+      }
+    }
+  }, [])
 
   const loadReels = async () => {
     if (loading) return
