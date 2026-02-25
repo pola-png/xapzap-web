@@ -34,9 +34,7 @@ export function ReelsScreen() {
   const [shouldLoadMedia, setShouldLoadMedia] = useState<Map<string, boolean>>(new Map())
   const [videoReadyMap, setVideoReadyMap] = useState<Map<string, boolean>>(new Map())
   const mediaRefs = useRef<Map<string, HTMLDivElement>>(new Map())
-  const currentIndexRef = useRef(0)
-  const postsRef = useRef<Post[]>([])
-  const commentModalPostRef = useRef<Post | null>(null)
+  const activeCanPlayCleanupRef = useRef<(() => void) | null>(null)
 
   const toProxyUrl = (url?: string) => {
     if (!url) return ''
@@ -86,18 +84,6 @@ export function ReelsScreen() {
     window.addEventListener('resize', updateViewportHeight)
     return () => window.removeEventListener('resize', updateViewportHeight)
   }, [])
-
-  useEffect(() => {
-    currentIndexRef.current = currentIndex
-  }, [currentIndex])
-
-  useEffect(() => {
-    postsRef.current = posts
-  }, [posts])
-
-  useEffect(() => {
-    commentModalPostRef.current = commentModalPost
-  }, [commentModalPost])
 
   useEffect(() => {
     if (showNav) {
@@ -160,66 +146,63 @@ export function ReelsScreen() {
   }, [posts])
 
   useEffect(() => {
-    const removePendingCanPlayHandler = (video: HTMLVideoElement) => {
-      const existingHandler = (video as any).__xapzapCanPlayHandler as (() => void) | undefined
-      if (existingHandler) {
-        video.removeEventListener('canplay', existingHandler)
-        delete (video as any).__xapzapCanPlayHandler
-      }
+    if (activeCanPlayCleanupRef.current) {
+      activeCanPlayCleanupRef.current()
+      activeCanPlayCleanupRef.current = null
     }
 
     videoRefs.current.forEach((video, index) => {
       if (!video) return
-
-      removePendingCanPlayHandler(video)
-
-      if (index === currentIndex && !commentModalPost) {
-        video.loop = true
-        video.muted = false
-        const post = posts[index]
-        const wasPausedByUser = post ? userPaused.current.get(post.id) : false
-
-        if (wasPausedByUser) {
-          video.pause()
-        } else {
-          if (video.readyState >= 2) {
-            video.play().catch(() => {})
-          } else if (post) {
-            const trackedPostId = post.id
-            const handleCanPlay = () => {
-              const activeIndex = currentIndexRef.current
-              const activeVideo = videoRefs.current[activeIndex]
-              const activePost = postsRef.current[activeIndex]
-              if (activeVideo !== video) return
-              if (!activePost || activePost.id !== trackedPostId) return
-              if (commentModalPostRef.current) return
-              if (userPaused.current.get(trackedPostId)) return
-              video.play().catch(() => {})
-            }
-            ;(video as any).__xapzapCanPlayHandler = handleCanPlay
-            video.addEventListener('canplay', handleCanPlay, { once: true })
-          }
-        }
-
-        if (post && !impressionTracked.current.has(post.id)) {
-          setTimeout(() => {
-            appwriteService.incrementPostField(post.id, 'impressions', 1)
-            impressionTracked.current.add(post.id)
-          }, 1000)
-        }
-      } else {
+      video.loop = true
+      video.muted = false
+      if (index !== currentIndex || commentModalPost) {
         video.pause()
       }
     })
+
+    const activePost = posts[currentIndex]
+    const activeVideo = videoRefs.current[currentIndex]
+
+    if (activeVideo && activePost && !commentModalPost && !userPaused.current.get(activePost.id)) {
+      const playActiveVideo = () => {
+        activeVideo.play().catch(() => {})
+      }
+
+      if (activeVideo.readyState >= 2) {
+        playActiveVideo()
+      } else {
+        const handleCanPlay = () => {
+          activeCanPlayCleanupRef.current = null
+          if (commentModalPost) return
+          if (userPaused.current.get(activePost.id)) return
+          if (videoRefs.current[currentIndex] !== activeVideo) return
+          playActiveVideo()
+        }
+        activeVideo.addEventListener('canplay', handleCanPlay, { once: true })
+        activeCanPlayCleanupRef.current = () => {
+          activeVideo.removeEventListener('canplay', handleCanPlay)
+        }
+      }
+    }
+
+    let impressionTimer: NodeJS.Timeout | null = null
+    if (activePost && !impressionTracked.current.has(activePost.id)) {
+      impressionTimer = setTimeout(() => {
+        appwriteService.incrementPostField(activePost.id, 'impressions', 1)
+        impressionTracked.current.add(activePost.id)
+      }, 1000)
+    }
 
     if (currentIndex >= posts.length - 3) {
       loadReels()
     }
 
     return () => {
-      videoRefs.current.forEach((video) => {
-        if (video) removePendingCanPlayHandler(video)
-      })
+      if (impressionTimer) clearTimeout(impressionTimer)
+      if (activeCanPlayCleanupRef.current) {
+        activeCanPlayCleanupRef.current()
+        activeCanPlayCleanupRef.current = null
+      }
     }
   }, [currentIndex, posts, commentModalPost])
 
@@ -406,10 +389,6 @@ export function ReelsScreen() {
 
   useEffect(() => {
     if (!commentModalPost) return
-    const activePost = posts[currentIndex]
-    if (activePost) {
-      userPaused.current.set(activePost.id, true)
-    }
     pauseAllReelVideos()
   }, [commentModalPost, currentIndex, posts])
 
