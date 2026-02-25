@@ -52,17 +52,19 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const authStore = useAuthStore()
   const currentUserAvatar = authStore.currentUserAvatar || ''
   const [shouldLoadVideo, setShouldLoadVideo] = useState(false)
+  const [isPageVisible, setIsPageVisible] = useState(true)
+  const [isVideoReady, setIsVideoReady] = useState(false)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const hasCountedView = useRef(false)
+  const userPaused = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const pauseAllOtherVideos = () => {
-    const currentVideo = videoRef.current
+  const pauseAllVideos = (except?: HTMLVideoElement | null) => {
     if (typeof document === 'undefined') return
     document.querySelectorAll('video').forEach((video) => {
-      if (video !== currentVideo) {
+      if (video !== except) {
         video.pause()
       }
     })
@@ -72,22 +74,32 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     setShouldLoadVideo(true)
   }, [])
 
-  // Ensure only one video can play at a time while this screen is mounted.
   useEffect(() => {
-    const handleAnyVideoPlay = (event: Event) => {
-      const startedVideo = event.target as HTMLVideoElement | null
-      if (!startedVideo || startedVideo.tagName !== 'VIDEO') return
+    userPaused.current = false
+    setIsVideoReady(false)
+    hasCountedView.current = false
+  }, [post.id])
 
-      document.querySelectorAll('video').forEach((video) => {
-        if (video !== startedVideo) {
-          video.pause()
-        }
-      })
+  useEffect(() => {
+    const pauseEverything = () => {
+      pauseAllVideos()
     }
 
-    document.addEventListener('play', handleAnyVideoPlay, true)
+    const handleVisibilityChange = () => {
+      const visible = !document.hidden
+      setIsPageVisible(visible)
+      if (!visible) pauseEverything()
+    }
+
+    setIsPageVisible(!document.hidden)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pagehide', pauseEverything)
+    window.addEventListener('blur', pauseEverything)
+
     return () => {
-      document.removeEventListener('play', handleAnyVideoPlay, true)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pagehide', pauseEverything)
+      window.removeEventListener('blur', pauseEverything)
     }
   }, [])
 
@@ -226,9 +238,15 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     const video = videoRef.current
     if (!video || !shouldLoadVideo) return
 
-    const handleLoadedMetadata = () => setDuration(video.duration)
+    const handleLoadStart = () => setIsVideoReady(false)
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration)
+      if (video.readyState >= 2) setIsVideoReady(true)
+    }
+    const handleCanPlay = () => setIsVideoReady(true)
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
     const handlePlay = async () => {
+      pauseAllVideos(video)
       setIsPlaying(true)
       if (!hasCountedView.current) {
         hasCountedView.current = true
@@ -249,25 +267,48 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       hasCountedView.current = false
     }
 
+    video.addEventListener('loadstart', handleLoadStart)
     video.addEventListener('loadedmetadata', handleLoadedMetadata)
+    video.addEventListener('canplay', handleCanPlay)
     video.addEventListener('timeupdate', handleTimeUpdate)
     video.addEventListener('play', handlePlay)
     video.addEventListener('pause', handlePause)
     video.addEventListener('ended', handleEnded)
 
-    // Match reels behavior: auto-play once when detail screen mounts.
-    pauseAllOtherVideos()
-    video.play().catch(() => {})
-
     return () => {
       video.pause()
+      video.removeEventListener('loadstart', handleLoadStart)
       video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      video.removeEventListener('canplay', handleCanPlay)
       video.removeEventListener('timeupdate', handleTimeUpdate)
       video.removeEventListener('play', handlePlay)
       video.removeEventListener('pause', handlePause)
       video.removeEventListener('ended', handleEnded)
     }
   }, [post.id, shouldLoadVideo])
+
+  useEffect(() => {
+    const video = videoRef.current
+    pauseAllVideos(video)
+    if (!video || !shouldLoadVideo) return
+
+    const shouldPause =
+      !isPageVisible ||
+      showComments ||
+      selectedCommentForReplies !== null ||
+      commentInputFocused ||
+      userPaused.current ||
+      !isVideoReady
+
+    if (shouldPause) {
+      video.pause()
+      return
+    }
+
+    if (video.paused) {
+      video.play().catch(() => {})
+    }
+  }, [post.id, shouldLoadVideo, isPageVisible, showComments, selectedCommentForReplies, commentInputFocused, isVideoReady])
 
   useEffect(() => {
     const video = videoRef.current
@@ -285,9 +326,11 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     }
 
     if (video.paused) {
-      pauseAllOtherVideos()
+      userPaused.current = false
+      pauseAllVideos(video)
       video.play().catch(() => {})
     } else {
+      userPaused.current = true
       video.pause()
     }
   }
@@ -314,9 +357,11 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     if (!video) return
     
     if (video.paused) {
-      pauseAllOtherVideos()
+      userPaused.current = false
+      pauseAllVideos(video)
       video.play().catch(() => {})
     } else {
+      userPaused.current = true
       video.pause()
     }
   }

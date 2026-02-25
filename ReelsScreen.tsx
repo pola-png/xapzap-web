@@ -194,19 +194,33 @@ export function ReelsScreen() {
 
     if (!activePost || !activeVideo) return
     activeVideo.loop = true
+    activeVideo.muted = true
 
     if (
       commentModalPost ||
       !isPageVisible ||
       userPaused.current.get(activePost.id) ||
-      !activeVideoReady ||
-      activeVideo.readyState < 2
+      !activeVideoReady
     ) {
       activeVideo.pause()
       return
     }
 
-    activeVideo.play().catch(() => {})
+    const tryPlay = () => {
+      if (!commentModalPost && isPageVisible && !userPaused.current.get(activePost.id)) {
+        activeVideo.play().catch(() => {})
+      }
+    }
+
+    if (activeVideo.readyState >= 2) {
+      tryPlay()
+    } else {
+      activeVideo.addEventListener('canplay', tryPlay, { once: true })
+    }
+
+    return () => {
+      activeVideo.removeEventListener('canplay', tryPlay)
+    }
   }, [currentIndex, commentModalPost, activePostId, activeVideoReady, isPageVisible])
 
   useEffect(() => {
