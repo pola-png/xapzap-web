@@ -7,7 +7,6 @@ import { PostCard } from "./PostCard"
 import { CommentModal } from "./CommentModal"
 import { Post } from "./types"
 import appwriteService from "./appwriteService"
-import { feedCache } from "./lib/cache"
 import { useAuthStore } from "./authStore"
 import { useFeedStore } from "./feedStore"
 
@@ -19,13 +18,38 @@ export function HomeScreen() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
   const [hasLoaded, setHasLoaded] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [showComments, setShowComments] = useState(false)
   const isAuthenticated = Boolean(authStore.currentUserId || currentUserId)
-  const showStorySection = isAuthenticated
-  const showOnboardingPrompt = !isAuthenticated && !showStorySection
+  const showStorySection = authChecked && isAuthenticated
+  const showOnboardingPrompt = authChecked && !isAuthenticated
   const homeCommentHistoryActiveRef = useRef(false)
   const ignoreNextHomeCommentPopRef = useRef(false)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const checkAuth = async () => {
+      try {
+        const user = await appwriteService.getCurrentUser()
+        if (!isMounted) return
+        setCurrentUserId(user?.$id || '')
+        authStore.setCurrentUserId(user?.$id || null)
+      } catch (error) {
+        if (!isMounted) return
+        setCurrentUserId('')
+        authStore.setCurrentUserId(null)
+      } finally {
+        if (isMounted) setAuthChecked(true)
+      }
+    }
+
+    checkAuth()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     if (!showComments || !selectedPost) return
@@ -94,7 +118,7 @@ export function HomeScreen() {
   const loadPosts = async () => {
     setLoading(true)
     try {
-      const user = await appwriteService.getCurrentUser()
+      const user = currentUserId ? { $id: currentUserId } : await appwriteService.getCurrentUser()
       if (user) {
         setCurrentUserId(user.$id)
         const result = await appwriteService.fetchForYouFeed(user.$id)
