@@ -59,7 +59,35 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const hasAutoPlayed = useRef(false)
   const hasCountedView = useRef(false)
   const isUserPausedRef = useRef(true)
+  const playRequestIdRef = useRef(0)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  const safePlay = () => {
+    const video = videoRef.current
+    if (!video) return
+
+    const requestId = ++playRequestIdRef.current
+    isUserPausedRef.current = false
+
+    video.play()
+      .then(() => {
+        // If a pause happened while play() was pending, force it back to paused.
+        if (playRequestIdRef.current !== requestId || isUserPausedRef.current) {
+          video.pause()
+        }
+      })
+      .catch(() => {})
+  }
+
+  const safePause = () => {
+    const video = videoRef.current
+    if (!video) return
+
+    isUserPausedRef.current = true
+    // Invalidate any pending play request.
+    playRequestIdRef.current += 1
+    video.pause()
+  }
 
   useEffect(() => {
     setShouldLoadVideo(true)
@@ -201,8 +229,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     if (!video || !shouldLoadVideo) return
 
     hasAutoPlayed.current = false
-    isUserPausedRef.current = true
-    video.pause()
+    safePause()
     setIsVideoReady(video.readyState >= 3)
 
     const handleLoadedMetadata = () => setDuration(video.duration)
@@ -212,14 +239,13 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       // Reels-like startup: auto-play once only after the video is actually ready.
       if (!hasAutoPlayed.current) {
         hasAutoPlayed.current = true
-        isUserPausedRef.current = false
-        video.play().catch(() => {})
+        safePlay()
       }
     }
     const handlePlay = async () => {
       // If user explicitly paused, block any unexpected auto-resume.
       if (isUserPausedRef.current) {
-        video.pause()
+        safePause()
         return
       }
       setIsPlaying(true)
@@ -250,7 +276,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     video.addEventListener('ended', handleEnded)
 
     return () => {
-      video.pause()
+      safePause()
       setIsVideoReady(false)
       video.removeEventListener('loadedmetadata', handleLoadedMetadata)
       video.removeEventListener('canplay', handleCanPlay)
@@ -279,11 +305,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     if (!isVideoReady) return
 
     if (video.paused) {
-      isUserPausedRef.current = false
-      video.play().catch(() => {})
+      safePlay()
     } else {
-      isUserPausedRef.current = true
-      video.pause()
+      safePause()
     }
   }
 
@@ -310,11 +334,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     if (!isVideoReady) return
     
     if (video.paused) {
-      isUserPausedRef.current = false
-      video.play().catch(() => {})
+      safePlay()
     } else {
-      isUserPausedRef.current = true
-      video.pause()
+      safePause()
     }
   }
 
@@ -920,8 +942,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             setShowComments(true)
             const video = videoRef.current
             if (video && !video.paused) {
-              isUserPausedRef.current = true
-              video.pause()
+              safePause()
             }
           }} className="flex items-center gap-2 hover:text-blue-500 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label={`Comments - ${comments || 0} comments`}>
             <MessageCircle size={24} />
