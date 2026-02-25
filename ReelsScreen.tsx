@@ -32,6 +32,7 @@ export function ReelsScreen() {
   const router = useRouter()
   const [commentModalPost, setCommentModalPost] = useState<Post | null>(null)
   const [shouldLoadMedia, setShouldLoadMedia] = useState<Map<string, boolean>>(new Map())
+  const [videoReadyMap, setVideoReadyMap] = useState<Map<string, boolean>>(new Map())
   const mediaRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
   const toProxyUrl = (url?: string) => {
@@ -47,17 +48,6 @@ export function ReelsScreen() {
     const primaryMedia = mediaUrls.find((url: string) => typeof url === 'string' && url.length > 0)
     const legacyVideoUrl = (post as any).videoUrl as string | undefined
     return toProxyUrl(primaryMedia || legacyVideoUrl)
-  }
-
-  const getThumbnailSource = (post: Post) => {
-    const thumbnailUrl = (post as any).thumbnailUrl as string | undefined
-    if (thumbnailUrl) return toProxyUrl(thumbnailUrl)
-    const rawMediaUrls = (post as any).mediaUrls
-    const mediaUrls = Array.isArray(rawMediaUrls)
-      ? rawMediaUrls
-      : (typeof rawMediaUrls === 'string' && rawMediaUrls ? [rawMediaUrls] : [])
-    const firstMedia = mediaUrls.find((url: string) => typeof url === 'string' && url.length > 0)
-    return toProxyUrl(firstMedia)
   }
 
   useEffect(() => {
@@ -143,6 +133,18 @@ export function ReelsScreen() {
   }, [currentIndex, posts])
 
   useEffect(() => {
+    setVideoReadyMap(prev => {
+      const next = new Map<string, boolean>()
+      posts.forEach(post => {
+        if (prev.has(post.id)) {
+          next.set(post.id, prev.get(post.id) || false)
+        }
+      })
+      return next
+    })
+  }, [posts])
+
+  useEffect(() => {
     videoRefs.current.forEach((video, index) => {
       if (video) {
         if (index === currentIndex) {
@@ -154,7 +156,14 @@ export function ReelsScreen() {
           if (wasPausedByUser) {
             video.pause()
           } else {
-            video.play().catch(() => {})
+            if (video.readyState >= 2) {
+              video.play().catch(() => {})
+            } else {
+              const handleCanPlay = () => {
+                video.play().catch(() => {})
+              }
+              video.addEventListener('canplay', handleCanPlay, { once: true })
+            }
           }
 
           if (post && !impressionTracked.current.has(post.id)) {
@@ -417,8 +426,8 @@ export function ReelsScreen() {
       >
         {posts.map((post, index) => {
           const videoSource = getVideoSource(post)
-          const thumbnailSource = getThumbnailSource(post)
           const canRenderVideo = Boolean(videoSource)
+          const isVideoReady = Boolean(videoReadyMap.get(post.id))
 
           if (!canRenderVideo) {
             videoRefs.current[index] = null
@@ -437,12 +446,23 @@ export function ReelsScreen() {
             <video
               ref={el => { videoRefs.current[index] = el }}
               src={videoSource}
-              poster={thumbnailSource || undefined}
               className="h-full w-full object-cover"
               playsInline
-              preload="metadata"
+              preload={index === currentIndex ? "auto" : "metadata"}
               onPlay={() => handleVideoPlay(post.id)}
               onEnded={() => handleVideoEnded(post.id)}
+              onLoadedData={() => {
+                setVideoReadyMap(prev => new Map(prev).set(post.id, true))
+              }}
+              onCanPlay={() => {
+                setVideoReadyMap(prev => new Map(prev).set(post.id, true))
+              }}
+              onWaiting={() => {
+                setVideoReadyMap(prev => new Map(prev).set(post.id, false))
+              }}
+              onStalled={() => {
+                setVideoReadyMap(prev => new Map(prev).set(post.id, false))
+              }}
               onClick={(e) => {
                 e.stopPropagation()
                 handleScreenTap()
@@ -462,21 +482,21 @@ export function ReelsScreen() {
             />
             ) : (
               <div className="h-full w-full bg-black flex items-center justify-center">
-                {thumbnailSource ? (
-                  <img src={thumbnailSource} alt="Reel thumbnail" className="h-full w-full object-cover" />
-                ) : (
-                  <div className="text-white/80 text-sm">Reel media unavailable</div>
-                )}
+                <div className="text-white/80 text-sm">Reel media unavailable</div>
               </div>
             )}
-            {index === currentIndex && videoRefs.current[index] && videoRefs.current[index]!.readyState < 2 && (
+            {index === currentIndex && !isVideoReady && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="animate-spin rounded-full h-10 w-10 border-3 border-white/30 border-t-white" />
               </div>
             )}
             </>
             ) : (
-              <div className="h-full w-full bg-gray-900" />
+              <div className="h-full w-full bg-black flex items-center justify-center">
+                {index === currentIndex && (
+                  <div className="animate-spin rounded-full h-10 w-10 border-3 border-white/30 border-t-white" />
+                )}
+              </div>
             )}
 
             {/* Center Play/Pause Button */}
