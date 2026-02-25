@@ -46,6 +46,10 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   const [touchStartX, setTouchStartX] = useState(0)
   const mediaRef = useRef<HTMLDivElement>(null)
   const reelDetailHistoryActiveRef = useRef(false)
+  const fullPostHistoryActiveRef = useRef(false)
+  const commentsHistoryActiveRef = useRef(false)
+  const fullCommentsHistoryActiveRef = useRef(false)
+  const ignoreNextOverlayPopStateRef = useRef(false)
 
   useEffect(() => {
     const hasOpenOverlay = showReelDetail || showFullPost || showFullComments || showComments
@@ -54,53 +58,120 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
       return
     }
 
+    const scrollY = window.scrollY
     const previousOverflow = document.body.style.overflow
+    const previousPosition = document.body.style.position
+    const previousTop = document.body.style.top
+    const previousWidth = document.body.style.width
     document.body.style.overflow = 'hidden'
-
-    const handlePopState = () => {
-      setShowReelDetail(false)
-      setShowFullPost(false)
-      setShowFullComments(false)
-      setShowComments(false)
-    }
-
-    window.addEventListener('popstate', handlePopState)
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
 
     return () => {
       document.body.style.overflow = previousOverflow
-      window.removeEventListener('popstate', handlePopState)
+      document.body.style.position = previousPosition
+      document.body.style.top = previousTop
+      document.body.style.width = previousWidth
+      window.scrollTo(0, scrollY)
     }
   }, [showReelDetail, showFullPost, showFullComments, showComments])
 
   useEffect(() => {
-    if (!showReelDetail) return
+    const handleOverlayPopState = () => {
+      if (ignoreNextOverlayPopStateRef.current) {
+        ignoreNextOverlayPopStateRef.current = false
+        return
+      }
 
-    if (!reelDetailHistoryActiveRef.current) {
-      window.history.pushState({ ...(window.history.state || {}), xapzapReelDetail: true }, '', window.location.href)
-      reelDetailHistoryActiveRef.current = true
+      if (fullCommentsHistoryActiveRef.current && showFullComments) {
+        fullCommentsHistoryActiveRef.current = false
+        setShowFullComments(false)
+        return
+      }
+
+      if (commentsHistoryActiveRef.current && showComments) {
+        commentsHistoryActiveRef.current = false
+        setShowComments(false)
+        return
+      }
+
+      if (reelDetailHistoryActiveRef.current && showReelDetail) {
+        reelDetailHistoryActiveRef.current = false
+        setShowReelDetail(false)
+        return
+      }
+
+      if (fullPostHistoryActiveRef.current && showFullPost) {
+        fullPostHistoryActiveRef.current = false
+        setShowFullPost(false)
+      }
     }
 
-    const handleReelDetailPopState = () => {
-      if (!reelDetailHistoryActiveRef.current) return
-      reelDetailHistoryActiveRef.current = false
-      setShowReelDetail(false)
-    }
+    window.addEventListener('popstate', handleOverlayPopState)
+    return () => window.removeEventListener('popstate', handleOverlayPopState)
+  }, [showReelDetail, showFullPost, showFullComments, showComments])
 
-    window.addEventListener('popstate', handleReelDetailPopState)
-    return () => window.removeEventListener('popstate', handleReelDetailPopState)
-  }, [showReelDetail])
+  const pushOverlayHistoryState = (stateKey: string) => {
+    window.history.pushState({ ...(window.history.state || {}), [stateKey]: true }, '', window.location.href)
+  }
+
+  const consumeOverlayHistoryState = (isHistoryActiveRef: { current: boolean }) => {
+    if (!isHistoryActiveRef.current) return
+    isHistoryActiveRef.current = false
+    ignoreNextOverlayPopStateRef.current = true
+    window.history.back()
+  }
 
   const openReelDetail = () => {
+    if (!reelDetailHistoryActiveRef.current) {
+      pushOverlayHistoryState('xapzapReelDetail')
+      reelDetailHistoryActiveRef.current = true
+    }
     setShowReelDetail(true)
   }
 
   const closeReelDetail = () => {
     setShowReelDetail(false)
-    if (reelDetailHistoryActiveRef.current) {
-      reelDetailHistoryActiveRef.current = false
-      window.history.back()
-    }
+    consumeOverlayHistoryState(reelDetailHistoryActiveRef)
   }
+
+  const openFullPost = () => {
+    if (!fullPostHistoryActiveRef.current) {
+      pushOverlayHistoryState('xapzapFullPost')
+      fullPostHistoryActiveRef.current = true
+    }
+    setShowFullPost(true)
+  }
+
+  const closeFullPost = () => {
+    setShowFullPost(false)
+    consumeOverlayHistoryState(fullPostHistoryActiveRef)
+  }
+
+  const openComments = () => {
+    if (!commentsHistoryActiveRef.current) {
+      pushOverlayHistoryState('xapzapCommentModal')
+      commentsHistoryActiveRef.current = true
+    }
+    setShowComments(true)
+  }
+
+  const closeComments = () => {
+    setShowComments(false)
+    consumeOverlayHistoryState(commentsHistoryActiveRef)
+  }
+
+  const closeFullComments = () => {
+    setShowFullComments(false)
+    consumeOverlayHistoryState(fullCommentsHistoryActiveRef)
+  }
+
+  useEffect(() => {
+    if (!showFullComments || fullCommentsHistoryActiveRef.current) return
+    pushOverlayHistoryState('xapzapFullComments')
+    fullCommentsHistoryActiveRef.current = true
+  }, [showFullComments])
 
   // Check if current user has liked/saved/reposted - skip if already in post data
   useEffect(() => {
@@ -392,7 +463,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
         >
           <div
             className="w-full h-full cursor-pointer"
-            onClick={() => setShowFullPost(true)}
+            onClick={openFullPost}
             onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
             onTouchEnd={(e) => {
               const touchEndX = e.changedTouches[0].clientX
@@ -526,63 +597,57 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
     return null
   }
 
-  if (showFullPost && post.postType === 'image' && post.mediaUrls && post.mediaUrls.length > 0) {
-    const toProxyUrl = (url: string) => {
-      if (url.startsWith('/media/')) {
-        return `/api/image-proxy?path=${url.substring(1)}`
-      }
-      return url
-    }
-
-    return (
-      <div className="fixed inset-0 bg-black z-50 flex flex-col">
-        <div className="flex items-center justify-between p-4 bg-black/80">
-          <button onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            setShowFullPost(false)
-          }} className="p-2 hover:bg-white/10 rounded-full text-white">
-            <ArrowLeft size={24} />
-          </button>
-          <div className="text-white text-sm">{currentImageIndex + 1} / {post.mediaUrls.length}</div>
-          <div className="w-10" />
-        </div>
-        <div 
-          className="flex-1 relative flex items-center justify-center"
-          onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
-          onTouchEnd={(e) => {
-            const touchEndX = e.changedTouches[0].clientX
-            const diff = touchStartX - touchEndX
-            if (Math.abs(diff) > 50) {
-              if (diff > 0 && currentImageIndex < post.mediaUrls.length - 1) {
-                setCurrentImageIndex(prev => prev + 1)
-              } else if (diff < 0 && currentImageIndex > 0) {
-                setCurrentImageIndex(prev => prev - 1)
-              }
-            }
-          }}
-        >
-          <img
-            src={toProxyUrl(post.mediaUrls[currentImageIndex])}
-            alt="Post"
-            className="max-w-full max-h-full object-contain"
-          />
-        </div>
-      </div>
-    )
-  }
-
-  if (showReelDetail && post.postType === 'reel') {
-    return <ReelsDetailScreen post={post} onClose={closeReelDetail} />
-  }
-
-  if (showFullComments) {
-    return <CommentScreen post={post} onClose={() => setShowFullComments(false)} />
-  }
-
   return (
     <>
-      {showComments && <CommentModal post={post} onClose={() => setShowComments(false)} />}
+      {showFullPost && post.postType === 'image' && post.mediaUrls && post.mediaUrls.length > 0 && (
+        <div className="fixed inset-0 bg-black z-50 flex flex-col">
+          <div className="flex items-center justify-between p-4 bg-black/80">
+            <button onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              closeFullPost()
+            }} className="p-2 hover:bg-white/10 rounded-full text-white">
+              <ArrowLeft size={24} />
+            </button>
+            <div className="text-white text-sm">{currentImageIndex + 1} / {post.mediaUrls.length}</div>
+            <div className="w-10" />
+          </div>
+          <div 
+            className="flex-1 relative flex items-center justify-center"
+            onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
+            onTouchEnd={(e) => {
+              const touchEndX = e.changedTouches[0].clientX
+              const diff = touchStartX - touchEndX
+              if (Math.abs(diff) > 50) {
+                if (diff > 0 && currentImageIndex < post.mediaUrls.length - 1) {
+                  setCurrentImageIndex(prev => prev + 1)
+                } else if (diff < 0 && currentImageIndex > 0) {
+                  setCurrentImageIndex(prev => prev - 1)
+                }
+              }
+            }}
+          >
+            {(() => {
+              const currentImageUrl = post.mediaUrls[currentImageIndex] || post.mediaUrls[0]
+              const proxiedImageUrl = currentImageUrl.startsWith('/media/')
+                ? `/api/image-proxy?path=${currentImageUrl.substring(1)}`
+                : currentImageUrl
+              return (
+            <img
+              src={proxiedImageUrl}
+              alt="Post"
+              className="max-w-full max-h-full object-contain"
+            />
+              )
+            })()}
+          </div>
+        </div>
+      )}
+      {showReelDetail && post.postType === 'reel' && (
+        <ReelsDetailScreen post={post} onClose={closeReelDetail} />
+      )}
+      {showFullComments && <CommentScreen post={post} onClose={closeFullComments} />}
+      {showComments && <CommentModal post={post} onClose={closeComments} />}
       <div className="border-b border-gray-200 dark:border-gray-700 relative font-semibold tracking-[0.02em]">
       {/* Header */}
       <div className="flex items-center justify-between py-3">
@@ -653,8 +718,8 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
 
       {/* Content */}
       <div className="pb-2" ref={mediaRef} onClick={(e) => {
-        if ((post.postType === 'text' || post.postType === 'image' || !post.postType) && !(e.target as HTMLElement).closest('button') && !expandedText) {
-          setShowFullPost(true)
+        if (post.postType === 'image' && !(e.target as HTMLElement).closest('button') && !expandedText) {
+          openFullPost()
         }
       }}>
         {post.textBgColor ? (
@@ -743,7 +808,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
               <Heart size={24} className={liked ? 'fill-red-500' : ''} />
               <span className="text-sm font-bold">{likes || 0}</span>
             </button>
-            <button onClick={() => setShowComments(true)} className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-gray-500 dark:text-gray-400" aria-label="Comment">
+            <button onClick={openComments} className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-gray-500 dark:text-gray-400" aria-label="Comment">
               <MessageCircle size={24} />
               <span className="text-sm font-bold">{post.comments || 0}</span>
             </button>
@@ -777,7 +842,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
               <BarChart2 size={20} />
               <span className="text-sm font-bold">{post.impressions || 0}</span>
             </button>
-            <button onClick={() => setShowComments(true)} className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label={`View comments - ${post.comments || 0} comments`}>
+            <button onClick={openComments} className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label={`View comments - ${post.comments || 0} comments`}>
               <MessageCircle size={20} />
               <span className="text-sm font-bold">{post.comments || 0}</span>
             </button>

@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { StoryBar } from "./StoryBar"
 import { PostCard } from "./PostCard"
 import { CommentModal } from "./CommentModal"
@@ -13,7 +13,6 @@ import { useFeedStore } from "./feedStore"
 
 export function HomeScreen() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const feedStore = useFeedStore()
   const authStore = useAuthStore()
   const [currentUserId, setCurrentUserId] = useState<string>('')
@@ -24,20 +23,33 @@ export function HomeScreen() {
   const [showComments, setShowComments] = useState(false)
   const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false)
   const isAuthenticated = Boolean(authStore.currentUserId || currentUserId)
+  const homeCommentHistoryActiveRef = useRef(false)
+  const ignoreNextHomeCommentPopRef = useRef(false)
 
   useEffect(() => {
-    // Handle URL params for comment modal
-    const postId = searchParams.get('post')
-    const comments = searchParams.get('comments')
-    
-    if (postId && comments) {
-      const post = posts.find(p => p.id === postId)
-      if (post) {
-        setSelectedPost(post)
-        setShowComments(true)
+    if (!showComments || !selectedPost) return
+
+    if (!homeCommentHistoryActiveRef.current) {
+      window.history.pushState({ ...(window.history.state || {}), xapzapHomeComment: true }, '', window.location.href)
+      homeCommentHistoryActiveRef.current = true
+    }
+
+    const handlePopState = () => {
+      if (ignoreNextHomeCommentPopRef.current) {
+        ignoreNextHomeCommentPopRef.current = false
+        return
+      }
+
+      if (homeCommentHistoryActiveRef.current) {
+        homeCommentHistoryActiveRef.current = false
+        setShowComments(false)
+        setSelectedPost(null)
       }
     }
-  }, [searchParams, posts])
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [showComments, selectedPost])
 
   // Lightweight onboarding banner for visitors/guests
   useEffect(() => {
@@ -147,35 +159,17 @@ export function HomeScreen() {
   const handleCommentClick = (post: Post) => {
     setSelectedPost(post)
     setShowComments(true)
-    router.push(`/?post=${post.id}&comments=true`, { scroll: false })
   }
 
   const handleCloseComments = () => {
     setShowComments(false)
     setSelectedPost(null)
-    router.push('/', { scroll: false })
-  }
 
-  if (showComments && selectedPost) {    
-    return (
-      <>
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          {isAuthenticated && <StoryBar />}
-          <div className="space-y-4 pb-20 sm:pb-24">
-            {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                currentUserId={currentUserId}
-                feedType="home"
-                onCommentClick={() => handleCommentClick(post)}
-              />
-            ))}
-          </div>
-        </div>
-        <CommentModal post={selectedPost} onClose={handleCloseComments} />
-      </>
-    )
+    if (homeCommentHistoryActiveRef.current) {
+      homeCommentHistoryActiveRef.current = false
+      ignoreNextHomeCommentPopRef.current = true
+      window.history.back()
+    }
   }
 
   return (
@@ -216,6 +210,7 @@ export function HomeScreen() {
           </div>
         )}
       </div>
+      {showComments && selectedPost && <CommentModal post={selectedPost} onClose={handleCloseComments} />}
     </div>
   )
 }
