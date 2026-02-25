@@ -15,6 +15,7 @@ export function ReelsScreen() {
   const [posts, setPosts] = useState<Post[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false)
   const [hasLoadedInitial, setHasLoadedInitial] = useState(false)
   const [isPageVisible, setIsPageVisible] = useState(true)
   const [viewportHeight, setViewportHeight] = useState(0)
@@ -65,8 +66,9 @@ export function ReelsScreen() {
     if (cached && cached.posts.length > 0) {
       setPosts(cached.posts)
       setHasLoadedInitial(true)
+      setInitialLoadComplete(true)
     } else {
-      loadReels(1)
+      loadReels(1, true)
     }
 
     const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
@@ -252,7 +254,7 @@ export function ReelsScreen() {
     }
   }, [])
 
-  const loadReels = async (count: number = 5) => {
+  const loadReels = async (count: number = 5, markInitialComplete: boolean = false) => {
     if (loading) return
     setLoading(true)
     try {
@@ -291,6 +293,9 @@ export function ReelsScreen() {
       console.error('Failed to load reels:', error)
     } finally {
       setLoading(false)
+      if (markInitialComplete) {
+        setInitialLoadComplete(true)
+      }
     }
   }
 
@@ -412,7 +417,7 @@ export function ReelsScreen() {
     pauseAllVideos()
   }, [commentModalPost])
 
-  if (loading && posts.length === 0) {
+  if (!initialLoadComplete || (loading && posts.length === 0)) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-white" />
@@ -420,7 +425,7 @@ export function ReelsScreen() {
     )
   }
 
-  if (posts.length === 0) {
+  if (initialLoadComplete && posts.length === 0) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black text-white">
         <div className="text-center px-6">
