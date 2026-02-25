@@ -245,15 +245,11 @@ export function ReelsScreen() {
     const activeVideo = videoRefs.current[currentIndex]
 
     if (activeVideo && activePost && !commentModalPost && !document.hidden) {
-      const tryPlay = () => {
+      if (activeVideo.readyState >= 1) {
         activeVideo.play().catch(() => {})
-      }
-      
-      if (activeVideo.readyState >= 2) {
-        tryPlay()
       } else {
         const handleCanPlay = () => {
-          tryPlay()
+          activeVideo.play().catch(() => {})
         }
         activeVideo.addEventListener('canplay', handleCanPlay, { once: true })
         activeCanPlayCleanupRef.current = () => {
@@ -262,12 +258,12 @@ export function ReelsScreen() {
       }
     }
 
-    if (!hasLoadedInitial && currentIndex === 0 && posts.length >= 1) {
+    if (!hasLoadedInitial && currentIndex === 0 && posts.length === 1) {
       setHasLoadedInitial(true)
-      setTimeout(() => loadReels(5), 100)
+      loadReels(5)
     }
 
-    if (hasLoadedInitial && posts.length > 1 && currentIndex >= posts.length - 2) {
+    if (hasLoadedInitial && currentIndex >= posts.length - 2) {
       loadReels(5)
     }
 
@@ -277,6 +273,10 @@ export function ReelsScreen() {
         appwriteService.incrementPostField(activePost.id, 'impressions', 1)
         impressionTracked.current.add(activePost.id)
       }, 1000)
+    }
+
+    if (currentIndex >= posts.length - 3) {
+      loadReels()
     }
 
     return () => {
@@ -499,25 +499,9 @@ export function ReelsScreen() {
   return (
     <div>
       <style jsx global>{`
-        body:has(.reels-fullscreen) nav {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 50;
-          opacity: ${showNav ? '1' : '0'};
-          pointer-events: ${showNav ? 'auto' : 'none'};
-          transition: opacity 0.3s ease;
-        }
+        body:has(.reels-fullscreen) nav,
         body:has(.reels-fullscreen) .safe-area-inset-bottom {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          z-index: 50;
-          opacity: ${showNav ? '1' : '0'};
-          pointer-events: ${showNav ? 'auto' : 'none'};
-          transition: opacity 0.3s ease;
+          display: ${showNav ? 'block' : 'none'} !important;
         }
         body:has(.reels-fullscreen) {
           overscroll-behavior: none;
