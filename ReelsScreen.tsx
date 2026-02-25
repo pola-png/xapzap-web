@@ -153,39 +153,16 @@ export function ReelsScreen() {
       const liveIndex = currentIndexRef.current
       const activeVideo = videoRefs.current[liveIndex]
       
+      // Only pause if it's NOT the active video
       if (startedVideo !== activeVideo) {
         startedVideo.pause()
       }
     }
 
-    const pauseEverything = () => {
-      pauseAllDocumentVideosExcept(null)
-      pauseAllReelVideos()
-    }
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        pauseEverything()
-        return
-      }
-
-      const liveIndex = currentIndexRef.current
-      const activeVideo = videoRefs.current[liveIndex]
-      if (activeVideo) {
-        activeVideo.play().catch(() => {})
-      }
-    }
-
     document.addEventListener('play', handleAnyVideoPlay, true)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('pagehide', pauseEverything)
-    window.addEventListener('blur', pauseEverything)
 
     return () => {
       document.removeEventListener('play', handleAnyVideoPlay, true)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('pagehide', pauseEverything)
-      window.removeEventListener('blur', pauseEverything)
     }
   }, [])
 
