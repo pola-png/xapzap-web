@@ -3,10 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
-import { feedCache } from './lib/cache'
 import { useFeedStore } from './feedStore'
-import { Heart, MessageCircle, Share2, Bookmark, MoreVertical, Repeat2, Eye, Play, Pause } from 'lucide-react'
-import { OptimizedImage } from './components/OptimizedImage'
+import { Heart, MessageCircle, Share2, Bookmark, Repeat2, Eye, Play, Pause } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { generateSlug } from './lib/slug'
 import { CommentModal } from './CommentModal'
@@ -71,6 +69,14 @@ export function ReelsScreen() {
     })
   }
 
+  const pauseAllReelVideosExcept = (allowedVideo: HTMLVideoElement | null = null) => {
+    videoRefs.current.forEach((video) => {
+      if (video && video !== allowedVideo && !video.paused) {
+        video.pause()
+      }
+    })
+  }
+
   const playOnlyActiveReel = (postId: string, index: number, video: HTMLVideoElement | null) => {
     if (!video) return
     if (index !== currentIndexRef.current) {
@@ -86,7 +92,7 @@ export function ReelsScreen() {
       video.pause()
       return
     }
-    pauseAllDocumentVideosExcept(video)
+    pauseAllReelVideosExcept(video)
     video.play().catch(() => {})
   }
 
@@ -158,7 +164,7 @@ export function ReelsScreen() {
         return
       }
 
-      pauseAllDocumentVideosExcept(startedVideo)
+      pauseAllReelVideosExcept(startedVideo)
     }
 
     const pauseEverything = () => {
@@ -275,10 +281,10 @@ export function ReelsScreen() {
         playOnlyActiveReel(activePost.id, currentIndex, activeVideo)
       }
 
-      if (activeVideo.readyState >= 2) {
+      if (activeVideo.readyState >= 1) {
         playActiveVideo()
       } else {
-        const handleCanPlay = () => {
+        const handleLoadedMetadata = () => {
           activeCanPlayCleanupRef.current = null
           const liveIndex = currentIndexRef.current
           const liveActiveVideo = videoRefs.current[liveIndex]
@@ -290,9 +296,9 @@ export function ReelsScreen() {
           if (userPaused.current.get(activePost.id)) return
           playActiveVideo()
         }
-        activeVideo.addEventListener('canplay', handleCanPlay, { once: true })
+        activeVideo.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true })
         activeCanPlayCleanupRef.current = () => {
-          activeVideo.removeEventListener('canplay', handleCanPlay)
+          activeVideo.removeEventListener('loadedmetadata', handleLoadedMetadata)
         }
       }
     }
@@ -316,7 +322,7 @@ export function ReelsScreen() {
         activeCanPlayCleanupRef.current = null
       }
     }
-  }, [currentIndex, posts, commentModalPost])
+  }, [currentIndex, commentModalPost, posts.length])
 
   const handleVideoPlay = async (postId: string) => {
     if (!hasCountedView.current.get(postId)) {
@@ -505,7 +511,7 @@ export function ReelsScreen() {
   useEffect(() => {
     if (!commentModalPost) return
     pauseAllReelVideos()
-  }, [commentModalPost, currentIndex, posts])
+  }, [commentModalPost])
 
   if (loading && posts.length === 0) {
     return (
@@ -583,7 +589,6 @@ export function ReelsScreen() {
               src={videoSource}
               className="h-full w-full object-cover"
               playsInline
-              preload={index === currentIndex ? "auto" : "metadata"}
               onPlay={(e) => {
                 const video = e.currentTarget
                 const liveIndex = currentIndexRef.current
@@ -602,22 +607,14 @@ export function ReelsScreen() {
                   video.pause()
                   return
                 }
-                pauseAllDocumentVideosExcept(video)
+                pauseAllReelVideosExcept(video)
                 void handleVideoPlay(post.id)
               }}
               onEnded={() => handleVideoEnded(post.id)}
-              onLoadedData={() => {
+              onLoadedMetadata={() => {
                 setVideoReadyMap(prev => new Map(prev).set(post.id, true))
               }}
-              onCanPlay={() => {
-                setVideoReadyMap(prev => new Map(prev).set(post.id, true))
-              }}
-              onWaiting={() => {
-                setVideoReadyMap(prev => new Map(prev).set(post.id, false))
-              }}
-              onStalled={() => {
-                setVideoReadyMap(prev => new Map(prev).set(post.id, false))
-              }}
+              preload={index === currentIndex ? "auto" : (Math.abs(index - currentIndex) === 1 ? "metadata" : "none")}
               onClick={(e) => {
                 e.stopPropagation()
                 handleScreenTap()
