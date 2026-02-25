@@ -577,6 +577,7 @@ export function ReelsScreen() {
               preload={index === currentIndex ? "auto" : (Math.abs(index - currentIndex) === 1 ? "metadata" : "none")}
               onClick={(e) => {
                 e.stopPropagation()
+                handleScreenTap()
                 const video = e.currentTarget
                 if (video.paused) {
                   video.play().catch(() => {})
