@@ -33,7 +33,6 @@ export function ReelsScreen() {
   const [shouldLoadMedia, setShouldLoadMedia] = useState<Map<string, boolean>>(new Map())
   const [videoReadyMap, setVideoReadyMap] = useState<Map<string, boolean>>(new Map())
   const mediaRefs = useRef<Map<string, HTMLDivElement>>(new Map())
-  const activeCanPlayCleanupRef = useRef<(() => void) | null>(null)
   const currentIndexRef = useRef(0)
   const postsRef = useRef<Post[]>([])
   const commentModalPostRef = useRef<Post | null>(null)
@@ -51,15 +50,6 @@ export function ReelsScreen() {
     const primaryMedia = mediaUrls.find((url: string) => typeof url === 'string' && url.length > 0)
     const legacyVideoUrl = (post as any).videoUrl as string | undefined
     return toProxyUrl(primaryMedia || legacyVideoUrl)
-  }
-
-  const pauseAllDocumentVideosExcept = (allowedVideo: HTMLVideoElement | null = null) => {
-    if (typeof document === 'undefined') return
-    document.querySelectorAll('video').forEach((video) => {
-      if (video !== allowedVideo && !video.paused) {
-        video.pause()
-      }
-    })
   }
 
   const pauseAllReelVideos = () => {
@@ -146,23 +136,30 @@ export function ReelsScreen() {
   }, [commentModalPost])
 
   useEffect(() => {
-    const handleAnyVideoPlay = (event: Event) => {
-      const startedVideo = event.target as HTMLVideoElement | null
-      if (!startedVideo || startedVideo.tagName !== 'VIDEO') return
-
-      const liveIndex = currentIndexRef.current
-      const activeVideo = videoRefs.current[liveIndex]
-      
-      // Only pause if it's NOT the active video
-      if (startedVideo !== activeVideo) {
-        startedVideo.pause()
-      }
+    const pauseEverything = () => {
+      pauseAllReelVideos()
     }
 
-    document.addEventListener('play', handleAnyVideoPlay, true)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        pauseEverything()
+        return
+      }
 
+      const liveIndex = currentIndexRef.current
+      const livePost = postsRef.current[liveIndex]
+      const liveVideo = videoRefs.current[liveIndex]
+      if (!livePost || !liveVideo) return
+      playOnlyActiveReel(livePost.id, liveIndex, liveVideo)
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pagehide', pauseEverything)
+    window.addEventListener('blur', pauseEverything)
     return () => {
-      document.removeEventListener('play', handleAnyVideoPlay, true)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pagehide', pauseEverything)
+      window.removeEventListener('blur', pauseEverything)
     }
   }, [])
 
@@ -227,45 +224,22 @@ export function ReelsScreen() {
   }, [posts])
 
   useEffect(() => {
-    if (activeCanPlayCleanupRef.current) {
-      activeCanPlayCleanupRef.current()
-      activeCanPlayCleanupRef.current = null
-    }
-
+    const activePost = posts[currentIndex]
     videoRefs.current.forEach((video, index) => {
       if (!video) return
       video.loop = true
-      video.muted = false
-      if (index !== currentIndex || commentModalPost) {
+      if (
+        index === currentIndex &&
+        activePost &&
+        !commentModalPost &&
+        !document.hidden &&
+        !userPaused.current.get(activePost.id)
+      ) {
+        playOnlyActiveReel(activePost.id, index, video)
+      } else {
         video.pause()
       }
     })
-
-    const activePost = posts[currentIndex]
-    const activeVideo = videoRefs.current[currentIndex]
-
-    if (activeVideo && activePost && !commentModalPost && !document.hidden) {
-      if (activeVideo.readyState >= 1) {
-        activeVideo.play().catch(() => {})
-      } else {
-        const handleCanPlay = () => {
-          activeVideo.play().catch(() => {})
-        }
-        activeVideo.addEventListener('canplay', handleCanPlay, { once: true })
-        activeCanPlayCleanupRef.current = () => {
-          activeVideo.removeEventListener('canplay', handleCanPlay)
-        }
-      }
-    }
-
-    if (!hasLoadedInitial && currentIndex === 0 && posts.length === 1) {
-      setHasLoadedInitial(true)
-      loadReels(5)
-    }
-
-    if (hasLoadedInitial && currentIndex >= posts.length - 2) {
-      loadReels(5)
-    }
 
     let impressionTimer: NodeJS.Timeout | null = null
     if (activePost && !impressionTracked.current.has(activePost.id)) {
@@ -275,18 +249,22 @@ export function ReelsScreen() {
       }, 1000)
     }
 
-    if (currentIndex >= posts.length - 3) {
-      loadReels()
-    }
-
     return () => {
       if (impressionTimer) clearTimeout(impressionTimer)
-      if (activeCanPlayCleanupRef.current) {
-        activeCanPlayCleanupRef.current()
-        activeCanPlayCleanupRef.current = null
-      }
     }
-  }, [currentIndex, commentModalPost, posts.length, hasLoadedInitial])
+  }, [currentIndex, commentModalPost, posts.length])
+
+  useEffect(() => {
+    if (!hasLoadedInitial && currentIndex === 0 && posts.length === 1) {
+      setHasLoadedInitial(true)
+      loadReels(5)
+      return
+    }
+
+    if (hasLoadedInitial && currentIndex >= posts.length - 2) {
+      loadReels(5)
+    }
+  }, [currentIndex, posts.length, hasLoadedInitial])
 
   const handleVideoPlay = async (postId: string) => {
     if (!hasCountedView.current.get(postId)) {
@@ -308,12 +286,7 @@ export function ReelsScreen() {
 
   useEffect(() => {
     return () => {
-      pauseAllDocumentVideosExcept(null)
       pauseAllReelVideos()
-      if (activeCanPlayCleanupRef.current) {
-        activeCanPlayCleanupRef.current()
-        activeCanPlayCleanupRef.current = null
-      }
     }
   }, [])
 
@@ -512,6 +485,7 @@ export function ReelsScreen() {
         ref={containerRef}
         className="reels-fullscreen fixed inset-0 bg-black overflow-hidden touch-none"
         onWheel={handleWheel}
+        onPointerDown={handleScreenTap}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         style={{ 
@@ -553,14 +527,26 @@ export function ReelsScreen() {
               className="h-full w-full object-cover"
               playsInline
               onPlay={(e) => {
+                const video = e.currentTarget
+                if (
+                  index !== currentIndexRef.current ||
+                  commentModalPostRef.current ||
+                  document.hidden
+                ) {
+                  video.pause()
+                  return
+                }
+                pauseAllReelVideosExcept(video)
                 void handleVideoPlay(post.id)
               }}
               onEnded={() => handleVideoEnded(post.id)}
-              onLoadedMetadata={() => {
+              onLoadedMetadata={(e) => {
                 setVideoReadyMap(prev => new Map(prev).set(post.id, true))
+                playOnlyActiveReel(post.id, index, e.currentTarget)
               }}
-              onLoadedData={() => {
+              onLoadedData={(e) => {
                 setVideoReadyMap(prev => new Map(prev).set(post.id, true))
+                playOnlyActiveReel(post.id, index, e.currentTarget)
               }}
               preload={index === currentIndex ? "auto" : (Math.abs(index - currentIndex) === 1 ? "metadata" : "none")}
               onClick={(e) => {
@@ -568,11 +554,13 @@ export function ReelsScreen() {
                 handleScreenTap()
                 const video = e.currentTarget
                 if (video.paused) {
-                  video.play().catch(() => {})
+                  userPaused.current.set(post.id, false)
+                  playOnlyActiveReel(post.id, index, video)
                   setShowControls(true)
                   if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
                   controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 2000)
                 } else {
+                  userPaused.current.set(post.id, true)
                   video.pause()
                   setShowControls(true)
                 }
