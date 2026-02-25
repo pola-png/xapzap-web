@@ -57,6 +57,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const hasAutoPlayed = useRef(false)
   const hasCountedView = useRef(false)
+  const isUserPausedRef = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -198,9 +199,24 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     const video = videoRef.current
     if (!video || !shouldLoadVideo) return
 
+    const playVideo = () => {
+      isUserPausedRef.current = false
+      video.play().catch(() => {})
+    }
+
+    const pauseVideo = () => {
+      isUserPausedRef.current = true
+      video.pause()
+    }
+
     const handleLoadedMetadata = () => setDuration(video.duration)
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
     const handlePlay = async () => {
+      // If user explicitly paused, block any unexpected auto-resume.
+      if (isUserPausedRef.current) {
+        video.pause()
+        return
+      }
       setIsPlaying(true)
       if (!hasCountedView.current) {
         hasCountedView.current = true
@@ -235,10 +251,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         artwork: post.thumbnailUrl ? [{ src: post.thumbnailUrl }] : []
       })
 
-      navigator.mediaSession.setActionHandler('play', () => {
-        video.play().catch(() => {})
-      })
-      navigator.mediaSession.setActionHandler('pause', () => video.pause())
+      navigator.mediaSession.setActionHandler('play', playVideo)
+      navigator.mediaSession.setActionHandler('pause', pauseVideo)
       navigator.mediaSession.setActionHandler('seekbackward', () => {
         video.currentTime = Math.max(0, video.currentTime - 10)
       })
@@ -250,12 +264,11 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     // Auto-play only once when the detail screen mounts.
     if (!hasAutoPlayed.current) {
       hasAutoPlayed.current = true
-      video.play().catch(() => {
-        // Handle autoplay failure silently
-      })
+      playVideo()
     }
 
     return () => {
+      video.pause()
       video.removeEventListener('loadedmetadata', handleLoadedMetadata)
       video.removeEventListener('timeupdate', handleTimeUpdate)
       video.removeEventListener('play', handlePlay)
@@ -286,8 +299,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     }
     
     if (video.paused) {
+      isUserPausedRef.current = false
       video.play().catch(() => {})
     } else {
+      isUserPausedRef.current = true
       video.pause()
     }
   }
@@ -314,8 +329,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     if (!video) return
     
     if (video.paused) {
+      isUserPausedRef.current = false
       video.play().catch(() => {})
     } else {
+      isUserPausedRef.current = true
       video.pause()
     }
   }
@@ -916,6 +933,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             setShowComments(true)
             const video = videoRef.current
             if (video && !video.paused) {
+              isUserPausedRef.current = true
               video.pause()
             }
           }} className="flex items-center gap-2 hover:text-blue-500 transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label={`Comments - ${comments || 0} comments`}>
