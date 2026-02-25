@@ -132,7 +132,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
                     )}
                   >
                     <Icon size={20} />
-                    <span className="text-base">{item.label}</span>
+                    <span className="text-base font-bold tracking-[0.06em]">{item.label}</span>
                   </button>
                 )
               })}
@@ -167,7 +167,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
                     key={item.path}
                     onClick={() => router.push(item.path)}
                     className={cn(
-                      "px-3 py-4 text-sm font-semibold whitespace-nowrap border-b-2 flex-shrink-0",
+                      "px-3 py-4 text-sm font-extrabold tracking-[0.08em] whitespace-nowrap border-b-2 flex-shrink-0",
                       pathname === item.path
                         ? "border-[#1DA1F2] text-[#1DA1F2]"
                         : "border-transparent text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--text-primary))]/50 hover:text-[rgb(var(--text-primary))]"

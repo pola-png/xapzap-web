@@ -552,7 +552,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   return (
     <>
       {showComments && <CommentModal post={post} onClose={() => setShowComments(false)} />}
-      <div className="border-b border-gray-200 dark:border-gray-700 relative">
+      <div className="border-b border-gray-200 dark:border-gray-700 relative font-semibold tracking-[0.02em]">
       {/* Header */}
       <div className="flex items-center justify-between py-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -581,7 +581,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             >
               {userProfile?.displayName || 'User'}
             </button>
-            <span className="text-gray-500 dark:text-gray-400 text-[13px] ml-2">{formatTimeAgo(post.createdAt)}</span>
+            <span className="text-gray-500 dark:text-gray-400 text-[13px] ml-2 font-semibold">{formatTimeAgo(post.createdAt)}</span>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -606,13 +606,13 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             <div className="flex items-center">
               {currentUserId === post.userId && (
                 <>
-                  <button onClick={handleDelete} className="px-4 py-3 text-sm text-red-600 hover:bg-muted transition-colors">
+                  <button onClick={handleDelete} className="px-4 py-3 text-sm font-semibold text-red-600 hover:bg-muted transition-colors">
                     Delete
                   </button>
                   <span className="text-border">•</span>
                 </>
               )}
-              <button className="px-4 py-3 text-sm text-foreground hover:bg-muted transition-colors">
+              <button className="px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted transition-colors">
                 Report
               </button>
             </div>
@@ -640,7 +640,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             {post.content}
           </div>
         ) : (post.content && !(post.postType === 'video' && (feedType === 'home' || feedType === 'watch'))) ? (
-          <div className="text-gray-900 dark:text-white text-base leading-[1.5] mb-3">
+          <div className="text-gray-900 dark:text-white text-base leading-[1.5] mb-3 font-semibold">
             {(() => {
               const contentLength = post.content.length
               let maxLines = 2
@@ -680,7 +680,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
                           setExpandedText(!expandedText)
                         }
                       }}
-                      className="text-blue-500 hover:underline text-sm mt-1"
+                      className="text-blue-500 hover:underline text-sm font-semibold mt-1"
                     >
                       {expandedText ? 'Show less' : 'more'}
                     </button>
@@ -704,29 +704,29 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
       </div>
 
       {/* Reactions */}
-      <div className="pb-3">
+      <div className="pb-3 tracking-normal">
         {(feedType as string) === 'reels' ? (
           // Vertical reactions for reels - counts beside icons
           <div className="flex flex-col items-center gap-3">
             <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 text-gray-500 dark:text-gray-400 ${liked ? 'text-red-500' : ''}`} aria-label="Like">
               <Heart size={24} className={liked ? 'fill-red-500' : ''} />
-              <span className="text-sm font-medium">{likes || 0}</span>
+              <span className="text-sm font-bold">{likes || 0}</span>
             </button>
             <button onClick={() => setShowComments(true)} className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-gray-500 dark:text-gray-400" aria-label="Comment">
               <MessageCircle size={24} />
-              <span className="text-sm font-medium">{post.comments || 0}</span>
+              <span className="text-sm font-bold">{post.comments || 0}</span>
             </button>
             <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label="Repost">
               <Repeat2 size={24} className={reposted ? 'fill-green-500' : ''} />
-              <span className="text-sm font-medium">{reposts || 0}</span>
+              <span className="text-sm font-bold">{reposts || 0}</span>
             </button>
             <button onClick={handleSave} className={`flex items-center gap-2 hover:text-yellow-500 transition-colors p-2 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label="Bookmark">
               <Bookmark size={24} className={saved ? 'fill-yellow-500' : ''} />
-              <span className="text-sm font-medium">Save</span>
+              <span className="text-sm font-bold">Save</span>
             </button>
             <button className="flex items-center gap-2 hover:text-blue-500 transition-colors p-2 text-gray-500 dark:text-gray-400" aria-label="Share">
               <Share size={24} />
-              <span className="text-sm font-medium">Share</span>
+              <span className="text-sm font-bold">Share</span>
             </button>
           </div>
         ) : (
@@ -740,19 +740,19 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             </button>
             <button onClick={handleRepost} className={`flex items-center gap-2 hover:text-green-500 transition-colors p-2 rounded-lg ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label={`Repost - ${reposts || 0} reposts`}>
               <Repeat2 size={20} className={reposted ? 'fill-green-500' : ''} />
-              <span className="text-sm font-medium">{reposts || 0}</span>
+              <span className="text-sm font-bold">{reposts || 0}</span>
             </button>
             <button className={`flex items-center gap-2 hover:text-indigo-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label={`View impressions - ${post.impressions || 0} impressions`}>
               <BarChart2 size={20} />
-              <span className="text-sm font-medium">{post.impressions || 0}</span>
+              <span className="text-sm font-bold">{post.impressions || 0}</span>
             </button>
             <button onClick={() => setShowComments(true)} className={`flex items-center gap-2 hover:text-blue-500 transition-colors p-2 rounded-lg text-gray-500 dark:text-gray-400`} aria-label={`View comments - ${post.comments || 0} comments`}>
               <MessageCircle size={20} />
-              <span className="text-sm font-medium">{post.comments || 0}</span>
+              <span className="text-sm font-bold">{post.comments || 0}</span>
             </button>
             <button onClick={handleLike} className={`flex items-center gap-2 hover:text-red-500 transition-colors p-2 rounded-lg ${liked ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`} aria-label={`Like post - ${likes || 0} likes`}>
               <Heart size={20} className={liked ? 'fill-red-500' : ''} />
-              <span className="text-sm font-medium">{likes || 0}</span>
+              <span className="text-sm font-bold">{likes || 0}</span>
             </button>
           </div>
         )}
