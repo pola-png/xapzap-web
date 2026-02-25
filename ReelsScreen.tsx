@@ -194,7 +194,6 @@ export function ReelsScreen() {
 
     if (!activePost || !activeVideo) return
     activeVideo.loop = true
-    activeVideo.muted = true
 
     if (
       commentModalPost ||
@@ -507,6 +506,7 @@ export function ReelsScreen() {
               ref={el => { videoRefs.current[index] = el }}
               src={videoSource}
               className="h-full w-full object-cover"
+              muted
               playsInline
               onPlay={(e) => {
                 const video = e.currentTarget
@@ -537,6 +537,7 @@ export function ReelsScreen() {
                 if (video.paused) {
                   userPaused.current.set(post.id, false)
                   pauseAllVideos(video)
+                  video.muted = false
                   video.play().catch(() => {})
                   setShowControls(true)
                   if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
