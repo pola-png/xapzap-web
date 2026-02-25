@@ -562,6 +562,7 @@ export function ReelsScreen() {
           const videoSource = getVideoSource(post)
           const canRenderVideo = Boolean(videoSource)
           const isVideoReady = Boolean(videoReadyMap.get(post.id))
+          const shouldRenderMedia = Boolean(shouldLoadMedia.get(post.id) || index === currentIndex)
 
           if (!canRenderVideo) {
             videoRefs.current[index] = null
@@ -574,7 +575,7 @@ export function ReelsScreen() {
             style={{ height: viewportHeight ? `${viewportHeight}px` : '100vh' }}
             ref={el => { if (el) mediaRefs.current.set(post.id, el) }}
           >
-            {shouldLoadMedia.get(post.id) ? (
+            {shouldRenderMedia ? (
             <>
             {canRenderVideo ? (
             <video
