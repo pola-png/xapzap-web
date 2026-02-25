@@ -202,7 +202,7 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
                     )}
                   >
                     <Icon size={20} />
-                    <span className="tab-text text-[15px] font-bold tracking-[0.06em]">{item.label}</span>
+                    <span className="tab-text text-[15px] font-black tracking-[0.06em]">{item.label}</span>
                   </button>
                 )
               })}
@@ -237,7 +237,7 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
                     key={item.index}
                     onClick={() => handleTabChange(item.index)}
                     className={cn(
-                      "navigation-tab tab-text px-3 py-4 text-sm font-extrabold tracking-[0.08em] whitespace-nowrap border-b-2 flex-shrink-0",
+                      "navigation-tab tab-text px-3 py-4 text-sm font-black tracking-[0.08em] whitespace-nowrap border-b-2 flex-shrink-0",
                       currentTab === item.index
                         ? "border-[#1DA1F2] text-[#1DA1F2]"
                         : "border-transparent text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--text-primary))]/50 hover:text-[rgb(var(--text-primary))]"

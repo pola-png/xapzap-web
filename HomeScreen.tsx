@@ -23,6 +23,7 @@ export function HomeScreen() {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [showComments, setShowComments] = useState(false)
   const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false)
+  const isAuthenticated = Boolean(authStore.currentUserId || currentUserId)
 
   useEffect(() => {
     // Handle URL params for comment modal
@@ -159,7 +160,7 @@ export function HomeScreen() {
     return (
       <>
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          <StoryBar />
+          {isAuthenticated && <StoryBar />}
           <div className="space-y-4 pb-20 sm:pb-24">
             {posts.map((post) => (
               <PostCard
@@ -198,7 +199,7 @@ export function HomeScreen() {
           </button>
         </div>
       )}
-      <StoryBar />
+      {isAuthenticated && <StoryBar />}
       <div className="space-y-4 pb-20 sm:pb-24">
         {posts.map((post) => (
           <PostCard

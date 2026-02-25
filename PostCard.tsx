@@ -45,6 +45,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [touchStartX, setTouchStartX] = useState(0)
   const mediaRef = useRef<HTMLDivElement>(null)
+  const reelDetailHistoryActiveRef = useRef(false)
 
   useEffect(() => {
     const hasOpenOverlay = showReelDetail || showFullPost || showFullComments || showComments
@@ -70,6 +71,36 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
       window.removeEventListener('popstate', handlePopState)
     }
   }, [showReelDetail, showFullPost, showFullComments, showComments])
+
+  useEffect(() => {
+    if (!showReelDetail) return
+
+    if (!reelDetailHistoryActiveRef.current) {
+      window.history.pushState({ ...(window.history.state || {}), xapzapReelDetail: true }, '', window.location.href)
+      reelDetailHistoryActiveRef.current = true
+    }
+
+    const handleReelDetailPopState = () => {
+      if (!reelDetailHistoryActiveRef.current) return
+      reelDetailHistoryActiveRef.current = false
+      setShowReelDetail(false)
+    }
+
+    window.addEventListener('popstate', handleReelDetailPopState)
+    return () => window.removeEventListener('popstate', handleReelDetailPopState)
+  }, [showReelDetail])
+
+  const openReelDetail = () => {
+    setShowReelDetail(true)
+  }
+
+  const closeReelDetail = () => {
+    setShowReelDetail(false)
+    if (reelDetailHistoryActiveRef.current) {
+      reelDetailHistoryActiveRef.current = false
+      window.history.back()
+    }
+  }
 
   // Check if current user has liked/saved/reposted - skip if already in post data
   useEffect(() => {
@@ -468,7 +499,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
         return (
           <div
             className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden aspect-square"
-            onClick={() => setShowReelDetail(true)}
+            onClick={openReelDetail}
           >
             <img
               src={thumbnailUrl}
@@ -542,7 +573,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   }
 
   if (showReelDetail && post.postType === 'reel') {
-    return <ReelsDetailScreen post={post} onClose={() => setShowReelDetail(false)} />
+    return <ReelsDetailScreen post={post} onClose={closeReelDetail} />
   }
 
   if (showFullComments) {
@@ -576,7 +607,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           <div className="flex-1 min-w-0">
             <button
               onClick={() => router.push(`/profile/${post.userId}`)}
-              className="text-gray-900 dark:text-white font-bold text-[17px] sm:text-[18px] hover:underline transition-all text-left"
+              className="text-gray-900 dark:text-white font-extrabold text-[21px] sm:text-[22px] leading-[1.35] hover:underline transition-all text-left"
               aria-label={`View ${userProfile?.displayName || 'User'}'s profile`}
             >
               {userProfile?.displayName || 'User'}
@@ -675,7 +706,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
                             router.push(`/watch/${generateSlug(post.title || 'video', post.id)}`)
                           }
                         } else if (post.postType === 'reel') {
-                          setShowReelDetail(true)
+                          openReelDetail()
                         } else {
                           setExpandedText(!expandedText)
                         }

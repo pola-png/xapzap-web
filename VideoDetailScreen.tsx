@@ -1080,6 +1080,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const [isMuted, setIsMuted] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
+  const [hasEnded, setHasEnded] = useState(false)
   const [showControls, setShowControls] = useState(false)
   const [liked, setLiked] = useState(post.isLiked || false)
   const [likes, setLikes] = useState(post.likes || 0)
@@ -1095,6 +1096,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const hasAutoPlayed = useRef(false)
+  const hasCountedView = useRef(false)
 
   useEffect(() => {
     setShouldLoadVideo(true)
@@ -1134,15 +1136,27 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
     const video = videoRef.current
     if (!video || !shouldLoadVideo) return
 
-    video.loop = true
+    video.loop = false
 
     const handleLoadedMetadata = () => setDuration(video.duration)
     const handleTimeUpdate = () => setCurrentTime(video.currentTime)
-    const handlePlay = () => setIsPlaying(true)
+    const handlePlay = async () => {
+      setIsPlaying(true)
+      setHasEnded(false)
+      if (!hasCountedView.current) {
+        hasCountedView.current = true
+        try {
+          await appwriteService.incrementPostField(post.id, 'views', 1)
+        } catch (error) {
+          console.error('Failed to track reel view:', error)
+        }
+      }
+    }
     const handlePause = () => setIsPlaying(false)
     const handleEnded = () => {
-      // Auto-advance to next reel (for now, just pause)
+      setHasEnded(true)
       setIsPlaying(false)
+      hasCountedView.current = false
     }
 
     video.addEventListener('loadedmetadata', handleLoadedMetadata)
@@ -1177,6 +1191,11 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const togglePlay = () => {
     const video = videoRef.current
     if (!video) return
+
+    if (hasEnded) {
+      video.currentTime = 0
+      setHasEnded(false)
+    }
 
     if (video.paused) {
       video.play().catch(() => {})
@@ -1314,9 +1333,16 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 togglePlay()
               }}
               className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all transform hover:scale-110"
-              aria-label="Play reel"
+              aria-label={hasEnded ? "Rewatch reel" : "Play reel"}
             >
-              <Play size={32} fill="white" />
+              {hasEnded ? (
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+              ) : (
+                <Play size={32} fill="white" />
+              )}
             </button>
           </div>
         )}
