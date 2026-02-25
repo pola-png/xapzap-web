@@ -26,6 +26,7 @@ export function ReelsScreen() {
   const impressionTracked = useRef<Set<string>>(new Set())
   const hasCountedView = useRef<Map<string, boolean>>(new Map())
   const hasEnded = useRef<Map<string, boolean>>(new Map())
+  const userPaused = useRef<Map<string, boolean>>(new Map())
   const navTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
@@ -147,8 +148,15 @@ export function ReelsScreen() {
         if (index === currentIndex) {
           video.loop = true
           video.muted = false
-          video.play().catch(() => {})
           const post = posts[index]
+          const wasPausedByUser = post ? userPaused.current.get(post.id) : false
+
+          if (wasPausedByUser) {
+            video.pause()
+          } else {
+            video.play().catch(() => {})
+          }
+
           if (post && !impressionTracked.current.has(post.id)) {
             setTimeout(() => {
               appwriteService.incrementPostField(post.id, 'impressions', 1)
@@ -422,11 +430,13 @@ export function ReelsScreen() {
                 e.stopPropagation()
                 const video = e.currentTarget
                 if (video.paused) {
+                  userPaused.current.set(post.id, false)
                   video.play()
                   setShowControls(true)
                   if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
                   controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 2000)
                 } else {
+                  userPaused.current.set(post.id, true)
                   video.pause()
                   setShowControls(true)
                 }

@@ -21,8 +21,9 @@ export function HomeScreen() {
   const [hasLoaded, setHasLoaded] = useState(false)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [showComments, setShowComments] = useState(false)
-  const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false)
   const isAuthenticated = Boolean(authStore.currentUserId || currentUserId)
+  const showStorySection = isAuthenticated
+  const showOnboardingPrompt = !isAuthenticated && !showStorySection
   const homeCommentHistoryActiveRef = useRef(false)
   const ignoreNextHomeCommentPopRef = useRef(false)
 
@@ -50,14 +51,6 @@ export function HomeScreen() {
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [showComments, selectedPost])
-
-  // Lightweight onboarding banner for visitors/guests
-  useEffect(() => {
-    // Show prompt only when there is no authenticated user stored
-    if (!authStore.currentUserId) {
-      setShowOnboardingPrompt(true)
-    }
-  }, [authStore.currentUserId])
 
   useEffect(() => {
     const cached = feedStore.getFeed('foryou')
@@ -183,17 +176,14 @@ export function HomeScreen() {
             <div>Sign up to post your own stories, reels, and chat with others.</div>
           </div>
           <button
-            onClick={() => {
-              setShowOnboardingPrompt(false)
-              router.push('/auth/signup')
-            }}
+            onClick={() => router.push('/auth/signup')}
             className="shrink-0 px-3 py-1.5 rounded-full bg-[#1DA1F2] text-white text-xs font-semibold hover:bg-[#1A8CD8] transition"
           >
             Sign up
           </button>
         </div>
       )}
-      {isAuthenticated && <StoryBar />}
+      {showStorySection && <StoryBar />}
       <div className="space-y-4 pb-20 sm:pb-24">
         {posts.map((post) => (
           <PostCard
