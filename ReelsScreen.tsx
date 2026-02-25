@@ -499,9 +499,25 @@ export function ReelsScreen() {
   return (
     <div>
       <style jsx global>{`
-        body:has(.reels-fullscreen) nav,
+        body:has(.reels-fullscreen) nav {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 50;
+          opacity: ${showNav ? '1' : '0'};
+          pointer-events: ${showNav ? 'auto' : 'none'};
+          transition: opacity 0.3s ease;
+        }
         body:has(.reels-fullscreen) .safe-area-inset-bottom {
-          display: ${showNav ? 'block' : 'none'} !important;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          z-index: 50;
+          opacity: ${showNav ? '1' : '0'};
+          pointer-events: ${showNav ? 'auto' : 'none'};
+          transition: opacity 0.3s ease;
         }
         body:has(.reels-fullscreen) {
           overscroll-behavior: none;
