@@ -72,6 +72,25 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     setShouldLoadVideo(true)
   }, [])
 
+  // Ensure only one video can play at a time while this screen is mounted.
+  useEffect(() => {
+    const handleAnyVideoPlay = (event: Event) => {
+      const startedVideo = event.target as HTMLVideoElement | null
+      if (!startedVideo || startedVideo.tagName !== 'VIDEO') return
+
+      document.querySelectorAll('video').forEach((video) => {
+        if (video !== startedVideo) {
+          video.pause()
+        }
+      })
+    }
+
+    document.addEventListener('play', handleAnyVideoPlay, true)
+    return () => {
+      document.removeEventListener('play', handleAnyVideoPlay, true)
+    }
+  }, [])
+
   useEffect(() => {
     const handlePopState = () => {
       if (selectedCommentForReplies) {

@@ -576,7 +576,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           <div className="flex-1 min-w-0">
             <button
               onClick={() => router.push(`/profile/${post.userId}`)}
-              className="text-gray-900 dark:text-white font-bold text-[15px] hover:underline transition-all text-left"
+              className="text-gray-900 dark:text-white font-bold text-[17px] sm:text-[18px] hover:underline transition-all text-left"
               aria-label={`View ${userProfile?.displayName || 'User'}'s profile`}
             >
               {userProfile?.displayName || 'User'}
@@ -630,17 +630,17 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           <div
             className={`text-white text-center leading-[1.75] tracking-[0.03em] p-4 rounded-xl mb-3 max-w-sm ${
               (post.content?.length || 0) < 50
-                ? 'text-2xl font-extrabold'
+                ? 'text-3xl font-extrabold'
                 : (post.content?.length || 0) < 100
-                ? 'text-xl font-bold'
-                : 'text-lg font-semibold'
+                ? 'text-2xl font-bold'
+                : 'text-xl font-semibold'
             }`}
             style={{ backgroundColor: post.textBgColor ? `#${post.textBgColor.toString(16).padStart(6, '0')}` : undefined }}
           >
             {post.content}
           </div>
         ) : (post.content && !(post.postType === 'video' && (feedType === 'home' || feedType === 'watch'))) ? (
-          <div className="text-gray-900 dark:text-white text-[15px] leading-[1.8] tracking-[0.03em] mb-3 font-medium">
+          <div className="text-gray-900 dark:text-white text-[17px] leading-[1.85] tracking-[0.03em] mb-3 font-medium">
             {(() => {
               const contentLength = post.content.length
               let maxLines = 2
