@@ -276,29 +276,16 @@ export function ReelsScreen() {
     const activePost = posts[currentIndex]
     const activeVideo = videoRefs.current[currentIndex]
 
-    if (activeVideo && activePost && !commentModalPost && !document.hidden && !userPaused.current.get(activePost.id)) {
-      const playActiveVideo = () => {
-        playOnlyActiveReel(activePost.id, currentIndex, activeVideo)
-      }
-
+    if (activeVideo && activePost && !commentModalPost && !document.hidden) {
       if (activeVideo.readyState >= 1) {
-        playActiveVideo()
+        activeVideo.play().catch(() => {})
       } else {
-        const handleLoadedMetadata = () => {
-          activeCanPlayCleanupRef.current = null
-          const liveIndex = currentIndexRef.current
-          const liveActiveVideo = videoRefs.current[liveIndex]
-          const liveActivePost = postsRef.current[liveIndex]
-          if (commentModalPostRef.current) return
-          if (document.hidden) return
-          if (!liveActivePost || liveActivePost.id !== activePost.id) return
-          if (liveActiveVideo !== activeVideo) return
-          if (userPaused.current.get(activePost.id)) return
-          playActiveVideo()
+        const handleCanPlay = () => {
+          activeVideo.play().catch(() => {})
         }
-        activeVideo.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true })
+        activeVideo.addEventListener('canplay', handleCanPlay, { once: true })
         activeCanPlayCleanupRef.current = () => {
-          activeVideo.removeEventListener('loadedmetadata', handleLoadedMetadata)
+          activeVideo.removeEventListener('canplay', handleCanPlay)
         }
       }
     }
