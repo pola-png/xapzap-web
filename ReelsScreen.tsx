@@ -621,17 +621,15 @@ export function ReelsScreen() {
               preload={index === currentIndex ? "auto" : (Math.abs(index - currentIndex) === 1 ? "metadata" : "none")}
               onClick={(e) => {
                 e.stopPropagation()
-                handleScreenTap()
                 const video = e.currentTarget
                 if (video.paused) {
-                  pauseAllReelVideos()
                   userPaused.current.set(post.id, false)
-                  playOnlyActiveReel(post.id, index, video)
+                  video.play().catch(() => {})
                   setShowControls(true)
                   if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
                   controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 2000)
                 } else {
-                  pauseAllReelVideos()
+                  video.pause()
                   userPaused.current.set(post.id, true)
                   setShowControls(true)
                 }
