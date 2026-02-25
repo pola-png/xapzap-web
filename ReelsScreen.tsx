@@ -15,6 +15,7 @@ export function ReelsScreen() {
   const [posts, setPosts] = useState<Post[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [hasLoadedInitial, setHasLoadedInitial] = useState(false)
   const [viewportHeight, setViewportHeight] = useState(0)
   const [showNav, setShowNav] = useState(false)
   const [showControls, setShowControls] = useState(false)
@@ -100,8 +101,10 @@ export function ReelsScreen() {
     const cached = feedStore.getFeed('reels')
     if (cached && cached.posts.length > 0) {
       setPosts(cached.posts)
+      setHasLoadedInitial(true)
+    } else {
+      loadReels(1)
     }
-    loadReels()
 
     const unsubscribe = appwriteService.subscribeToCollection('posts', (payload) => {
       if (payload.events.includes('databases.*.collections.posts.documents.*.create')) {
@@ -278,6 +281,15 @@ export function ReelsScreen() {
       }
     }
 
+    if (!hasLoadedInitial && currentIndex === 0 && posts.length === 1) {
+      setHasLoadedInitial(true)
+      loadReels(5)
+    }
+
+    if (hasLoadedInitial && currentIndex >= posts.length - 2) {
+      loadReels(5)
+    }
+
     let impressionTimer: NodeJS.Timeout | null = null
     if (activePost && !impressionTracked.current.has(activePost.id)) {
       impressionTimer = setTimeout(() => {
@@ -297,7 +309,7 @@ export function ReelsScreen() {
         activeCanPlayCleanupRef.current = null
       }
     }
-  }, [currentIndex, commentModalPost, posts.length])
+  }, [currentIndex, commentModalPost, posts.length, hasLoadedInitial])
 
   const handleVideoPlay = async (postId: string) => {
     if (!hasCountedView.current.get(postId)) {
@@ -328,12 +340,11 @@ export function ReelsScreen() {
     }
   }, [])
 
-  const loadReels = async () => {
+  const loadReels = async (count: number = 5) => {
     if (loading) return
-    const isInitialLoad = posts.length === 0
-    if (isInitialLoad) setLoading(true)
+    setLoading(true)
     try {
-      const result = await appwriteService.fetchReelsFeed(20)
+      const result = await appwriteService.fetchReelsFeed(count)
       const user = await appwriteService.getCurrentUser()
       
       const newPosts: Post[] = []
@@ -367,7 +378,7 @@ export function ReelsScreen() {
     } catch (error) {
       console.error('Failed to load reels:', error)
     } finally {
-      if (isInitialLoad) setLoading(false)
+      setLoading(false)
     }
   }
 
