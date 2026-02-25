@@ -516,7 +516,7 @@ export function ReelsScreen() {
   if (loading && posts.length === 0) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-white" />
       </div>
     )
   }
@@ -639,17 +639,13 @@ export function ReelsScreen() {
               </div>
             )}
             {index === currentIndex && !isVideoReady && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="animate-spin rounded-full h-10 w-10 border-3 border-white/30 border-t-white" />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-white" />
               </div>
             )}
             </>
             ) : (
-              <div className="h-full w-full bg-black flex items-center justify-center">
-                {index === currentIndex && (
-                  <div className="animate-spin rounded-full h-10 w-10 border-3 border-white/30 border-t-white" />
-                )}
-              </div>
+              <div className="h-full w-full bg-gray-900" />
             )}
 
             {/* Center Play/Pause Button */}
