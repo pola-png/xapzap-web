@@ -101,20 +101,24 @@ export function ReelsScreen() {
   }, [currentIndex])
 
   useEffect(() => {
+    const pauseEverything = () => {
+      pauseAllVideos()
+    }
+
     const handleVisibilityChange = () => {
       const visible = !document.hidden
       setIsPageVisible(visible)
-      if (!visible) pauseAllVideos()
+      if (!visible) pauseEverything()
     }
 
     setIsPageVisible(!document.hidden)
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('pagehide', () => pauseAllVideos())
-    window.addEventListener('blur', () => pauseAllVideos())
+    window.addEventListener('pagehide', pauseEverything)
+    window.addEventListener('blur', pauseEverything)
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('pagehide', () => pauseAllVideos())
-      window.removeEventListener('blur', () => pauseAllVideos())
+      window.removeEventListener('pagehide', pauseEverything)
+      window.removeEventListener('blur', pauseEverything)
     }
   }, [])
 
