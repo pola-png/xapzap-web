@@ -106,7 +106,6 @@ export function useSingleVideoPlayback({
       onTimeUpdate?.(video.currentTime)
     }
     const handlePlay = () => {
-      pauseAllVideos(video)
       onPlay?.()
       if (!hasCountedView.current && onCountView) {
         hasCountedView.current = true
@@ -149,7 +148,6 @@ export function useSingleVideoPlayback({
     onPause,
     onPlay,
     onTimeUpdate,
-    pauseAllVideos,
     postId,
     resetViewCountOnEnded,
     shouldLoadVideo,
@@ -163,7 +161,6 @@ export function useSingleVideoPlayback({
 
   useEffect(() => {
     const video = videoRef.current
-    pauseAllVideos(video)
     if (!video || !shouldLoadVideo) return
 
     video.loop = loop
@@ -179,6 +176,8 @@ export function useSingleVideoPlayback({
       video.pause()
       return
     }
+
+    pauseAllVideos(video)
 
     if (video.paused) {
       video.play().catch(() => {})
