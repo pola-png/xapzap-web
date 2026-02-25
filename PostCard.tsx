@@ -628,19 +628,19 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
       }}>
         {post.textBgColor ? (
           <div
-            className={`text-white text-center leading-relaxed p-4 rounded-xl mb-3 max-w-sm ${
+            className={`text-white text-center leading-[1.75] tracking-[0.03em] p-4 rounded-xl mb-3 max-w-sm ${
               (post.content?.length || 0) < 50
-                ? 'text-3xl font-black'
-                : (post.content?.length || 0) < 100
                 ? 'text-2xl font-extrabold'
-                : 'text-xl font-bold'
+                : (post.content?.length || 0) < 100
+                ? 'text-xl font-bold'
+                : 'text-lg font-semibold'
             }`}
             style={{ backgroundColor: post.textBgColor ? `#${post.textBgColor.toString(16).padStart(6, '0')}` : undefined }}
           >
             {post.content}
           </div>
         ) : (post.content && !(post.postType === 'video' && (feedType === 'home' || feedType === 'watch'))) ? (
-          <div className="text-gray-900 dark:text-white text-base leading-[1.5] mb-3 font-semibold">
+          <div className="text-gray-900 dark:text-white text-[15px] leading-[1.8] tracking-[0.03em] mb-3 font-medium">
             {(() => {
               const contentLength = post.content.length
               let maxLines = 2
@@ -661,7 +661,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
               
               return (
                 <>
-                  <p className={expandedText ? '' : `line-clamp-${maxLines}`}>
+                  <p className={`leading-[1.8] tracking-[0.03em] ${expandedText ? '' : `line-clamp-${maxLines}`}`}>
                     {parseHashtags(post.content)}
                   </p>
                   {needsTruncation && (

@@ -1432,7 +1432,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
               </div>
             </div>
             {post.title && (
-              <p className="text-white text-base leading-relaxed line-clamp-3">
+              <p className="text-white text-[15px] font-medium leading-[1.85] tracking-[0.03em] line-clamp-3">
                 {post.title}
               </p>
             )}
