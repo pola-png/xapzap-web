@@ -245,11 +245,15 @@ export function ReelsScreen() {
     const activeVideo = videoRefs.current[currentIndex]
 
     if (activeVideo && activePost && !commentModalPost && !document.hidden) {
-      if (activeVideo.readyState >= 1) {
+      const tryPlay = () => {
         activeVideo.play().catch(() => {})
+      }
+      
+      if (activeVideo.readyState >= 2) {
+        tryPlay()
       } else {
         const handleCanPlay = () => {
-          activeVideo.play().catch(() => {})
+          tryPlay()
         }
         activeVideo.addEventListener('canplay', handleCanPlay, { once: true })
         activeCanPlayCleanupRef.current = () => {
@@ -258,12 +262,12 @@ export function ReelsScreen() {
       }
     }
 
-    if (!hasLoadedInitial && currentIndex === 0 && posts.length === 1) {
+    if (!hasLoadedInitial && currentIndex === 0 && posts.length >= 1) {
       setHasLoadedInitial(true)
-      loadReels(5)
+      setTimeout(() => loadReels(5), 100)
     }
 
-    if (hasLoadedInitial && currentIndex >= posts.length - 2) {
+    if (hasLoadedInitial && posts.length > 1 && currentIndex >= posts.length - 2) {
       loadReels(5)
     }
 
@@ -273,10 +277,6 @@ export function ReelsScreen() {
         appwriteService.incrementPostField(activePost.id, 'impressions', 1)
         impressionTracked.current.add(activePost.id)
       }, 1000)
-    }
-
-    if (currentIndex >= posts.length - 3) {
-      loadReels()
     }
 
     return () => {
