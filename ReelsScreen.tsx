@@ -526,8 +526,6 @@ export function ReelsScreen() {
         onWheel={handleWheel}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        onClick={handleScreenTap}
-        onTouchMove={handleScreenTap}
         style={{ 
           overscrollBehavior: 'none',
           height: viewportHeight ? `${viewportHeight}px` : '100vh'
@@ -567,24 +565,6 @@ export function ReelsScreen() {
               className="h-full w-full object-cover"
               playsInline
               onPlay={(e) => {
-                const video = e.currentTarget
-                const liveIndex = currentIndexRef.current
-                const activeVideo = videoRefs.current[liveIndex]
-                const activePost = postsRef.current[liveIndex]
-                const canStayPlaying = Boolean(
-                  activeVideo &&
-                  activePost &&
-                  activeVideo === video &&
-                  activePost.id === post.id &&
-                  !commentModalPostRef.current &&
-                  !document.hidden &&
-                  !userPaused.current.get(post.id)
-                )
-                if (!canStayPlaying) {
-                  video.pause()
-                  return
-                }
-                pauseAllReelVideosExcept(video)
                 void handleVideoPlay(post.id)
               }}
               onEnded={() => handleVideoEnded(post.id)}
@@ -599,14 +579,12 @@ export function ReelsScreen() {
                 e.stopPropagation()
                 const video = e.currentTarget
                 if (video.paused) {
-                  userPaused.current.set(post.id, false)
                   video.play().catch(() => {})
                   setShowControls(true)
                   if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
                   controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 2000)
                 } else {
                   video.pause()
-                  userPaused.current.set(post.id, true)
                   setShowControls(true)
                 }
               }}
