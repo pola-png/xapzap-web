@@ -1,5 +1,6 @@
 import { Client, Account, Databases, Storage, ID, Query } from 'appwrite'
 import { Chat, Message } from './types'
+import { getUploadAccess } from './lib/creator-plan'
 
 class AppwriteService {
   private static instance: AppwriteService
@@ -1339,7 +1340,7 @@ class AppwriteService {
   // Storage methods
   async uploadFile(file: File, customFileId?: string) {
     // For videos, enforce max 2 minutes for ordinary users.
-    // Admins, verified creators and premium creators can upload longer videos.
+    // Admins, verified creators, and Basic/Business creators can upload longer videos.
     if (typeof window !== 'undefined' && typeof document !== 'undefined' && file.type.startsWith('video/')) {
       let canUploadLongVideo = false
 
@@ -1348,18 +1349,8 @@ class AppwriteService {
         if (user) {
           const isAdmin = await this.isCurrentUserAdmin()
           const profile = await this.getProfileByUserId(user.$id)
-          const p: any = profile || {}
-          const isVerifiedCreator =
-            !!p.isVerifiedCreator ||
-            !!p.isVerified ||
-            p.verificationStatus === 'creator'
-          const isPremiumCreator =
-            !!p.isPremiumCreator ||
-            !!p.isPremium ||
-            p.subscriptionTier === 'pro' ||
-            p.subscription === 'premium'
-
-          canUploadLongVideo = isAdmin || isVerifiedCreator || isPremiumCreator
+          const access = getUploadAccess(profile, isAdmin)
+          canUploadLongVideo = access.canUploadLongVideo
         }
       } catch (error) {
         console.error('Failed to resolve user role for upload:', error)
@@ -1368,7 +1359,7 @@ class AppwriteService {
       const duration = await this.getVideoDuration(file)
       if (!canUploadLongVideo && duration > 120) {
         throw new Error(
-          'Videos and reels longer than 2 minutes are only available for Pro and verified creators. Please trim your video to 2 minutes or less in an editing app before uploading.'
+          'Videos and reels longer than 2 minutes are only available for verified creators, Basic, or Business plans. Please trim your video to 2 minutes or less in an editing app before uploading.'
         )
       }
     }

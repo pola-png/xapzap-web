@@ -4,10 +4,11 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Upload, X, Video, Image, Newspaper, Film, Plus, Loader2, Sparkles } from 'lucide-react'
 import appwriteService from './appwriteService'
+import { CreatorPlan, getUploadAccess } from './lib/creator-plan'
 
 const VIDEO_DURATION_LIMIT_SECONDS = 120
 const DURATION_GUARD_MESSAGE =
-  'Videos and reels longer than 2 minutes are only allowed for verified creators and premium users. Please trim your video to 2 minutes or less in an editing app before uploading.'
+  'Videos and reels longer than 2 minutes are only allowed for verified creators, Basic, or Business plans. Please trim your video to 2 minutes or less in an editing app before uploading.'
 
 interface UploadScreenProps {
   onClose: () => void
@@ -40,6 +41,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [verifiedColor, setVerifiedColor] = useState<string | null>(null)
   const [isVerifiedCreator, setIsVerifiedCreator] = useState(false)
+  const [creatorPlan, setCreatorPlan] = useState<CreatorPlan>('free')
   const [canUploadLongVideo, setCanUploadLongVideo] = useState(false)
   const [videoDuration, setVideoDuration] = useState<number | null>(null)
   const [durationError, setDurationError] = useState<string | null>(null)
@@ -56,12 +58,13 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     document.documentElement.classList.toggle('dark', shouldBeDark)
   }, [])
 
-  // Determine who can use AI features (admin or verified creator)
+  // Determine plan and feature permissions
   useEffect(() => {
     const loadRole = async () => {
       try {
         const user = await appwriteService.getCurrentUser()
         if (!user) {
+          setCreatorPlan('free')
           setCanUseAi(false)
           setIsAdmin(false)
           setVerifiedColor(null)
@@ -74,30 +77,23 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         ])
 
         const p: any = profile || {}
-        const isVerifiedCreator =
-          !!p.isVerifiedCreator ||
-          !!p.isVerified ||
-          p.verificationStatus === 'creator'
-        const isPremiumCreator =
-          !!p.isPremiumCreator ||
-          !!p.isPremium ||
-          p.subscriptionTier === 'pro' ||
-          p.subscription === 'premium'
-
+        const access = getUploadAccess(p, admin)
         setIsAdmin(admin)
-        setIsVerifiedCreator(isVerifiedCreator)
-        setCanUseAi(admin || isVerifiedCreator || isPremiumCreator)
-        setCanUploadLongVideo(admin || isVerifiedCreator || isPremiumCreator)
+        setCreatorPlan(access.plan)
+        setIsVerifiedCreator(access.isVerifiedCreator)
+        setCanUseAi(access.canUseAi)
+        setCanUploadLongVideo(access.canUploadLongVideo)
 
         if (admin) {
           // Admin badge color
           setVerifiedColor('#FFD700')
-        } else if (isVerifiedCreator && p.verifiedColor) {
+        } else if (access.isVerifiedCreator && p.verifiedColor) {
           setVerifiedColor(p.verifiedColor as string)
         } else {
           setVerifiedColor(null)
         }
       } catch {
+        setCreatorPlan('free')
         setCanUseAi(false)
         setIsAdmin(false)
         setIsVerifiedCreator(false)
@@ -154,10 +150,38 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   }
 
   const contentTypes = [
-    { id: 'video', label: 'Video', icon: Video, description: 'Upload a video post' },
-    { id: 'reel', label: 'Reel', icon: Film, description: 'Upload a short vertical video' },
-    { id: 'image', label: 'Image', icon: Image, description: 'Share a photo or image' },
-    { id: 'news', label: 'News', icon: Newspaper, description: 'Publish news article' }
+    {
+      id: 'video',
+      label: 'Video',
+      icon: Video,
+      description: 'Upload a video post',
+      requires: 'basic' as CreatorPlan,
+      disabled: !(isAdmin || isVerifiedCreator || creatorPlan === 'basic' || creatorPlan === 'business'),
+    },
+    {
+      id: 'reel',
+      label: 'Reel',
+      icon: Film,
+      description: 'Upload a short vertical video',
+      requires: 'basic' as CreatorPlan,
+      disabled: !(isAdmin || isVerifiedCreator || creatorPlan === 'basic' || creatorPlan === 'business'),
+    },
+    {
+      id: 'image',
+      label: 'Image',
+      icon: Image,
+      description: 'Share a photo or image',
+      requires: 'free' as CreatorPlan,
+      disabled: false,
+    },
+    {
+      id: 'news',
+      label: 'News',
+      icon: Newspaper,
+      description: 'Publish news article',
+      requires: 'business' as CreatorPlan,
+      disabled: !(isAdmin || creatorPlan === 'business'),
+    },
   ] as const
 
   const textColors = [
@@ -273,6 +297,21 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
 
   const handleUpload = async () => {
     if (!selectedType) return
+    if (selectedType === 'video' && !(isAdmin || isVerifiedCreator || creatorPlan === 'basic' || creatorPlan === 'business')) {
+      alert('Video upload requires the Basic or Business plan.')
+      router.push('/premium')
+      return
+    }
+    if (selectedType === 'reel' && !(isAdmin || isVerifiedCreator || creatorPlan === 'basic' || creatorPlan === 'business')) {
+      alert('Reel upload requires the Basic or Business plan.')
+      router.push('/premium')
+      return
+    }
+    if (selectedType === 'news' && !(isAdmin || creatorPlan === 'business')) {
+      alert('News upload requires the Business plan.')
+      router.push('/premium')
+      return
+    }
     if (overDurationLimit) {
       setDurationError(DURATION_GUARD_MESSAGE)
       return
@@ -442,16 +481,33 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         return (
           <button
             key={type.id}
-            onClick={() => setSelectedType(type.id)}
+            onClick={() => {
+              if (type.disabled) {
+                alert(
+                  type.requires === 'business'
+                    ? 'Business plan is required to upload news posts.'
+                    : 'Basic or Business plan is required for this upload type.'
+                )
+                router.push('/premium')
+                return
+              }
+              setSelectedType(type.id)
+            }}
             className={`p-6 rounded-xl transition-colors text-center ${
               isDark
                 ? 'hover:bg-gray-800 text-gray-200'
                 : 'hover:bg-blue-50 text-gray-700'
-            }`}
+            } ${type.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            aria-label={type.disabled ? `${type.label} requires ${type.requires} plan` : `Select ${type.label}`}
           >
             <Icon size={48} className={`mx-auto mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
             <h3 className={`font-semibold text-lg mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{type.label}</h3>
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{type.description}</p>
+            {type.disabled && (
+              <p className={`mt-2 text-xs font-semibold ${isDark ? 'text-yellow-300' : 'text-yellow-700'}`}>
+                Requires {type.requires === 'business' ? 'Business' : 'Basic'} plan
+              </p>
+            )}
           </button>
         )
       })}
@@ -1022,7 +1078,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                   {DURATION_GUARD_MESSAGE}
                 </p>
                 <p className={`mt-1 text-xs ${isDark ? 'text-red-200/80' : 'text-red-700/80'}`}>
-                  Posting is disabled until the clip is within 2 minutes or your account is upgraded.
+                  Posting is disabled until the clip is within 2 minutes or your account is on Basic/Business.
                 </p>
                 <div className="mt-2 flex flex-wrap gap-0">
                   <button
@@ -1030,7 +1086,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                     onClick={() => router.push('/premium')}
                     className="inline-flex items-center px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-semibold shadow-sm hover:opacity-90 transition"
                   >
-                    Upgrade to Premium
+                    Upgrade Plan
                   </button>
                   <button
                     type="button"
@@ -1048,7 +1104,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
             <div className="space-y-0 p-4">
               {(selectedType === 'video' || selectedType === 'reel') && (
                 <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Videos up to 2 minutes unless you&apos;re a verified creator or premium user.
+                  Videos up to 2 minutes unless you&apos;re verified or on Basic/Business.
                 </p>
               )}
 

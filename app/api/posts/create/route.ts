@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Client, Account, Databases, ID } from 'appwrite'
 import storageService from '../../../../storage'
+import { canUploadPostType } from '../../../../lib/creator-plan'
 
 const client = new Client()
   .setEndpoint('https://nyc.cloud.appwrite.io/v1')
@@ -76,6 +77,18 @@ export async function POST(request: NextRequest) {
     postData.userAvatar = profile?.avatarUrl || ''
     const postTypeValue = formData.get('postType') as string || 'text'
     postData.postType = postTypeValue
+    const isAdmin = Boolean((profile as any)?.isAdmin)
+    if (!canUploadPostType(postTypeValue, profile, isAdmin)) {
+      return NextResponse.json(
+        {
+          error:
+            postTypeValue === 'news'
+              ? 'News upload requires the Business plan.'
+              : 'This upload type requires a Basic or Business plan.',
+        },
+        { status: 403 }
+      )
+    }
     postData.content = formData.get('content') as string || ''
     postData.title = formData.get('title') as string || ''
 
