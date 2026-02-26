@@ -8,10 +8,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static routes with high priority
   const routes = [
     { url: `${baseUrl}`, priority: 1, changeFrequency: 'hourly' as const },
+    { url: `${baseUrl}/for-you`, priority: 0.9, changeFrequency: 'hourly' as const },
     { url: `${baseUrl}/watch`, priority: 0.9, changeFrequency: 'hourly' as const },
     { url: `${baseUrl}/reels`, priority: 0.9, changeFrequency: 'hourly' as const },
     { url: `${baseUrl}/news`, priority: 0.9, changeFrequency: 'hourly' as const },
     { url: `${baseUrl}/chinese-drama-movies`, priority: 0.9, changeFrequency: 'daily' as const },
+    { url: `${baseUrl}/about`, priority: 0.8, changeFrequency: 'monthly' as const },
+    { url: `${baseUrl}/premium`, priority: 0.8, changeFrequency: 'weekly' as const },
+    { url: `${baseUrl}/monetization`, priority: 0.8, changeFrequency: 'weekly' as const },
     { url: `${baseUrl}/following`, priority: 0.7, changeFrequency: 'hourly' as const },
     { url: `${baseUrl}/live`, priority: 0.8, changeFrequency: 'always' as const },
     { url: `${baseUrl}/search`, priority: 0.6, changeFrequency: 'daily' as const },
