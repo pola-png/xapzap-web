@@ -11,7 +11,7 @@ const DURATION_GUARD_MESSAGE =
   'Videos and reels longer than 2 minutes are only allowed for verified creators, Basic, or Business plans. Please trim your video to 2 minutes or less in an editing app before uploading.'
 
 interface UploadScreenProps {
-  onClose: () => void
+  onClose?: () => void
 }
 
 export function UploadScreen({ onClose }: UploadScreenProps) {
@@ -155,16 +155,16 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       label: 'Video',
       icon: Video,
       description: 'Upload a video post',
-      requires: 'basic' as CreatorPlan,
-      disabled: !(isAdmin || isVerifiedCreator || creatorPlan === 'basic' || creatorPlan === 'business'),
+      requires: 'free' as CreatorPlan,
+      disabled: false,
     },
     {
       id: 'reel',
       label: 'Reel',
       icon: Film,
       description: 'Upload a short vertical video',
-      requires: 'basic' as CreatorPlan,
-      disabled: !(isAdmin || isVerifiedCreator || creatorPlan === 'basic' || creatorPlan === 'business'),
+      requires: 'free' as CreatorPlan,
+      disabled: false,
     },
     {
       id: 'image',
@@ -297,16 +297,6 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
 
   const handleUpload = async () => {
     if (!selectedType) return
-    if (selectedType === 'video' && !(isAdmin || isVerifiedCreator || creatorPlan === 'basic' || creatorPlan === 'business')) {
-      alert('Video upload requires the Basic or Business plan.')
-      router.push('/premium')
-      return
-    }
-    if (selectedType === 'reel' && !(isAdmin || isVerifiedCreator || creatorPlan === 'basic' || creatorPlan === 'business')) {
-      alert('Reel upload requires the Basic or Business plan.')
-      router.push('/premium')
-      return
-    }
     if (selectedType === 'news' && !(isAdmin || creatorPlan === 'business')) {
       alert('News upload requires the Business plan.')
       router.push('/premium')
@@ -464,7 +454,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       setGeneratedThumbnail(null)
       setPreviewUrl(null)
       setThumbnailPreviewUrl(null)
-      onClose()
+      alert('Post uploaded successfully.')
 
     } catch (error: any) {
       console.error('Upload failed:', error)
@@ -486,7 +476,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
                 alert(
                   type.requires === 'business'
                     ? 'Business plan is required to upload news posts.'
-                    : 'Basic or Business plan is required for this upload type.'
+                    : 'This upload type is not available for your account.'
                 )
                 router.push('/premium')
                 return

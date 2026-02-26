@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
           error:
             postTypeValue === 'news'
               ? 'News upload requires the Business plan.'
-              : 'This upload type requires a Basic or Business plan.',
+              : 'This upload type is not allowed for your account.',
         },
         { status: 403 }
       )

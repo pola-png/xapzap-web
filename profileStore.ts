@@ -4,6 +4,7 @@ import { Post } from './types'
 type ProfileData = {
   displayName?: string
   username?: string
+  isVerified?: boolean
   bio?: string
   category?: string
   avatarUrl?: string

@@ -12,6 +12,7 @@ import { useAuthStore } from '../../../authStore'
 type ProfileData = {
   displayName?: string
   username?: string
+  isVerified?: boolean
   bio?: string
   category?: string
   avatarUrl?: string
@@ -83,9 +84,16 @@ export default function ProfilePage() {
       // Get profile data
       const profileData = await appwriteService.getProfileByUserId(profileUserId)
       if (profileData) {
+        const isVerified =
+          !!(profileData as any).isVerified ||
+          !!(profileData as any).isVerifiedCreator ||
+          (profileData as any).verificationStatus === 'creator' ||
+          (profileData as any).verificationStatus === 'verified'
+
         setProfile({
           displayName: profileData.displayName || profileData.username,
           username: profileData.username,
+          isVerified,
           bio: profileData.bio,
           category: profileData.category,
           avatarUrl: profileData.avatarUrl,
@@ -143,11 +151,18 @@ export default function ProfilePage() {
 
       // Cache the profile data
       if (profileData) {
+        const isVerified =
+          !!(profileData as any).isVerified ||
+          !!(profileData as any).isVerifiedCreator ||
+          (profileData as any).verificationStatus === 'creator' ||
+          (profileData as any).verificationStatus === 'verified'
+
         profileStore.setProfile(profileUserId, {
           userId: profileUserId,
           profile: {
             displayName: profileData.displayName || profileData.username,
             username: profileData.username,
+            isVerified,
             bio: profileData.bio,
             category: profileData.category,
             avatarUrl: profileData.avatarUrl,
@@ -453,9 +468,19 @@ export default function ProfilePage() {
       <div className="px-4 pt-16 pb-4">
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))] mb-1">
-              {profile.displayName}
-            </h1>
+            <div className="mb-1 flex items-center gap-2 flex-wrap">
+              {isCurrentUser && !profile.isVerified && (
+                <button
+                  onClick={() => router.push('/premium')}
+                  className="px-3 py-1 rounded-full bg-blue-500 text-white text-xs font-semibold hover:bg-blue-600 transition-colors"
+                >
+                  Verified Now
+                </button>
+              )}
+              <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">
+                {profile.displayName}
+              </h1>
+            </div>
             <div className="flex items-center gap-2 mb-2 text-[rgb(var(--text-secondary))]">
               <p>@{profile.username}</p>
               {profile.category && (

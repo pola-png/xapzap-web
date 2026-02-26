@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { ArrowLeft, Settings, Bookmark, BarChart3, DollarSign, MessageCircle, LogOut, FileText } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import appwriteService from '../../../appwriteService'
@@ -8,6 +9,29 @@ import { useAuthStore } from '../../../authStore'
 export default function MenuPage() {
   const router = useRouter()
   const authStore = useAuthStore()
+  const [showVerifyNow, setShowVerifyNow] = useState(false)
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const user = await appwriteService.getCurrentUser()
+        if (!user) {
+          setShowVerifyNow(false)
+          return
+        }
+        const profile = await appwriteService.getProfileByUserId(user.$id)
+        const isVerified =
+          !!(profile as any)?.isVerified ||
+          !!(profile as any)?.isVerifiedCreator ||
+          (profile as any)?.verificationStatus === 'creator' ||
+          (profile as any)?.verificationStatus === 'verified'
+        setShowVerifyNow(!isVerified)
+      } catch {
+        setShowVerifyNow(false)
+      }
+    }
+    void loadProfile()
+  }, [])
 
   const handleSignOut = async () => {
     try {
@@ -57,6 +81,16 @@ export default function MenuPage() {
             <DollarSign size={20} />
             <span className="font-medium">Monetization</span>
           </button>
+
+          {showVerifyNow && (
+            <button
+              onClick={() => router.push('/premium')}
+              className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left"
+            >
+              <span className="text-xl">✔</span>
+              <span className="font-medium">Verified Now</span>
+            </button>
+          )}
           
           <div className="h-px bg-border my-2" />
           

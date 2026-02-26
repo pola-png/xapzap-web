@@ -56,11 +56,11 @@ export function getUploadAccess(profile: any, isAdmin = false): UploadAccess {
   const plan = resolveCreatorPlan(profile, isAdmin)
   const isVerifiedCreator = isVerifiedCreatorProfile(profile)
 
-  const canUploadVideo = isAdmin || isVerifiedCreator || plan === 'basic' || plan === 'business'
+  const canUploadVideo = true
   const canUploadReel = canUploadVideo
   const canUploadNews = isAdmin || plan === 'business'
   const canUseAi = isAdmin || isVerifiedCreator || plan === 'basic' || plan === 'business'
-  const canUploadLongVideo = canUploadVideo
+  const canUploadLongVideo = isAdmin || isVerifiedCreator || plan === 'basic' || plan === 'business'
 
   return {
     plan,
@@ -82,4 +82,3 @@ export function canUploadPostType(postType: string, profile: any, isAdmin = fals
   if (postType === 'image' || postType === 'text') return access.canUploadImage
   return false
 }
-
