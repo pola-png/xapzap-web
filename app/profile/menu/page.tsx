@@ -1,34 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { ArrowLeft, Settings, Bookmark, BarChart3, DollarSign, MessageCircle, LogOut, FileText } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import appwriteService from '../../../appwriteService'
 import { useAuthStore } from '../../../authStore'
-import { hasVerifiedBadge } from '../../../lib/verification'
 
 export default function MenuPage() {
   const router = useRouter()
   const authStore = useAuthStore()
-  const [showVerifyNow, setShowVerifyNow] = useState(false)
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const user = await appwriteService.getCurrentUser()
-        if (!user) {
-          setShowVerifyNow(false)
-          return
-        }
-        const profile = await appwriteService.getProfileByUserId(user.$id)
-        const isVerified = hasVerifiedBadge(profile)
-        setShowVerifyNow(!isVerified)
-      } catch {
-        setShowVerifyNow(false)
-      }
-    }
-    void loadProfile()
-  }, [])
 
   const handleSignOut = async () => {
     try {
@@ -49,81 +28,79 @@ export default function MenuPage() {
           </button>
           <h1 className="text-xl font-bold">Menu</h1>
         </div>
-        
+
         <div className="p-4 space-y-2">
-          <button 
+          <button
             onClick={() => router.push('/profile/edit')}
             className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left"
           >
             <Settings size={20} />
             <span className="font-medium">Edit Profile</span>
           </button>
-          
+
           <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
             <Bookmark size={20} />
             <span className="font-medium">Saved Posts</span>
           </button>
-          
+
           <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
             <FileText size={20} />
             <span className="font-medium">Drafts</span>
           </button>
-          
+
           <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
             <BarChart3 size={20} />
             <span className="font-medium">Analytics</span>
           </button>
-          
+
           <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
             <DollarSign size={20} />
             <span className="font-medium">Monetization</span>
           </button>
 
-          {showVerifyNow && (
-            <button
-              onClick={() => router.push('/premium')}
-              className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left"
-            >
-              <span className="text-xl">✔</span>
-              <span className="font-medium">Verified Now</span>
-            </button>
-          )}
-          
+          <button
+            onClick={() => router.push('/premium')}
+            className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left"
+          >
+            <DollarSign size={20} />
+            <span className="font-medium">Premium</span>
+          </button>
+
           <div className="h-px bg-border my-2" />
-          
+
           <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
             <Settings size={20} />
             <span className="font-medium">Settings & Privacy</span>
           </button>
-          
+
           <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
             <MessageCircle size={20} />
             <span className="font-medium">Help & Support</span>
           </button>
-          
+
           <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
-            <span className="text-xl">ℹ️</span>
+            <span className="text-xl">i</span>
             <span className="font-medium">About XapZap</span>
           </button>
-          
+
           <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
-            <span className="text-xl">📜</span>
+            <span className="text-xl">T</span>
             <span className="font-medium">Terms of Service</span>
           </button>
-          
+
           <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
-            <span className="text-xl">🔒</span>
+            <span className="text-xl">P</span>
             <span className="font-medium">Privacy Policy</span>
           </button>
-          
+
           <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
-            <span className="text-xl">👥</span>
+            <span className="text-xl">C</span>
             <span className="font-medium">Community Guidelines</span>
           </button>
         </div>
-        
+
         <div className="p-4 pt-0">
-          <button 
+          <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 p-4 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors text-left text-red-600"
           >
