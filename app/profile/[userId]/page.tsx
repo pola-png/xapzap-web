@@ -463,6 +463,10 @@ export default function ProfilePage() {
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
             <div className="mb-1 flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))] inline-flex items-center gap-1">
+                {profile.displayName}
+                {profile.isVerified && <VerifiedBadge className="h-5 w-5 align-middle inline-flex" />}
+              </h1>
               {isCurrentUser && !profile.isVerified && (
                 <button
                   onClick={() => router.push('/premium')}
@@ -471,10 +475,6 @@ export default function ProfilePage() {
                   Verified Now
                 </button>
               )}
-              <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">
-                {profile.isVerified && <VerifiedBadge className="mr-1 h-5 w-5 align-middle inline-flex" />}
-                {profile.displayName}
-              </h1>
             </div>
             <div className="flex items-center gap-2 mb-2 text-[rgb(var(--text-secondary))]">
               <p>@{profile.username}</p>

@@ -46,6 +46,18 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   const [videoDuration, setVideoDuration] = useState<number | null>(null)
   const [durationError, setDurationError] = useState<string | null>(null)
 
+  const handleCloseUpload = () => {
+    if (onClose) {
+      onClose()
+      return
+    }
+    if (window.history.length > 1) {
+      router.back()
+      return
+    }
+    router.push('/')
+  }
+
   // Theme detection
   const [isDark, setIsDark] = useState(false)
 
@@ -903,7 +915,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Create Post</h2>
           <button
-            onClick={onClose}
+            onClick={handleCloseUpload}
             className={`p-2 rounded-full transition-colors ${
               isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
             }`}
@@ -945,11 +957,11 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
         {/* Header */}
         <div className={`flex items-center justify-between p-4`}>
               <button
-                onClick={() => setSelectedType(null)}
+                onClick={handleCloseUpload}
                 className={`p-2 rounded-full transition-colors ${
                   isDark ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
                 }`}
-                aria-label="Go back to type selection"
+                aria-label="Close upload screen"
               >
                 <X size={20} />
               </button>

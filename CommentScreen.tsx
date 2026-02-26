@@ -6,12 +6,15 @@ import { Post } from './types'
 import appwriteService from './appwriteService'
 import { cn, formatTimeAgo } from './utils'
 import { useAuthStore } from './authStore'
+import { hasVerifiedBadge } from './lib/verification'
+import { VerifiedBadge } from './components/VerifiedBadge'
 
 interface Comment {
   id: string
   postId: string
   userId: string
   username: string
+  isVerified?: boolean
   userAvatar: string
   content: string
   voiceUrl?: string
@@ -72,11 +75,13 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
           if (user) {
             isLiked = await appwriteService.isCommentLikedBy(user.$id, doc.$id)
           }
+          const profile = doc.userId ? await appwriteService.getProfileByUserId(doc.userId) : null
           return {
             id: doc.$id,
             postId: doc.postId,
             userId: doc.userId,
             username: doc.username || 'User',
+            isVerified: hasVerifiedBadge(profile || doc),
             userAvatar: doc.userAvatar || '',
             content: doc.content || '',
             voiceUrl: doc.voiceUrl,
@@ -190,7 +195,12 @@ export function CommentScreen({ post, onClose, isGuest = false, onGuestAction, p
                 e.stopPropagation()
                 window.location.href = `/profile/${comment.userId}`
               }}
-            >{comment.username}</span>
+            >
+              <span className="inline-flex items-center gap-1">
+                {comment.username}
+                {comment.isVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
+              </span>
+            </span>
             <span className="text-sm text-muted-foreground">
               {formatTimeAgo(comment.timestamp)}
             </span>

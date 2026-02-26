@@ -730,8 +730,8 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
               className="text-gray-900 dark:text-white font-extrabold text-[21px] sm:text-[22px] leading-[1.35] hover:underline transition-all text-left flex items-center gap-1"
               aria-label={`View ${userProfile?.displayName || 'User'}'s profile`}
             >
-              {showVerifiedBadge && <VerifiedBadge className="h-4 w-4 shrink-0" />}
               {userProfile?.displayName || 'User'}
+              {showVerifiedBadge && <VerifiedBadge className="h-4 w-4 shrink-0" />}
             </button>
             <span className="text-gray-500 dark:text-gray-400 text-[13px] ml-2 font-semibold">{formatTimeAgo(post.createdAt)}</span>
           </div>

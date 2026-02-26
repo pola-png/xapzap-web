@@ -8,6 +8,8 @@ import { formatTimeAgo } from './utils'
 import { Heart } from 'lucide-react'
 import { CommentScreen } from './CommentScreen'
 import { useAuthStore } from './authStore'
+import { hasVerifiedBadge } from './lib/verification'
+import { VerifiedBadge } from './components/VerifiedBadge'
 
 interface CommentModalProps {
   post: Post
@@ -19,6 +21,7 @@ interface Comment {
   postId: string
   userId: string
   username: string
+  isVerified?: boolean
   userAvatar: string
   content: string
   likes: number
@@ -72,12 +75,14 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
           if (user) {
             isLiked = await appwriteService.isCommentLikedBy(user.$id, doc.$id)
           }
+          const profile = doc.userId ? await appwriteService.getProfileByUserId(doc.userId) : null
           
           return {
             id: doc.$id,
             postId: doc.postId,
             userId: doc.userId,
             username: doc.username || 'User',
+            isVerified: hasVerifiedBadge(profile || doc),
             userAvatar: doc.userAvatar || '',
             content: doc.content || '',
             likes: doc.likes || 0,
@@ -150,11 +155,13 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
           if (user) {
             isLiked = await appwriteService.isCommentLikedBy(user.$id, doc.$id)
           }
+          const profile = doc.userId ? await appwriteService.getProfileByUserId(doc.userId) : null
           return {
             id: doc.$id,
             postId: doc.postId,
             userId: doc.userId,
             username: doc.username || 'User',
+            isVerified: hasVerifiedBadge(profile || doc),
             userAvatar: doc.userAvatar || '',
             content: doc.content || '',
             likes: doc.likes || 0,
@@ -276,13 +283,18 @@ export function CommentModal({ post, onClose }: CommentModalProps) {
                     onClick={() => handleLikeComment(comment.id)}
                   >
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span 
+                      <span
                         className="font-semibold text-base cursor-pointer hover:underline"
                         onClick={(e) => {
                           e.stopPropagation()
                           router.push(`/profile/${comment.userId}`)
                         }}
-                      >{comment.username}</span>
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          {comment.username}
+                          {comment.isVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
+                        </span>
+                      </span>
                       <span className="text-sm text-muted-foreground">{formatTimeAgo(comment.timestamp)}</span>
                     </div>
                     <p className="text-base leading-relaxed">{comment.content.split(' ').map((word, i) => 

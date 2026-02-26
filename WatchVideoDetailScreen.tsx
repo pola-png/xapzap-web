@@ -12,6 +12,7 @@ import { CommentScreen } from './CommentScreen'
 import { useAuthStore } from './authStore'
 import { useSingleVideoPlayback } from './useSingleVideoPlayback'
 import { VerifiedBadge } from './components/VerifiedBadge'
+import { hasVerifiedBadge } from './lib/verification'
 
 export interface VideoDetailScreenProps {
   post: Post
@@ -199,8 +200,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           if (user) {
             isLiked = await appwriteService.isCommentLikedBy(user.$id, doc.$id)
           }
+          const profile = doc.userId ? await appwriteService.getProfileByUserId(doc.userId) : null
           return {
             ...doc,
+            isVerified: hasVerifiedBadge(profile || doc),
             isLiked
           }
         })
@@ -418,7 +421,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             if (user) {
               isLiked = await appwriteService.isCommentLikedBy(user.$id, doc.$id)
             }
-            return { ...doc, isLiked }
+            const profile = doc.userId ? await appwriteService.getProfileByUserId(doc.userId) : null
+            return { ...doc, isLiked, isVerified: hasVerifiedBadge(profile || doc) }
           })
         )
         setRepliesList(replies)
@@ -448,8 +452,8 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           )}
           <div className="min-w-0 flex-1">
             <h3 className="text-foreground font-semibold text-lg sm:text-xl truncate flex items-center gap-1">
-              {post.isVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
               {post.displayName || 'User'}
+              {post.isVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
             </h3>
             <span className="text-muted-foreground text-sm sm:text-base">{formatTimeAgo(post.createdAt)}</span>
           </div>
@@ -665,7 +669,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 <div className="flex-1">
                   <div className="bg-muted rounded-2xl px-4 py-3">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="font-semibold text-base">{selectedCommentForReplies.username}</span>
+                      <span className="font-semibold text-base inline-flex items-center gap-1">
+                        {selectedCommentForReplies.username}
+                        {selectedCommentForReplies.isVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
+                      </span>
                       <span className="text-sm text-muted-foreground">{formatTimeAgo(new Date(selectedCommentForReplies.createdAt || selectedCommentForReplies.$createdAt))}</span>
                     </div>
                     <p className="text-base leading-relaxed">{selectedCommentForReplies.content}</p>
@@ -687,7 +694,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                     <div className="flex-1">
                       <div className="bg-muted rounded-2xl px-4 py-3">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <span className="font-semibold text-base">{reply.username}</span>
+                          <span className="font-semibold text-base inline-flex items-center gap-1">
+                            {reply.username}
+                            {reply.isVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
+                          </span>
                           <span className="text-sm text-muted-foreground">{formatTimeAgo(new Date(reply.createdAt || reply.$createdAt))}</span>
                         </div>
                         <p className="text-base leading-relaxed">{reply.content}</p>
@@ -779,7 +789,12 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                               e.stopPropagation()
                               window.location.href = `/profile/${comment.userId}`
                             }}
-                          >{comment.username}</span>
+                          >
+                            <span className="inline-flex items-center gap-1">
+                              {comment.username}
+                              {comment.isVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
+                            </span>
+                          </span>
                           <span className="text-xs text-muted-foreground">{formatTimeAgo(new Date(comment.createdAt || comment.$createdAt))}</span>
                         </div>
                         <p className="text-sm">{comment.content.split(' ').map((word: string, i: number) => 
@@ -954,7 +969,12 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                             e.stopPropagation()
                             window.location.href = `/profile/${comment.userId}`
                           }}
-                        >{comment.username}</span>
+                        >
+                          <span className="inline-flex items-center gap-1">
+                            {comment.username}
+                            {comment.isVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
+                          </span>
+                        </span>
                         <span className="text-sm text-muted-foreground">{formatTimeAgo(new Date(comment.createdAt || comment.$createdAt))}</span>
                       </div>
                       <p className="text-base leading-relaxed">{comment.content.split(' ').map((word: string, i: number) => 

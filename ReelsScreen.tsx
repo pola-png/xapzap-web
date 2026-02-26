@@ -765,8 +765,8 @@ export function ReelsScreen() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-white font-bold text-lg flex items-center gap-1">
-                        {post.isVerified && <VerifiedBadge className="h-4 w-4" />}
                         {post.displayName || 'User'}
+                        {post.isVerified && <VerifiedBadge className="h-4 w-4" />}
                       </span>
                       <span className="flex items-center gap-1 text-gray-300 text-sm">
                         <Eye size={14} />
