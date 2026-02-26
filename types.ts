@@ -5,6 +5,7 @@ export interface Post {
   username: string
   userAvatar: string
   displayName: string
+  isVerified?: boolean
   avatarUrl: string
   content: string
   caption?: string

@@ -6,6 +6,7 @@ import { Post } from './types'
 import appwriteService from './appwriteService'
 import { feedCache } from './lib/cache'
 import { useFeedStore } from './feedStore'
+import { hasVerifiedBadge } from './lib/verification'
 
 export function NewsScreen() {
   const feedStore = useFeedStore()
@@ -72,6 +73,7 @@ export function NewsScreen() {
             timestamp: new Date(d.$createdAt || d.createdAt),
             displayName: profile?.displayName || 'User',
             avatarUrl: profile?.avatarUrl || '',
+            isVerified: hasVerifiedBadge(profile),
             isLiked: interactions[0],
             isSaved: interactions[1],
             isReposted: interactions[2]

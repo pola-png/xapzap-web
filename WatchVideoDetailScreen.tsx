@@ -11,6 +11,7 @@ import { CommentModal } from './CommentModal'
 import { CommentScreen } from './CommentScreen'
 import { useAuthStore } from './authStore'
 import { useSingleVideoPlayback } from './useSingleVideoPlayback'
+import { VerifiedBadge } from './components/VerifiedBadge'
 
 export interface VideoDetailScreenProps {
   post: Post
@@ -446,7 +447,10 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <h3 className="text-foreground font-semibold text-lg sm:text-xl truncate">{post.displayName || 'User'}</h3>
+            <h3 className="text-foreground font-semibold text-lg sm:text-xl truncate flex items-center gap-1">
+              {post.isVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
+              {post.displayName || 'User'}
+            </h3>
             <span className="text-muted-foreground text-sm sm:text-base">{formatTimeAgo(post.createdAt)}</span>
           </div>
         </div>

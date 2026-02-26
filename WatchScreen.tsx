@@ -9,6 +9,7 @@ import appwriteService from './appwriteService'
 import { feedCache } from './lib/cache'
 import { generateSlug } from './lib/slug'
 import { useFeedStore } from './feedStore'
+import { hasVerifiedBadge } from './lib/verification'
 
 export function WatchScreen() {
   const router = useRouter()
@@ -96,6 +97,7 @@ export function WatchScreen() {
             timestamp: new Date(d.$createdAt || d.createdAt),
             displayName: profile?.displayName || 'User',
             avatarUrl: profile?.avatarUrl || '',
+            isVerified: hasVerifiedBadge(profile),
             isLiked: interactions[0],
             isSaved: interactions[1],
             isReposted: interactions[2]

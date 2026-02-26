@@ -7,6 +7,7 @@ import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
 import { extractIdFromSlug } from '../../../lib/slug'
 import { generateVideoStructuredData } from '../../../lib/structured-data'
+import { hasVerifiedBadge } from '../../../lib/verification'
 
 export default function ReelsDetailPage() {
   const params = useParams()
@@ -37,6 +38,7 @@ export default function ReelsDetailPage() {
           userAvatar: postData.userAvatar || '',
           displayName: profile?.displayName || 'User',
           avatarUrl: profile?.avatarUrl || '',
+          isVerified: hasVerifiedBadge(profile || postData),
           content: postData.content || '',
           postType: postData.postType || 'reel',
           title: postData.title || '',

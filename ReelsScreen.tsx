@@ -9,6 +9,8 @@ import { useRouter } from 'next/navigation'
 import { generateSlug } from './lib/slug'
 import { CommentModal } from './CommentModal'
 import { formatCount, formatTimeAgo } from './utils'
+import { VerifiedBadge } from './components/VerifiedBadge'
+import { hasVerifiedBadge } from './lib/verification'
 
 export function ReelsScreen() {
   const feedStore = useFeedStore()
@@ -316,6 +318,7 @@ export function ReelsScreen() {
           timestamp: new Date(doc.$createdAt || doc.createdAt),
           displayName: profile?.displayName || 'User',
           avatarUrl: profile?.avatarUrl || '',
+          isVerified: hasVerifiedBadge(profile),
           isLiked: interactions[0],
           isSaved: interactions[1],
           isReposted: interactions[2]
@@ -761,7 +764,10 @@ export function ReelsScreen() {
                   )}
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-white font-bold text-lg">{post.displayName || 'User'}</span>
+                      <span className="text-white font-bold text-lg flex items-center gap-1">
+                        {post.isVerified && <VerifiedBadge className="h-4 w-4" />}
+                        {post.displayName || 'User'}
+                      </span>
                       <span className="flex items-center gap-1 text-gray-300 text-sm">
                         <Eye size={14} />
                         {formatCount(post.views || 0)}

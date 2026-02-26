@@ -9,6 +9,7 @@ import { Post } from "./types"
 import appwriteService from "./appwriteService"
 import { useAuthStore } from "./authStore"
 import { useFeedStore } from "./feedStore"
+import { hasVerifiedBadge } from "./lib/verification"
 
 export function HomeScreen() {
   const router = useRouter()
@@ -138,6 +139,7 @@ export function HomeScreen() {
               timestamp: new Date(d.$createdAt || d.createdAt),
               displayName: profile?.displayName,
               avatarUrl: profile?.avatarUrl,
+              isVerified: hasVerifiedBadge(profile),
               isLiked,
               isSaved,
               isReposted
@@ -157,7 +159,8 @@ export function HomeScreen() {
               id: d.$id,
               timestamp: new Date(d.$createdAt || d.createdAt),
               displayName: profile?.displayName,
-              avatarUrl: profile?.avatarUrl
+              avatarUrl: profile?.avatarUrl,
+              isVerified: hasVerifiedBadge(profile)
             } as Post
           })
         )

@@ -10,6 +10,8 @@ export default function PremiumPage() {
   const [currentPlan, setCurrentPlan] = useState<CreatorPlan>('free')
   const [loading, setLoading] = useState(true)
   const [updatingPlan, setUpdatingPlan] = useState<CreatorPlan | null>(null)
+  const [requestStatus, setRequestStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none')
+  const [requestedTier, setRequestedTier] = useState<CreatorPlan>('free')
 
   useEffect(() => {
     const loadPlan = async () => {
@@ -24,8 +26,22 @@ export default function PremiumPage() {
           appwriteService.getProfileByUserId(user.$id),
         ])
         setCurrentPlan(resolveCreatorPlan(profile, isAdmin))
+        const approval = String((profile as any)?.upgradeApprovalStatus || '').toLowerCase()
+        if (approval === 'pending' || approval === 'approved' || approval === 'rejected') {
+          setRequestStatus(approval)
+        } else {
+          setRequestStatus('none')
+        }
+        const requested = String((profile as any)?.upgradeRequestedTier || '').toLowerCase()
+        if (requested === 'basic' || requested === 'business') {
+          setRequestedTier(requested as CreatorPlan)
+        } else {
+          setRequestedTier('free')
+        }
       } catch {
         setCurrentPlan('free')
+        setRequestStatus('none')
+        setRequestedTier('free')
       } finally {
         setLoading(false)
       }
@@ -41,15 +57,21 @@ export default function PremiumPage() {
         router.push('/auth/signin')
         return
       }
+      if (requestStatus === 'pending') {
+        alert('Your previous upgrade request is still pending admin approval.')
+        return
+      }
       setUpdatingPlan(plan)
-      // Persist tier using current profile shape with backward-compatible fields.
+      // Payment completed -> send for admin verification/benchmark approval.
       await appwriteService.updateProfile(user.$id, {
-        subscriptionTier: plan,
-        subscription: plan === 'business' ? 'business' : 'premium',
-        isPremiumCreator: true,
+        upgradeRequestedTier: plan,
+        upgradePaymentStatus: 'paid',
+        upgradeApprovalStatus: 'pending',
+        upgradeRequestedAt: new Date().toISOString(),
       })
-      setCurrentPlan(plan)
-      alert(`${plan === 'business' ? 'Business' : 'Basic'} plan activated successfully.`)
+      setRequestStatus('pending')
+      setRequestedTier(plan)
+      alert('Payment received. Your request has been sent to admin for verification and benchmark approval.')
     } catch (error: any) {
       console.error('Failed to activate plan:', error)
       alert(error?.message || 'Failed to activate plan. Please try again.')
@@ -73,6 +95,11 @@ export default function PremiumPage() {
           <span className="font-semibold text-[rgb(var(--text-primary))]">
             {loading ? 'Loading...' : currentPlan === 'business' ? 'Business' : currentPlan === 'basic' ? 'Basic' : 'Free'}
           </span>
+          {requestStatus === 'pending' && requestedTier !== 'free' && (
+            <div className="mt-2 text-amber-600 dark:text-amber-400">
+              Upgrade request pending: {requestedTier === 'business' ? 'Business' : 'Basic'} (awaiting admin approval)
+            </div>
+          )}
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -88,10 +115,16 @@ export default function PremiumPage() {
             </ul>
             <button
               onClick={() => activatePlan('basic')}
-              disabled={loading || updatingPlan !== null || currentPlan === 'basic'}
+              disabled={loading || updatingPlan !== null || currentPlan === 'basic' || requestStatus === 'pending'}
               className="mt-6 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
             >
-              {currentPlan === 'basic' ? 'Active Plan' : updatingPlan === 'basic' ? 'Activating...' : 'Activate Basic'}
+              {currentPlan === 'basic'
+                ? 'Active Plan'
+                : requestStatus === 'pending' && requestedTier === 'basic'
+                  ? 'Awaiting Admin Approval'
+                  : updatingPlan === 'basic'
+                    ? 'Submitting...'
+                    : 'Activate Basic'}
             </button>
           </div>
 
@@ -107,21 +140,23 @@ export default function PremiumPage() {
             </ul>
             <button
               onClick={() => activatePlan('business')}
-              disabled={loading || updatingPlan !== null || currentPlan === 'business'}
+              disabled={loading || updatingPlan !== null || currentPlan === 'business' || requestStatus === 'pending'}
               className="mt-6 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
             >
               {currentPlan === 'business'
                 ? 'Active Plan'
-                : updatingPlan === 'business'
-                  ? 'Activating...'
-                  : 'Activate Business'}
+                : requestStatus === 'pending' && requestedTier === 'business'
+                  ? 'Awaiting Admin Approval'
+                  : updatingPlan === 'business'
+                    ? 'Submitting...'
+                    : 'Activate Business'}
             </button>
           </div>
         </div>
 
         <p className="mt-6 text-xs text-[rgb(var(--text-secondary))]">
-          Plan activation currently updates your creator permissions directly in profile.
-          Payment integration can be connected next.
+          After payment, admins must verify and approve your upgrade request before plan access
+          and verified benchmark badge are enabled.
         </p>
       </div>
     </div>

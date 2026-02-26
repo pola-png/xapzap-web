@@ -14,6 +14,8 @@ import { formatCount, formatTimeAgo } from './utils'
 import { CommentModal } from './CommentModal'
 import { CommentScreen } from './CommentScreen'
 import { ReelsDetailScreen } from './VideoDetailScreen'
+import { VerifiedBadge } from './components/VerifiedBadge'
+import { hasVerifiedBadge } from './lib/verification'
 
 interface PostCardProps {
   post: Post
@@ -32,7 +34,9 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   const [saved, setSaved] = useState(post.isSaved || false)
   const [reposted, setReposted] = useState(post.isReposted || false)
   const [reposts, setReposts] = useState(post.reposts || 0)
-  const [userProfile, setUserProfile] = useState<any>(post.displayName ? { displayName: post.displayName, avatarUrl: post.avatarUrl } : null)
+  const [userProfile, setUserProfile] = useState<any>(
+    post.displayName ? { displayName: post.displayName, avatarUrl: post.avatarUrl, isVerified: (post as any).isVerified } : null
+  )
   const [showComments, setShowComments] = useState(false)
   const [showFullComments, setShowFullComments] = useState(false)
   const [showReelDetail, setShowReelDetail] = useState(false)
@@ -696,6 +700,10 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
       {showFullComments && <CommentScreen post={post} onClose={closeFullComments} />}
       {showComments && <CommentModal post={post} onClose={closeComments} />}
       <div className="border-b border-gray-200 dark:border-gray-700 relative font-semibold tracking-[0.02em]">
+      {(() => {
+        const showVerifiedBadge = hasVerifiedBadge(userProfile || post)
+        return (
+      <>
       {/* Header */}
       <div className="flex items-center justify-between py-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -719,9 +727,10 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           <div className="flex-1 min-w-0">
             <button
               onClick={() => router.push(`/profile/${post.userId}`)}
-              className="text-gray-900 dark:text-white font-extrabold text-[21px] sm:text-[22px] leading-[1.35] hover:underline transition-all text-left"
+              className="text-gray-900 dark:text-white font-extrabold text-[21px] sm:text-[22px] leading-[1.35] hover:underline transition-all text-left flex items-center gap-1"
               aria-label={`View ${userProfile?.displayName || 'User'}'s profile`}
             >
+              {showVerifiedBadge && <VerifiedBadge className="h-4 w-4 shrink-0" />}
               {userProfile?.displayName || 'User'}
             </button>
             <span className="text-gray-500 dark:text-gray-400 text-[13px] ml-2 font-semibold">{formatTimeAgo(post.createdAt)}</span>
@@ -741,6 +750,9 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           </button>
         </div>
       </div>
+      </>
+        )
+      })()}
 
       {showMenu && (
         <>

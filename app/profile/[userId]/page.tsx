@@ -8,6 +8,8 @@ import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
 import { useProfileStore } from '../../../profileStore'
 import { useAuthStore } from '../../../authStore'
+import { VerifiedBadge } from '../../../components/VerifiedBadge'
+import { hasVerifiedBadge } from '../../../lib/verification'
 
 type ProfileData = {
   displayName?: string
@@ -84,11 +86,7 @@ export default function ProfilePage() {
       // Get profile data
       const profileData = await appwriteService.getProfileByUserId(profileUserId)
       if (profileData) {
-        const isVerified =
-          !!(profileData as any).isVerified ||
-          !!(profileData as any).isVerifiedCreator ||
-          (profileData as any).verificationStatus === 'creator' ||
-          (profileData as any).verificationStatus === 'verified'
+        const isVerified = hasVerifiedBadge(profileData)
 
         setProfile({
           displayName: profileData.displayName || profileData.username,
@@ -151,11 +149,7 @@ export default function ProfilePage() {
 
       // Cache the profile data
       if (profileData) {
-        const isVerified =
-          !!(profileData as any).isVerified ||
-          !!(profileData as any).isVerifiedCreator ||
-          (profileData as any).verificationStatus === 'creator' ||
-          (profileData as any).verificationStatus === 'verified'
+        const isVerified = hasVerifiedBadge(profileData)
 
         profileStore.setProfile(profileUserId, {
           userId: profileUserId,
@@ -478,6 +472,7 @@ export default function ProfilePage() {
                 </button>
               )}
               <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">
+                {profile.isVerified && <VerifiedBadge className="mr-1 h-5 w-5 align-middle inline-flex" />}
                 {profile.displayName}
               </h1>
             </div>

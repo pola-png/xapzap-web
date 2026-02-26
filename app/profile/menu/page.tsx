@@ -5,6 +5,7 @@ import { ArrowLeft, Settings, Bookmark, BarChart3, DollarSign, MessageCircle, Lo
 import { useRouter } from 'next/navigation'
 import appwriteService from '../../../appwriteService'
 import { useAuthStore } from '../../../authStore'
+import { hasVerifiedBadge } from '../../../lib/verification'
 
 export default function MenuPage() {
   const router = useRouter()
@@ -20,11 +21,7 @@ export default function MenuPage() {
           return
         }
         const profile = await appwriteService.getProfileByUserId(user.$id)
-        const isVerified =
-          !!(profile as any)?.isVerified ||
-          !!(profile as any)?.isVerifiedCreator ||
-          (profile as any)?.verificationStatus === 'creator' ||
-          (profile as any)?.verificationStatus === 'verified'
+        const isVerified = hasVerifiedBadge(profile)
         setShowVerifyNow(!isVerified)
       } catch {
         setShowVerifyNow(false)

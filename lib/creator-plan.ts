@@ -20,6 +20,25 @@ export function resolveCreatorPlan(profile: any, isAdmin = false): CreatorPlan {
   if (isAdmin) return 'business'
 
   const p: any = profile || {}
+  const approvalStatus = String(p.upgradeApprovalStatus || '')
+    .trim()
+    .toLowerCase()
+  const requestedTier = String(
+    p.upgradeRequestedTier || p.requestedTier || p.pendingTier || ''
+  )
+    .trim()
+    .toLowerCase()
+
+  // Admin-approved upgrade should immediately unlock the requested plan.
+  if (approvalStatus === 'approved') {
+    if (requestedTier === 'business' || requestedTier === 'enterprise') {
+      return 'business'
+    }
+    if (requestedTier === 'basic' || requestedTier === 'premium' || requestedTier === 'pro') {
+      return 'basic'
+    }
+  }
+
   const rawValues = [
     p.subscriptionTier,
     p.subscription,
