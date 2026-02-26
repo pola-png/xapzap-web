@@ -186,12 +186,9 @@ export function ReelsScreen() {
 
   const activePost = posts[currentIndex]
   const activePostId = activePost?.id
-  const activeVideoReady = activePostId ? Boolean(videoReadyMap.get(activePostId)) : false
 
   useEffect(() => {
     const activeVideo = videoRefs.current[currentIndex]
-    pauseAllVideos(activeVideo)
-
     if (!activePost || !activeVideo) return
     activeVideo.loop = true
 
@@ -199,28 +196,17 @@ export function ReelsScreen() {
       commentModalPost ||
       !isPageVisible ||
       userPaused.current.get(activePost.id) ||
-      !activeVideoReady
+      activeVideo.readyState < 3
     ) {
       activeVideo.pause()
       return
     }
 
-    const tryPlay = () => {
-      if (!commentModalPost && isPageVisible && !userPaused.current.get(activePost.id)) {
-        activeVideo.play().catch(() => {})
-      }
+    pauseAllVideos(activeVideo)
+    if (activeVideo.paused) {
+      activeVideo.play().catch(() => {})
     }
-
-    if (activeVideo.readyState >= 2) {
-      tryPlay()
-    } else {
-      activeVideo.addEventListener('canplay', tryPlay, { once: true })
-    }
-
-    return () => {
-      activeVideo.removeEventListener('canplay', tryPlay)
-    }
-  }, [currentIndex, commentModalPost, activePostId, activeVideoReady, isPageVisible])
+  }, [currentIndex, commentModalPost, activePostId, isPageVisible])
 
   useEffect(() => {
     if (!activePost || impressionTracked.current.has(activePost.id)) return
@@ -614,10 +600,6 @@ export function ReelsScreen() {
                 setVideoReadyMap(prev => new Map(prev).set(post.id, false))
               }}
               onCanPlay={() => {
-                setVideoReadyMap(prev => new Map(prev).set(post.id, true))
-              }}
-              onCanPlayThrough={() => {
-                // Force a rerender when buffering reaches a render-smooth state.
                 setVideoReadyMap(prev => new Map(prev).set(post.id, true))
               }}
               preload={index === currentIndex ? "auto" : (Math.abs(index - currentIndex) === 1 ? "metadata" : "none")}
