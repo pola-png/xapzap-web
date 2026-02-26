@@ -462,7 +462,7 @@ export default function ProfilePage() {
       <div className="px-4 pt-16 pb-4">
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
-            <div className="mb-1 flex items-center gap-2 flex-wrap">
+            <div className="mb-1 flex items-center gap-4 flex-wrap">
               <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))] inline-flex items-center gap-1">
                 {profile.displayName}
                 {profile.isVerified && <VerifiedBadge className="h-5 w-5 align-middle inline-flex" />}
@@ -470,7 +470,7 @@ export default function ProfilePage() {
               {isCurrentUser && !profile.isVerified && (
                 <button
                   onClick={() => router.push('/premium')}
-                  className="px-3 py-1 rounded-full bg-blue-500 text-white text-xs font-semibold hover:bg-blue-600 transition-colors"
+                  className="px-5 py-2 rounded-full bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition-colors"
                 >
                   Verified Now
                 </button>

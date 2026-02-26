@@ -1,80 +1,194 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import appwriteService from '../../appwriteService'
 import { CreatorPlan, resolveCreatorPlan } from '../../lib/creator-plan'
 
+type PaidPlan = Exclude<CreatorPlan, 'free'>
+
+type PricingPayload = {
+  currency: string
+  country: string
+  countryCurrency: string
+  usedFallbackCurrency: boolean
+  monthly: {
+    basic: number
+    business: number
+  }
+  formatted: {
+    basic: string
+    business: string
+  }
+}
+
+const EMPTY_PRICING: PricingPayload = {
+  currency: 'USD',
+  country: 'US',
+  countryCurrency: 'USD',
+  usedFallbackCurrency: false,
+  monthly: { basic: 2.5, business: 5 },
+  formatted: { basic: '$2.50', business: '$5.00' },
+}
+
 export default function PremiumPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [currentPlan, setCurrentPlan] = useState<CreatorPlan>('free')
   const [loading, setLoading] = useState(true)
-  const [updatingPlan, setUpdatingPlan] = useState<CreatorPlan | null>(null)
+  const [updatingPlan, setUpdatingPlan] = useState<PaidPlan | null>(null)
   const [requestStatus, setRequestStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none')
   const [requestedTier, setRequestedTier] = useState<CreatorPlan>('free')
+  const [pricing, setPricing] = useState<PricingPayload>(EMPTY_PRICING)
+  const [pricingLoading, setPricingLoading] = useState(true)
+  const [verifyingPayment, setVerifyingPayment] = useState(false)
 
-  useEffect(() => {
-    const loadPlan = async () => {
-      try {
-        const user = await appwriteService.getCurrentUser()
-        if (!user) {
-          setCurrentPlan('free')
-          return
-        }
-        const [isAdmin, profile] = await Promise.all([
-          appwriteService.isCurrentUserAdmin().catch(() => false),
-          appwriteService.getProfileByUserId(user.$id),
-        ])
-        setCurrentPlan(resolveCreatorPlan(profile, isAdmin))
-        const approval = String((profile as any)?.upgradeApprovalStatus || '').toLowerCase()
-        if (approval === 'pending' || approval === 'approved' || approval === 'rejected') {
-          setRequestStatus(approval)
-        } else {
-          setRequestStatus('none')
-        }
-        const requested = String((profile as any)?.upgradeRequestedTier || '').toLowerCase()
-        if (requested === 'basic' || requested === 'business') {
-          setRequestedTier(requested as CreatorPlan)
-        } else {
-          setRequestedTier('free')
-        }
-      } catch {
+  const loadPlan = useCallback(async () => {
+    setLoading(true)
+    try {
+      const user = await appwriteService.getCurrentUser()
+      if (!user) {
         setCurrentPlan('free')
         setRequestStatus('none')
         setRequestedTier('free')
-      } finally {
-        setLoading(false)
+        return
       }
+
+      const [isAdmin, profile] = await Promise.all([
+        appwriteService.isCurrentUserAdmin().catch(() => false),
+        appwriteService.getProfileByUserId(user.$id),
+      ])
+
+      setCurrentPlan(resolveCreatorPlan(profile, isAdmin))
+
+      const approval = String((profile as any)?.upgradeApprovalStatus || '').toLowerCase()
+      if (approval === 'pending' || approval === 'approved' || approval === 'rejected') {
+        setRequestStatus(approval)
+      } else {
+        setRequestStatus('none')
+      }
+
+      const requested = String((profile as any)?.upgradeRequestedTier || '').toLowerCase()
+      if (requested === 'basic' || requested === 'business') {
+        setRequestedTier(requested as CreatorPlan)
+      } else {
+        setRequestedTier('free')
+      }
+    } catch {
+      setCurrentPlan('free')
+      setRequestStatus('none')
+      setRequestedTier('free')
+    } finally {
+      setLoading(false)
     }
-    void loadPlan()
   }, [])
 
-  const activatePlan = async (plan: CreatorPlan) => {
-    if (plan === 'free') return
+  const loadPricing = useCallback(async () => {
+    setPricingLoading(true)
+    try {
+      const response = await fetch('/api/payments/paystack/pricing', {
+        method: 'GET',
+        cache: 'no-store',
+      })
+      const payload = await response.json().catch(() => null)
+      if (!response.ok || !payload) {
+        throw new Error(payload?.error || 'Failed to load pricing')
+      }
+      setPricing(payload)
+    } catch {
+      setPricing(EMPTY_PRICING)
+    } finally {
+      setPricingLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadPlan()
+    void loadPricing()
+  }, [loadPlan, loadPricing])
+
+  useEffect(() => {
+    const reference = searchParams.get('reference') || searchParams.get('trxref')
+    if (!reference) return
+
+    let isMounted = true
+    const verifyPayment = async () => {
+      try {
+        setVerifyingPayment(true)
+        const user = await appwriteService.getCurrentUser()
+        if (!user) {
+          router.replace('/auth/signin')
+          return
+        }
+
+        const jwt = await appwriteService.createJWT()
+        const response = await fetch('/api/payments/paystack/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt.jwt}`,
+          },
+          body: JSON.stringify({ reference }),
+        })
+        const payload = await response.json().catch(() => null)
+        if (!response.ok) {
+          throw new Error(payload?.error || 'Payment verification failed.')
+        }
+
+        if (isMounted) {
+          alert('Payment verified successfully. Your upgrade is now pending admin approval.')
+          await loadPlan()
+          router.replace('/premium')
+        }
+      } catch (error: any) {
+        if (isMounted) {
+          alert(error?.message || 'Unable to verify payment at the moment.')
+          router.replace('/premium')
+        }
+      } finally {
+        if (isMounted) {
+          setVerifyingPayment(false)
+        }
+      }
+    }
+
+    void verifyPayment()
+    return () => {
+      isMounted = false
+    }
+  }, [loadPlan, router, searchParams])
+
+  const startCheckout = async (plan: PaidPlan) => {
     try {
       const user = await appwriteService.getCurrentUser()
       if (!user) {
         router.push('/auth/signin')
         return
       }
+
       if (requestStatus === 'pending') {
         alert('Your previous upgrade request is still pending admin approval.')
         return
       }
+
       setUpdatingPlan(plan)
-      // Payment completed -> send for admin verification/benchmark approval.
-      await appwriteService.updateProfile(user.$id, {
-        upgradeRequestedTier: plan,
-        upgradePaymentStatus: 'paid',
-        upgradeApprovalStatus: 'pending',
-        upgradeRequestedAt: new Date().toISOString(),
+      const jwt = await appwriteService.createJWT()
+      const response = await fetch('/api/payments/paystack/initialize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jwt.jwt}`,
+        },
+        body: JSON.stringify({ plan }),
       })
-      setRequestStatus('pending')
-      setRequestedTier(plan)
-      alert('Payment received. Your request has been sent to admin for verification and benchmark approval.')
+      const payload = await response.json().catch(() => null)
+      if (!response.ok || !payload?.authorizationUrl) {
+        throw new Error(payload?.error || 'Unable to start payment.')
+      }
+
+      window.location.assign(payload.authorizationUrl)
     } catch (error: any) {
-      console.error('Failed to activate plan:', error)
-      alert(error?.message || 'Failed to activate plan. Please try again.')
+      alert(error?.message || 'Failed to start payment. Please try again.')
     } finally {
       setUpdatingPlan(null)
     }
@@ -87,7 +201,7 @@ export default function PremiumPage() {
           Creator Plans
         </h1>
         <p className="mt-3 text-sm text-[rgb(var(--text-secondary))] sm:text-base">
-          Choose a plan for monetization features and upload permissions.
+          Monthly plans. Basic is $2.5/month, Business is $5/month (auto-converted by country/currency).
         </p>
 
         <div className="mt-6 rounded-xl border border-border/60 bg-card p-4 text-sm text-[rgb(var(--text-secondary))]">
@@ -95,9 +209,25 @@ export default function PremiumPage() {
           <span className="font-semibold text-[rgb(var(--text-primary))]">
             {loading ? 'Loading...' : currentPlan === 'business' ? 'Business' : currentPlan === 'basic' ? 'Basic' : 'Free'}
           </span>
+          {verifyingPayment && (
+            <div className="mt-2 text-blue-600 dark:text-blue-400">
+              Verifying payment...
+            </div>
+          )}
           {requestStatus === 'pending' && requestedTier !== 'free' && (
             <div className="mt-2 text-amber-600 dark:text-amber-400">
               Upgrade request pending: {requestedTier === 'business' ? 'Business' : 'Basic'} (awaiting admin approval)
+            </div>
+          )}
+          {pricingLoading ? null : (
+            <div className="mt-2">
+              Currency detected: <span className="font-semibold">{pricing.currency}</span>{' '}
+              ({pricing.country})
+            </div>
+          )}
+          {!pricingLoading && pricing.usedFallbackCurrency && (
+            <div className="mt-1 text-xs text-muted-foreground">
+              Local currency is not supported for checkout, so billing uses {pricing.currency}.
             </div>
           )}
         </div>
@@ -105,6 +235,9 @@ export default function PremiumPage() {
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-border/70 bg-card p-6">
             <h2 className="text-2xl font-bold text-[rgb(var(--text-primary))]">Basic</h2>
+            <p className="mt-2 text-lg font-semibold text-[rgb(var(--text-primary))]">
+              {pricingLoading ? 'Loading price...' : `${pricing.formatted.basic} / month`}
+            </p>
             <p className="mt-2 text-sm text-[rgb(var(--text-secondary))]">
               For creators who want monetization-ready content posting.
             </p>
@@ -114,8 +247,8 @@ export default function PremiumPage() {
               <li>Post reels</li>
             </ul>
             <button
-              onClick={() => activatePlan('basic')}
-              disabled={loading || updatingPlan !== null || currentPlan === 'basic' || requestStatus === 'pending'}
+              onClick={() => startCheckout('basic')}
+              disabled={loading || pricingLoading || verifyingPayment || updatingPlan !== null || currentPlan === 'basic' || requestStatus === 'pending'}
               className="mt-6 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
             >
               {currentPlan === 'basic'
@@ -123,13 +256,16 @@ export default function PremiumPage() {
                 : requestStatus === 'pending' && requestedTier === 'basic'
                   ? 'Awaiting Admin Approval'
                   : updatingPlan === 'basic'
-                    ? 'Submitting...'
-                    : 'Activate Basic'}
+                    ? 'Redirecting...'
+                    : 'Pay & Activate Basic'}
             </button>
           </div>
 
           <div className="rounded-2xl border border-border/70 bg-card p-6">
             <h2 className="text-2xl font-bold text-[rgb(var(--text-primary))]">Business</h2>
+            <p className="mt-2 text-lg font-semibold text-[rgb(var(--text-primary))]">
+              {pricingLoading ? 'Loading price...' : `${pricing.formatted.business} / month`}
+            </p>
             <p className="mt-2 text-sm text-[rgb(var(--text-secondary))]">
               For creators and brands who need all upload features.
             </p>
@@ -139,8 +275,8 @@ export default function PremiumPage() {
               <li>Full creator upload access</li>
             </ul>
             <button
-              onClick={() => activatePlan('business')}
-              disabled={loading || updatingPlan !== null || currentPlan === 'business' || requestStatus === 'pending'}
+              onClick={() => startCheckout('business')}
+              disabled={loading || pricingLoading || verifyingPayment || updatingPlan !== null || currentPlan === 'business' || requestStatus === 'pending'}
               className="mt-6 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
             >
               {currentPlan === 'business'
@@ -148,17 +284,18 @@ export default function PremiumPage() {
                 : requestStatus === 'pending' && requestedTier === 'business'
                   ? 'Awaiting Admin Approval'
                   : updatingPlan === 'business'
-                    ? 'Submitting...'
-                    : 'Activate Business'}
+                    ? 'Redirecting...'
+                    : 'Pay & Activate Business'}
             </button>
           </div>
         </div>
 
         <p className="mt-6 text-xs text-[rgb(var(--text-secondary))]">
-          After payment, admins must verify and approve your upgrade request before plan access
-          and verified benchmark badge are enabled.
+          Payment is verified server-side through Paystack before your account is marked paid.
+          After successful payment, admin verification/approval is still required for benchmark badge and full activation.
         </p>
       </div>
     </div>
   )
 }
+
