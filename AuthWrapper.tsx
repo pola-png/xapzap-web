@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { AuthScreen } from './AuthScreen'
 import appwriteService from './appwriteService'
 import { useAuthStore } from './authStore'
 
@@ -12,50 +11,71 @@ interface AuthWrapperProps {
 
 export function AuthWrapper({ children }: AuthWrapperProps) {
   const [user, setUser] = useState<any>(null)
+  const [authChecked, setAuthChecked] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
-  const authStore = useAuthStore()
+  const setCurrentUserId = useAuthStore((state) => state.setCurrentUserId)
+
+  const isPublicRoute = (path: string) => {
+    if (path === '/') return true
+    if (path === '/watch' || path.startsWith('/watch/')) return true
+    if (path === '/reels' || path.startsWith('/reels/')) return true
+    if (path === '/news' || path.startsWith('/news/')) return true
+    if (path === '/following') return true
+    if (path === '/live') return true
+    if (path === '/search') return true
+    if (path === '/hashtag' || path.startsWith('/hashtag/')) return true
+    if (path === '/auth' || path.startsWith('/auth/')) return true
+    if (path === '/premium') return true
+    if (path === '/monetization') return true
+    if (path === '/about') return true
+    if (path === '/for-you') return true
+    if (path === '/chinese-drama-movies') return true
+    if (path === '/profile') return true
+    if (/^\/profile\/[^/]+$/.test(path)) return true
+    return false
+  }
+
+  const requiresAuth = !isPublicRoute(pathname)
 
   useEffect(() => {
-    checkAuthState()
-  }, [])
+    let active = true
 
-  const checkAuthState = async () => {
-    try {
-      const currentUser = await appwriteService.getCurrentUser()
-      setUser(currentUser)
-      authStore.setCurrentUserId(currentUser?.$id || null)
-    } catch (error) {
-      console.error('Auth check failed:', error)
-      setUser(null)
-      authStore.setCurrentUserId(null)
+    const checkAuthState = async () => {
+      setAuthChecked(false)
+      try {
+        const currentUser = await appwriteService.getCurrentUser()
+        if (!active) return
+        setUser(currentUser)
+        setCurrentUserId(currentUser?.$id || null)
+      } catch (error) {
+        if (!active) return
+        console.error('Auth check failed:', error)
+        setUser(null)
+        setCurrentUserId(null)
+      } finally {
+        if (active) {
+          setAuthChecked(true)
+        }
+      }
     }
-  }
 
-  const handleAuthSuccess = () => {
-    checkAuthState()
-  }
+    void checkAuthState()
 
-  const handleSignOut = async () => {
-    try {
-      await appwriteService.signOut()
-      setUser(null)
-      router.push('/')
-    } catch (error) {
-      console.error('Sign out failed:', error)
+    return () => {
+      active = false
     }
-  }
+  }, [pathname, setCurrentUserId])
 
-  // Public routes that don't require authentication
-  const publicRoutes = ['/', '/watch', '/reels', '/search', '/news', '/following', '/live', '/hashtag', '/auth', '/profile']
+  useEffect(() => {
+    if (!authChecked) return
+    if (requiresAuth && !user) {
+      router.replace('/auth/signin')
+    }
+  }, [authChecked, requiresAuth, router, user])
 
-  // Check if current route requires authentication
-  const requiresAuth = !publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'))
-
-  if (requiresAuth && !user) {
-    router.push('/auth/signin')
-    return null
-  }
+  if (requiresAuth && !authChecked) return null
+  if (requiresAuth && !user) return null
 
   return <>{children}</>
 }

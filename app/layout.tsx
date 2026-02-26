@@ -6,6 +6,7 @@ import { MainLayoutWrapper } from '../MainLayoutWrapper'
 import { generateWebsiteStructuredData, generateOrganizationStructuredData } from '../lib/structured-data'
 
 const inter = Inter({ subsets: ['latin'] })
+const googleVerificationToken = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
 
 export const metadata: Metadata = {
   title: {
@@ -53,9 +54,11 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: 'google-site-verification-code',
-  },
+  verification: googleVerificationToken
+    ? {
+        google: googleVerificationToken,
+      }
+    : undefined,
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'),
 }
 
