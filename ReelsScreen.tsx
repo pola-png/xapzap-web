@@ -574,6 +574,7 @@ export function ReelsScreen() {
           const videoSource = getVideoSource(post)
           const canRenderVideo = Boolean(videoSource)
           const isVideoReady = Boolean(videoReadyMap.get(post.id))
+          const isVideoFrameReady = (videoRefs.current[index]?.readyState ?? 0) >= 3
           const shouldRenderMedia = Boolean(shouldLoadMedia.get(post.id) || index === currentIndex)
 
           if (!canRenderVideo) {
@@ -615,6 +616,10 @@ export function ReelsScreen() {
               onCanPlay={() => {
                 setVideoReadyMap(prev => new Map(prev).set(post.id, true))
               }}
+              onCanPlayThrough={() => {
+                // Force a rerender when buffering reaches a render-smooth state.
+                setVideoReadyMap(prev => new Map(prev).set(post.id, true))
+              }}
               preload={index === currentIndex ? "auto" : (Math.abs(index - currentIndex) === 1 ? "metadata" : "none")}
               onClick={(e) => {
                 e.stopPropagation()
@@ -640,7 +645,7 @@ export function ReelsScreen() {
                 <div className="text-white/80 text-sm">Reel media unavailable</div>
               </div>
             )}
-            {index === currentIndex && !isVideoReady && (
+            {index === currentIndex && (!isVideoReady || !isVideoFrameReady) && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none">
                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-white" />
               </div>
