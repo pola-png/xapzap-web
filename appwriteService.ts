@@ -39,6 +39,14 @@ class AppwriteService {
 
   private readonly mediaBucketId = '6915baaa00381391d7b2'
 
+  private normalizeIdentifier(value: unknown): string | null {
+    if (typeof value !== 'string') return null
+    const normalized = value.trim()
+    if (!normalized) return null
+    if (normalized === 'undefined' || normalized === 'null' || normalized === 'nan') return null
+    return normalized
+  }
+
   private constructor() {
     this.client = new Client()
       .setEndpoint(this.endpoint)
@@ -166,7 +174,9 @@ class AppwriteService {
   }
 
   async getProfileByUserId(userId: string) {
-    return this.getProfileByUserIdPrimary(userId)
+    const safeUserId = this.normalizeIdentifier(userId)
+    if (!safeUserId) return null
+    return this.getProfileByUserIdPrimary(safeUserId)
   }
 
   // Posts methods with different algorithms
@@ -186,12 +196,15 @@ class AppwriteService {
 
   // Profiles
   async getProfileByUserIdPrimary(userId: string) {
+    const safeUserId = this.normalizeIdentifier(userId)
+    if (!safeUserId) return null
+
     try {
       // Primary: profile document ID matches userId
       return await this.databases.getDocument(
         this.databaseId,
         this.collections.profiles,
-        userId
+        safeUserId
       )
     } catch {
       try {
@@ -199,7 +212,7 @@ class AppwriteService {
         const result = await this.databases.listDocuments(
           this.databaseId,
           this.collections.profiles,
-          [Query.equal('userId', userId), Query.limit(1)]
+          [Query.equal('userId', safeUserId), Query.limit(1)]
         )
         return result.documents[0] ?? null
       } catch {
@@ -385,12 +398,17 @@ class AppwriteService {
   }
 
   async getPost(postId: string) {
+    const safePostId = this.normalizeIdentifier(postId)
+    if (!safePostId) {
+      throw new Error('Invalid post id')
+    }
+
     try {
       // Try direct get first (faster for authenticated users)
       return await this.databases.getDocument(
         this.databaseId,
         this.collections.posts,
-        postId
+        safePostId
       )
     } catch (error) {
       // Fallback to listDocuments for public access (guests)
@@ -399,7 +417,7 @@ class AppwriteService {
           this.databaseId,
           this.collections.posts,
           [
-            Query.equal('$id', postId),
+            Query.equal('$id', safePostId),
             Query.limit(1)
           ]
         )

@@ -86,9 +86,21 @@ type WatchDetailPageProps = {
   params: { id: string }
 }
 
+function normalizeRouteId(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const normalized = value.trim()
+  if (!normalized) return null
+  if (normalized === 'undefined' || normalized === 'null' || normalized === 'nan') return null
+  return normalized
+}
+
 export default async function WatchDetailPage({ params }: WatchDetailPageProps) {
-  const slugId = params.id
-  const postId = extractIdFromSlug(slugId)
+  const slugId = normalizeRouteId(params.id) || ''
+  const postId = normalizeRouteId(extractIdFromSlug(slugId))
+
+  if (!slugId || !postId) {
+    return <WatchDetailClient initialPost={null} slugId={slugId || ''} />
+  }
 
   try {
     const postData = await appwriteService.getPost(postId)
@@ -101,14 +113,21 @@ export default async function WatchDetailPage({ params }: WatchDetailPageProps) 
       : null
     const initialPost = buildInitialPost(postData, profile)
     const videoUrl = initialPost.mediaUrls[0] || ''
-    const structuredData = generateVideoStructuredData(initialPost)
+    let structuredData: Record<string, unknown> | null = null
+    try {
+      structuredData = generateVideoStructuredData(initialPost)
+    } catch (error) {
+      console.error('Watch structured data generation failed:', error)
+    }
 
     return (
       <>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
+        {structuredData && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          />
+        )}
         {videoUrl ? (
           <div className="sr-only" aria-hidden="true">
             <video
