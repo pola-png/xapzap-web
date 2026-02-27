@@ -108,8 +108,9 @@ export default async function WatchDetailPage({ params }: WatchDetailPageProps) 
       return <WatchDetailClient initialPost={null} slugId={slugId} />
     }
 
-    const profile = postData.userId
-      ? await appwriteService.getProfileByUserId(postData.userId)
+    const safeUserId = normalizeRouteId(postData.userId)
+    const profile = safeUserId
+      ? await appwriteService.getProfileByUserId(safeUserId)
       : null
     const initialPost = buildInitialPost(postData, profile)
     const videoUrl = initialPost.mediaUrls[0] || ''
