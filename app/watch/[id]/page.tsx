@@ -87,10 +87,18 @@ type WatchDetailPageProps = {
 }
 
 export default async function WatchDetailPage({ params }: WatchDetailPageProps) {
+  const slugId = params.id
+  const postId = extractIdFromSlug(slugId)
+
   try {
-    const postId = extractIdFromSlug(params.id)
     const postData = await appwriteService.getPost(postId)
-    const profile = await appwriteService.getProfileByUserId(postData.userId)
+    if (!postData || typeof postData !== 'object') {
+      return <WatchDetailClient initialPost={null} slugId={slugId} />
+    }
+
+    const profile = postData.userId
+      ? await appwriteService.getProfileByUserId(postData.userId)
+      : null
     const initialPost = buildInitialPost(postData, profile)
     const videoUrl = initialPost.mediaUrls[0] || ''
     const structuredData = generateVideoStructuredData(initialPost)
@@ -112,10 +120,11 @@ export default async function WatchDetailPage({ params }: WatchDetailPageProps) 
             </video>
           </div>
         ) : null}
-        <WatchDetailClient initialPost={initialPost} slugId={params.id} />
+        <WatchDetailClient initialPost={initialPost} slugId={slugId} />
       </>
     )
-  } catch {
-    return <WatchDetailClient slugId={params.id} />
+  } catch (error) {
+    console.error('Watch page data load failed:', error)
+    return <WatchDetailClient initialPost={null} slugId={slugId} />
   }
 }

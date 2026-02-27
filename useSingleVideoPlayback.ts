@@ -42,6 +42,7 @@ export function useSingleVideoPlayback({
   const hasCountedView = useRef(false)
   const userPaused = useRef(false)
   const playTicket = useRef(0)
+  const hasAttemptedAdForPost = useRef(false)
 
   const pauseAllVideos = useCallback((except?: HTMLVideoElement | null) => {
     if (typeof document === 'undefined') return
@@ -61,7 +62,14 @@ export function useSingleVideoPlayback({
     if (!video) return
     const ticket = ++playTicket.current
     userPaused.current = false
-    if (enableInstreamAds) {
+
+    if (
+      enableInstreamAds &&
+      !hasAttemptedAdForPost.current &&
+      ticket === playTicket.current
+    ) {
+      hasAttemptedAdForPost.current = true
+      if (ticket !== playTicket.current) return
       await playAdcashInstreamAd({ placement: `${adPlacement}:manual` })
     }
     if (ticket !== playTicket.current) return
@@ -79,6 +87,7 @@ export function useSingleVideoPlayback({
     userPaused.current = false
     setIsVideoReady(false)
     hasCountedView.current = false
+    hasAttemptedAdForPost.current = false
     playTicket.current += 1
   }, [postId])
 
@@ -112,9 +121,12 @@ export function useSingleVideoPlayback({
     const handleLoadStart = () => setIsVideoReady(false)
     const handleLoadedMetadata = () => {
       onDurationChange?.(video.duration)
-      if (video.readyState >= 2) setIsVideoReady(true)
+      if (video.readyState >= 3) setIsVideoReady(true)
     }
-    const handleCanPlay = () => setIsVideoReady(true)
+    const handleCanPlay = () => {
+      if (video.readyState >= 3) setIsVideoReady(true)
+    }
+    const handleCanPlayThrough = () => setIsVideoReady(true)
     const handleTimeUpdate = () => {
       onTimeUpdate?.(video.currentTime)
     }
@@ -139,6 +151,7 @@ export function useSingleVideoPlayback({
     video.addEventListener('loadstart', handleLoadStart)
     video.addEventListener('loadedmetadata', handleLoadedMetadata)
     video.addEventListener('canplay', handleCanPlay)
+    video.addEventListener('canplaythrough', handleCanPlayThrough)
     video.addEventListener('timeupdate', handleTimeUpdate)
     video.addEventListener('play', handlePlay)
     video.addEventListener('pause', handlePause)
@@ -149,6 +162,7 @@ export function useSingleVideoPlayback({
       video.removeEventListener('loadstart', handleLoadStart)
       video.removeEventListener('loadedmetadata', handleLoadedMetadata)
       video.removeEventListener('canplay', handleCanPlay)
+      video.removeEventListener('canplaythrough', handleCanPlayThrough)
       video.removeEventListener('timeupdate', handleTimeUpdate)
       video.removeEventListener('play', handlePlay)
       video.removeEventListener('pause', handlePause)
@@ -183,7 +197,7 @@ export function useSingleVideoPlayback({
       shouldPause ||
       userPaused.current ||
       !isVideoReady ||
-      video.readyState < 2
+      video.readyState < 3
 
     if (shouldBlockPlay) {
       playTicket.current += 1
@@ -195,7 +209,13 @@ export function useSingleVideoPlayback({
 
     const ticket = ++playTicket.current
     const tryPlay = async () => {
-      if (enableInstreamAds) {
+      if (
+        enableInstreamAds &&
+        !hasAttemptedAdForPost.current &&
+        ticket === playTicket.current
+      ) {
+        hasAttemptedAdForPost.current = true
+        if (ticket !== playTicket.current) return
         await playAdcashInstreamAd({ placement: `${adPlacement}:autoplay` })
       }
       if (ticket !== playTicket.current) return
@@ -207,7 +227,7 @@ export function useSingleVideoPlayback({
         shouldPause ||
         userPaused.current ||
         !isVideoReady ||
-        latestVideo.readyState < 2
+        latestVideo.readyState < 3
 
       if (blockedNow) return
 
