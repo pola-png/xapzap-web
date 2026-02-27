@@ -78,6 +78,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
     postId: post.id,
     shouldLoadVideo,
     muted: isMuted,
+    adPlacement: 'reels-detail',
     shouldPause: showComments || showFullComments,
     onDurationChange: handleDurationChange,
     onTimeUpdate: handleTimeProgress,

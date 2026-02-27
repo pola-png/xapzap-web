@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { playAdcashInstreamAd } from './lib/instream-ads'
 
 interface UseSingleVideoPlaybackOptions {
   postId: string
@@ -15,6 +16,7 @@ interface UseSingleVideoPlaybackOptions {
   onEnded?: () => void
   onCountView?: () => Promise<void> | void
   resetViewCountOnEnded?: boolean
+  adPlacement?: string
 }
 
 export function useSingleVideoPlayback({
@@ -30,12 +32,14 @@ export function useSingleVideoPlayback({
   onEnded,
   onCountView,
   resetViewCountOnEnded = true,
+  adPlacement = 'video-player',
 }: UseSingleVideoPlaybackOptions) {
   const [isPageVisible, setIsPageVisible] = useState(true)
   const [isVideoReady, setIsVideoReady] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const hasCountedView = useRef(false)
   const userPaused = useRef(false)
+  const playTicket = useRef(0)
 
   const pauseAllVideos = useCallback((except?: HTMLVideoElement | null) => {
     if (typeof document === 'undefined') return
@@ -50,13 +54,17 @@ export function useSingleVideoPlayback({
     userPaused.current = paused
   }, [])
 
-  const playVideo = useCallback(() => {
+  const playVideo = useCallback(async () => {
     const video = videoRef.current
     if (!video) return
+    const ticket = ++playTicket.current
     userPaused.current = false
+    await playAdcashInstreamAd({ placement: `${adPlacement}:manual` })
+    if (ticket !== playTicket.current) return
+    if (!videoRef.current || videoRef.current !== video) return
     pauseAllVideos(video)
     video.play().catch(() => {})
-  }, [pauseAllVideos])
+  }, [adPlacement, pauseAllVideos])
 
   const pauseVideo = useCallback(() => {
     userPaused.current = true
@@ -67,6 +75,7 @@ export function useSingleVideoPlayback({
     userPaused.current = false
     setIsVideoReady(false)
     hasCountedView.current = false
+    playTicket.current += 1
   }, [postId])
 
   useEffect(() => {
@@ -173,16 +182,37 @@ export function useSingleVideoPlayback({
       video.readyState < 2
 
     if (shouldBlockPlay) {
+      playTicket.current += 1
       video.pause()
       return
     }
 
-    pauseAllVideos(video)
+    if (!video.paused) return
 
-    if (video.paused) {
-      video.play().catch(() => {})
+    const ticket = ++playTicket.current
+    const tryPlay = async () => {
+      await playAdcashInstreamAd({ placement: `${adPlacement}:autoplay` })
+      if (ticket !== playTicket.current) return
+      const latestVideo = videoRef.current
+      if (!latestVideo) return
+
+      const blockedNow =
+        !isPageVisible ||
+        shouldPause ||
+        userPaused.current ||
+        !isVideoReady ||
+        latestVideo.readyState < 2
+
+      if (blockedNow) return
+
+      pauseAllVideos(latestVideo)
+      if (latestVideo.paused) {
+        latestVideo.play().catch(() => {})
+      }
     }
-  }, [isPageVisible, isVideoReady, loop, pauseAllVideos, shouldLoadVideo, shouldPause, postId])
+
+    void tryPlay()
+  }, [adPlacement, isPageVisible, isVideoReady, loop, pauseAllVideos, shouldLoadVideo, shouldPause, postId])
 
   useEffect(() => {
     return () => {

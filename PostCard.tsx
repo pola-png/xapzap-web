@@ -16,6 +16,7 @@ import { CommentScreen } from './CommentScreen'
 import { ReelsDetailScreen } from './VideoDetailScreen'
 import { VerifiedBadge } from './components/VerifiedBadge'
 import { hasVerifiedBadge } from './lib/verification'
+import { playAdcashInstreamAd } from './lib/instream-ads'
 
 interface PostCardProps {
   post: Post
@@ -607,6 +608,19 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
               style={{ aspectRatio: '9/16' }}
               controls
               preload="metadata"
+              onPlay={(e) => {
+                const video = e.currentTarget
+                if (video.dataset.adBreakHandled === '1') {
+                  delete video.dataset.adBreakHandled
+                  return
+                }
+
+                video.pause()
+                void playAdcashInstreamAd({ placement: 'postcard-reel' }).finally(() => {
+                  video.dataset.adBreakHandled = '1'
+                  video.play().catch(() => {})
+                })
+              }}
             />
             {/* Title overlay on reels */}
             {post.title && (

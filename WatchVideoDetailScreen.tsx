@@ -104,6 +104,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     postId: post.id,
     shouldLoadVideo,
     muted: isMuted,
+    adPlacement: 'watch-detail',
     shouldPause: showComments || selectedCommentForReplies !== null || commentInputFocused,
     onDurationChange: handleDurationChange,
     onTimeUpdate: handleTimeProgress,

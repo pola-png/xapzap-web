@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { useFeedStore } from './feedStore'
@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { generateSlug } from './lib/slug'
 import { CommentModal } from './CommentModal'
 import { formatCount, formatTimeAgo } from './utils'
+import { playAdcashInstreamAd } from './lib/instream-ads'
 import { VerifiedBadge } from './components/VerifiedBadge'
 import { hasVerifiedBadge } from './lib/verification'
 
@@ -38,6 +39,7 @@ export function ReelsScreen() {
   const [videoReadyMap, setVideoReadyMap] = useState<Map<string, boolean>>(new Map())
   const mediaRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const currentIndexRef = useRef(0)
+  const playTicketRef = useRef(0)
 
   const toProxyUrl = (url?: string) => {
     if (!url) return ''
@@ -62,6 +64,22 @@ export function ReelsScreen() {
       }
     })
   }
+
+  const playVideoWithAd = useCallback(async (video: HTMLVideoElement, postId: string, reason: 'manual' | 'autoplay') => {
+    const ticket = ++playTicketRef.current
+    await playAdcashInstreamAd({ placement: `reels-feed:${reason}` })
+
+    if (ticket !== playTicketRef.current) return
+    if (commentModalPost || !isPageVisible) return
+    if (userPaused.current.get(postId)) return
+    if (video.readyState < 3) return
+    if (video !== videoRefs.current[currentIndexRef.current]) return
+
+    pauseAllVideos(video)
+    if (video.paused) {
+      video.play().catch(() => {})
+    }
+  }, [commentModalPost, isPageVisible])
 
   useEffect(() => {
     const cached = feedStore.getFeed('reels')
@@ -200,15 +218,15 @@ export function ReelsScreen() {
       userPaused.current.get(activePost.id) ||
       activeVideo.readyState < 3
     ) {
+      playTicketRef.current += 1
       activeVideo.pause()
       return
     }
 
-    pauseAllVideos(activeVideo)
     if (activeVideo.paused) {
-      activeVideo.play().catch(() => {})
+      void playVideoWithAd(activeVideo, activePost.id, 'autoplay')
     }
-  }, [currentIndex, commentModalPost, activePostId, isPageVisible])
+  }, [currentIndex, commentModalPost, activePostId, isPageVisible, playVideoWithAd])
 
   useEffect(() => {
     if (!activePost || impressionTracked.current.has(activePost.id)) return
@@ -613,8 +631,7 @@ export function ReelsScreen() {
                 if (index !== currentIndexRef.current) return
                 if (video.paused) {
                   userPaused.current.set(post.id, false)
-                  pauseAllVideos(video)
-                  video.play().catch(() => {})
+                  void playVideoWithAd(video, post.id, 'manual')
                   setShowControls(true)
                   if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
                   controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 2000)

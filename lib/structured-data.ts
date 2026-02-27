@@ -1,13 +1,26 @@
 export function generateVideoStructuredData(post: any) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'
+
+  const toAbsoluteUrl = (value?: string) => {
+    if (!value) return ''
+    if (value.startsWith('http')) return value
+    if (value.startsWith('/media/')) return `${siteUrl}/api/image-proxy?path=${value.substring(1)}`
+    if (value.startsWith('/')) return `${siteUrl}${value}`
+    return `${siteUrl}/${value}`
+  }
+
+  const routeBase = post.postType === 'reel' ? '/reels' : '/watch'
+  const entityId = post.slug || post.id || post.postId || ''
+
   return {
     '@context': 'https://schema.org',
     '@type': 'VideoObject',
     name: post.caption || post.title || 'Video',
     description: post.content || post.caption || 'Watch this video on XapZap',
-    thumbnailUrl: post.thumbnailUrl || '',
+    thumbnailUrl: toAbsoluteUrl(post.thumbnailUrl || ''),
     uploadDate: post.createdAt || post.$createdAt,
-    contentUrl: post.mediaUrl || (post.mediaUrls && post.mediaUrls[0]) || '',
-    embedUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'}/watch/${post.id}`,
+    contentUrl: toAbsoluteUrl(post.mediaUrl || (post.mediaUrls && post.mediaUrls[0]) || ''),
+    embedUrl: `${siteUrl}${routeBase}/${entityId}`,
     interactionStatistic: [
       {
         '@type': 'InteractionCounter',

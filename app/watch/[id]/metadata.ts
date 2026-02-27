@@ -10,6 +10,15 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'
+    const toAbsoluteUrl = (value?: string) => {
+      if (!value) return ''
+      if (value.startsWith('http')) return value
+      if (value.startsWith('/media/')) return `${siteUrl}/api/image-proxy?path=${value.substring(1)}`
+      if (value.startsWith('/')) return `${siteUrl}${value}`
+      return `${siteUrl}/${value}`
+    }
+
     const postId = extractIdFromSlug(params.id)
     const post = await appwriteService.getPost(postId)
     const profile = await appwriteService.getProfileByUserId(post.userId)
@@ -21,12 +30,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       post.content ||
       post.caption ||
       `Watch ${profile?.displayName || 'User'}'s video on XapZap. ${post.views || 0} views, ${post.likes || 0} likes.`
-    const thumbnailUrl = post.thumbnailUrl?.startsWith('http') 
-      ? post.thumbnailUrl 
-      : post.thumbnailUrl?.startsWith('/media/') 
-      ? `${process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'}/api/image-proxy?path=${post.thumbnailUrl.substring(1)}`
-      : `${process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'}/og-image.jpg`
-    const url = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'}/watch/${params.id}`
+    const thumbnailUrl = toAbsoluteUrl(post.thumbnailUrl || '/og-image.jpg')
+    const videoUrl = toAbsoluteUrl(post.mediaUrl || (post.mediaUrls && post.mediaUrls[0]) || '')
+    const url = `${siteUrl}/watch/${params.id}`
 
     return {
       title,
@@ -50,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         type: 'video.other',
         videos: [
           {
-            url: post.mediaUrl || (post.mediaUrls && post.mediaUrls[0]) || '',
+            url: videoUrl,
             width: 1920,
             height: 1080,
           },
@@ -63,7 +69,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         images: [thumbnailUrl],
         players: {
           playerUrl: url,
-          streamUrl: post.mediaUrl || (post.mediaUrls && post.mediaUrls[0]) || '',
+          streamUrl: videoUrl,
           width: 1920,
           height: 1080,
         },
