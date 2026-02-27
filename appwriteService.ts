@@ -424,6 +424,20 @@ class AppwriteService {
         if (result.documents.length > 0) {
           return result.documents[0]
         }
+
+        // Secondary fallback: some records use a dedicated postId field for lookup.
+        const byPostId = await this.databases.listDocuments(
+          this.databaseId,
+          this.collections.posts,
+          [
+            Query.equal('postId', safePostId),
+            Query.limit(1)
+          ]
+        )
+        if (byPostId.documents.length > 0) {
+          return byPostId.documents[0]
+        }
+
         throw new Error('Post not found')
       } catch (fallbackError) {
         console.error('Failed to fetch post:', fallbackError)

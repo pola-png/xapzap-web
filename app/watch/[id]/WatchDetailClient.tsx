@@ -57,20 +57,34 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
           throw new Error(`Post lookup failed for slug: ${slugId}`)
         }
 
-        const profile = await appwriteService.getProfileByUserId(postData.userId)
+        const postDocId = String(postData.$id || postData.id || '').trim()
+        let profile: any = null
+        try {
+          profile = postData.userId
+            ? await appwriteService.getProfileByUserId(postData.userId)
+            : null
+        } catch {
+          profile = null
+        }
+
         const user = await appwriteService.getCurrentUser()
-        const interactions = user
-          ? await Promise.all([
-              appwriteService.isPostLikedBy(user.$id, postData.$id),
-              appwriteService.isPostSavedBy(user.$id, postData.$id),
-              appwriteService.isPostRepostedBy(user.$id, postData.$id),
+        let interactions: [boolean, boolean, boolean] = [false, false, false]
+        if (user && postDocId) {
+          try {
+            interactions = await Promise.all([
+              appwriteService.isPostLikedBy(user.$id, postDocId),
+              appwriteService.isPostSavedBy(user.$id, postDocId),
+              appwriteService.isPostRepostedBy(user.$id, postDocId),
             ])
-          : [false, false, false]
+          } catch {
+            interactions = [false, false, false]
+          }
+        }
 
         const enrichedPost = {
           ...postData,
-          id: postData.$id,
-          postId: postData.postId || postData.$id,
+          id: postDocId || postData.postId || '',
+          postId: postData.postId || postDocId,
           userId: postData.userId || '',
           username: postData.username || 'User',
           userAvatar: postData.userAvatar || '',
