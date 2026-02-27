@@ -10,6 +10,7 @@ import { feedCache } from './lib/cache'
 import { generateSlug } from './lib/slug'
 import { useFeedStore } from './feedStore'
 import { hasVerifiedBadge } from './lib/verification'
+import { cacheRoutePost } from './lib/route-post-cache'
 
 export function WatchScreen() {
   const router = useRouter()
@@ -128,7 +129,15 @@ export function WatchScreen() {
   }
 
   const handleVideoClick = (post: Post) => {
-    const slug = generateSlug(post.title || post.content || 'video', post.id)
+    const resolvedId = post.id || post.postId || (post as any).$id || ''
+    if (!resolvedId) return
+    const slug = generateSlug(post.title || post.content || 'video', resolvedId)
+    cacheRoutePost(slug, {
+      ...post,
+      id: resolvedId,
+      postId: post.postId || resolvedId,
+      timestamp: post.timestamp instanceof Date ? post.timestamp : new Date(post.createdAt || Date.now()),
+    })
     router.push(`/watch/${slug}`)
   }
 

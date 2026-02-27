@@ -7,6 +7,7 @@ import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
 import { extractIdFromSlug } from '../../../lib/slug'
 import { hasVerifiedBadge } from '../../../lib/verification'
+import { cacheRoutePost, getCachedRoutePost } from '../../../lib/route-post-cache'
 
 interface WatchDetailClientProps {
   initialPost?: Post | null
@@ -14,20 +15,33 @@ interface WatchDetailClientProps {
 }
 
 export default function WatchDetailClient({ initialPost = null, slugId }: WatchDetailClientProps) {
-  const [post, setPost] = useState<Post | null>(initialPost)
+  const [post, setPost] = useState<Post | null>(() => initialPost || getCachedRoutePost(slugId))
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     if (initialPost) {
       setPost(initialPost)
+      setError(null)
+      return
+    }
+
+    const cachedPost = getCachedRoutePost(slugId)
+    if (cachedPost) {
+      setPost(cachedPost)
       return
     }
 
     let active = true
     const loadPost = async () => {
       try {
-        const candidateIds = Array.from(new Set([extractIdFromSlug(slugId), slugId].filter(Boolean)))
+        const candidateIds = Array.from(
+          new Set([extractIdFromSlug(slugId), slugId].filter((id) => {
+            if (!id) return false
+            const normalized = String(id).trim().toLowerCase()
+            return normalized !== 'undefined' && normalized !== 'null' && normalized !== 'nan'
+          }))
+        )
         let postData: any = null
 
         for (const candidateId of candidateIds) {
@@ -82,8 +96,8 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
           impressions: postData.impressions || 0,
           views: postData.views || 0,
           isLiked: interactions[0],
-          isReposted: interactions[1],
-          isSaved: interactions[2],
+          isSaved: interactions[1],
+          isReposted: interactions[2],
           isBoosted: postData.isBoosted || false,
           activeBoostId: postData.activeBoostId || '',
         } as Post
@@ -91,11 +105,18 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
         if (active) {
           setPost(enrichedPost)
           setError(null)
+          cacheRoutePost(slugId, enrichedPost)
         }
       } catch (loadError) {
         console.error('Watch detail fallback load failed:', loadError)
         if (active) {
-          setError('Video not found or access denied.')
+          const cached = getCachedRoutePost(slugId)
+          if (cached) {
+            setPost(cached)
+            setError(null)
+          } else {
+            setError('Video not found or access denied.')
+          }
         }
       }
     }
@@ -107,7 +128,7 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
   }, [initialPost, slugId])
 
   useEffect(() => {
-    if (!initialPost) return
+    if (!post?.id) return
     let active = true
 
     const loadViewerInteractions = async () => {
@@ -116,9 +137,9 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
         if (!user || !active) return
 
         const [isLiked, isSaved, isReposted] = await Promise.all([
-          appwriteService.isPostLikedBy(user.$id, initialPost.id),
-          appwriteService.isPostSavedBy(user.$id, initialPost.id),
-          appwriteService.isPostRepostedBy(user.$id, initialPost.id),
+          appwriteService.isPostLikedBy(user.$id, post.id),
+          appwriteService.isPostSavedBy(user.$id, post.id),
+          appwriteService.isPostRepostedBy(user.$id, post.id),
         ])
 
         if (!active) return
@@ -133,7 +154,7 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
     return () => {
       active = false
     }
-  }, [initialPost])
+  }, [post?.id])
 
   if (error) {
     return (

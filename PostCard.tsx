@@ -16,6 +16,7 @@ import { CommentScreen } from './CommentScreen'
 import { ReelsDetailScreen } from './VideoDetailScreen'
 import { VerifiedBadge } from './components/VerifiedBadge'
 import { hasVerifiedBadge } from './lib/verification'
+import { cacheRoutePost } from './lib/route-post-cache'
 
 interface PostCardProps {
   post: Post
@@ -30,6 +31,37 @@ interface PostCardProps {
 export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'home', onVideoClick, onCommentClick }: PostCardProps) => {
   const router = useRouter()
   const resolvedPostId = post.id || post.postId || (post as any).$id || ''
+
+  const buildVideoSlug = () => generateSlug(post.title || post.content || 'video', resolvedPostId)
+
+  const cacheWatchRoutePost = (slug: string) => {
+    if (!slug || !resolvedPostId) return
+    const timestampValue =
+      post.timestamp instanceof Date
+        ? post.timestamp
+        : new Date((post.timestamp as unknown as string) || post.createdAt || Date.now())
+
+    cacheRoutePost(slug, {
+      ...post,
+      id: resolvedPostId,
+      postId: post.postId || resolvedPostId,
+      timestamp: timestampValue,
+      mediaUrls: Array.isArray(post.mediaUrls) ? post.mediaUrls : [],
+      createdAt: post.createdAt || new Date().toISOString(),
+    })
+  }
+
+  const navigateToVideoDetail = () => {
+    if (!resolvedPostId) return
+    const slug = buildVideoSlug()
+    cacheWatchRoutePost(slug)
+    if (onVideoClick) {
+      onVideoClick({ ...post, id: resolvedPostId, postId: post.postId || resolvedPostId })
+      return
+    }
+    router.push(`/watch/${slug}`)
+  }
+
   const [liked, setLiked] = useState(post.isLiked || false)
   const [likes, setLikes] = useState(post.likes || 0)
   const [saved, setSaved] = useState(post.isSaved || false)
@@ -558,14 +590,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
         <>
           <div
             className="relative w-full rounded-xl mb-3 bg-gray-900 cursor-pointer overflow-hidden"
-            onClick={() => {
-              if (onVideoClick) {
-                onVideoClick(post)
-              } else {
-                if (!resolvedPostId) return
-                router.push(`/watch/${generateSlug(post.title || 'video', resolvedPostId)}`)
-              }
-            }}
+            onClick={navigateToVideoDetail}
           >
             {thumbnailUrl && (
               <img
@@ -826,12 +851,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
                       onClick={(e) => {
                         e.stopPropagation()
                         if (post.postType === 'video') {
-                          if (onVideoClick) {
-                            onVideoClick(post)
-                          } else {
-                            if (!resolvedPostId) return
-                            router.push(`/watch/${generateSlug(post.title || 'video', resolvedPostId)}`)
-                          }
+                          navigateToVideoDetail()
                         } else if (post.postType === 'reel') {
                           openReelDetail()
                         } else {
