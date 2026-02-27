@@ -29,6 +29,7 @@ interface PostCardProps {
 
 export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'home', onVideoClick, onCommentClick }: PostCardProps) => {
   const router = useRouter()
+  const resolvedPostId = post.id || post.postId || (post as any).$id || ''
   const [liked, setLiked] = useState(post.isLiked || false)
   const [likes, setLikes] = useState(post.likes || 0)
   const [saved, setSaved] = useState(post.isSaved || false)
@@ -437,8 +438,8 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   const handleShare = async () => {
     try {
       const postUrl = post.postType === 'reel' 
-        ? `${window.location.origin}/reels/${generateSlug(post.title || post.content?.substring(0, 30) || 'reel', post.id)}`
-        : `${window.location.origin}/watch/${generateSlug(post.title || 'video', post.id)}`
+        ? `${window.location.origin}/reels/${generateSlug(post.title || post.content?.substring(0, 30) || 'reel', resolvedPostId)}`
+        : `${window.location.origin}/watch/${generateSlug(post.title || 'video', resolvedPostId)}`
       
       if (navigator.share) {
         await navigator.share({
@@ -561,7 +562,8 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
               if (onVideoClick) {
                 onVideoClick(post)
               } else {
-                router.push(`/watch/${generateSlug(post.title || 'video', post.id)}`)
+                if (!resolvedPostId) return
+                router.push(`/watch/${generateSlug(post.title || 'video', resolvedPostId)}`)
               }
             }}
           >
@@ -827,7 +829,8 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
                           if (onVideoClick) {
                             onVideoClick(post)
                           } else {
-                            router.push(`/watch/${generateSlug(post.title || 'video', post.id)}`)
+                            if (!resolvedPostId) return
+                            router.push(`/watch/${generateSlug(post.title || 'video', resolvedPostId)}`)
                           }
                         } else if (post.postType === 'reel') {
                           openReelDetail()

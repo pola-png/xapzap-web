@@ -27,8 +27,22 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
     let active = true
     const loadPost = async () => {
       try {
-        const postId = extractIdFromSlug(slugId)
-        const postData = await appwriteService.getPost(postId)
+        const candidateIds = Array.from(new Set([extractIdFromSlug(slugId), slugId].filter(Boolean)))
+        let postData: any = null
+
+        for (const candidateId of candidateIds) {
+          try {
+            postData = await appwriteService.getPost(candidateId)
+            if (postData) break
+          } catch {
+            // Try next candidate
+          }
+        }
+
+        if (!postData) {
+          throw new Error(`Post lookup failed for slug: ${slugId}`)
+        }
+
         const profile = await appwriteService.getProfileByUserId(postData.userId)
         const user = await appwriteService.getCurrentUser()
         const interactions = user
@@ -78,7 +92,8 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
           setPost(enrichedPost)
           setError(null)
         }
-      } catch {
+      } catch (loadError) {
+        console.error('Watch detail fallback load failed:', loadError)
         if (active) {
           setError('Video not found or access denied.')
         }

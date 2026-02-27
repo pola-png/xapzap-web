@@ -27,8 +27,22 @@ export default function ReelDetailClient({ initialPost = null, slugId }: ReelDet
     let active = true
     const loadPost = async () => {
       try {
-        const postId = extractIdFromSlug(slugId)
-        const postData = await appwriteService.getPost(postId)
+        const candidateIds = Array.from(new Set([extractIdFromSlug(slugId), slugId].filter(Boolean)))
+        let postData: any = null
+
+        for (const candidateId of candidateIds) {
+          try {
+            postData = await appwriteService.getPost(candidateId)
+            if (postData) break
+          } catch {
+            // Try next candidate
+          }
+        }
+
+        if (!postData) {
+          throw new Error(`Post lookup failed for slug: ${slugId}`)
+        }
+
         const profile = await appwriteService.getProfileByUserId(postData.userId)
         const user = await appwriteService.getCurrentUser()
         const interactions = user
@@ -78,7 +92,8 @@ export default function ReelDetailClient({ initialPost = null, slugId }: ReelDet
           setPost(enrichedPost)
           setError(null)
         }
-      } catch {
+      } catch (loadError) {
+        console.error('Reel detail fallback load failed:', loadError)
         if (active) {
           setError('Failed to load reel.')
         }
