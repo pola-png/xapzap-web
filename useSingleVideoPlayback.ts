@@ -16,6 +16,7 @@ interface UseSingleVideoPlaybackOptions {
   onEnded?: () => void
   onCountView?: () => Promise<void> | void
   resetViewCountOnEnded?: boolean
+  enableInstreamAds?: boolean
   adPlacement?: string
 }
 
@@ -32,6 +33,7 @@ export function useSingleVideoPlayback({
   onEnded,
   onCountView,
   resetViewCountOnEnded = true,
+  enableInstreamAds = false,
   adPlacement = 'video-player',
 }: UseSingleVideoPlaybackOptions) {
   const [isPageVisible, setIsPageVisible] = useState(true)
@@ -59,12 +61,14 @@ export function useSingleVideoPlayback({
     if (!video) return
     const ticket = ++playTicket.current
     userPaused.current = false
-    await playAdcashInstreamAd({ placement: `${adPlacement}:manual` })
+    if (enableInstreamAds) {
+      await playAdcashInstreamAd({ placement: `${adPlacement}:manual` })
+    }
     if (ticket !== playTicket.current) return
     if (!videoRef.current || videoRef.current !== video) return
     pauseAllVideos(video)
     video.play().catch(() => {})
-  }, [adPlacement, pauseAllVideos])
+  }, [adPlacement, enableInstreamAds, pauseAllVideos])
 
   const pauseVideo = useCallback(() => {
     userPaused.current = true
@@ -191,7 +195,9 @@ export function useSingleVideoPlayback({
 
     const ticket = ++playTicket.current
     const tryPlay = async () => {
-      await playAdcashInstreamAd({ placement: `${adPlacement}:autoplay` })
+      if (enableInstreamAds) {
+        await playAdcashInstreamAd({ placement: `${adPlacement}:autoplay` })
+      }
       if (ticket !== playTicket.current) return
       const latestVideo = videoRef.current
       if (!latestVideo) return
@@ -212,7 +218,7 @@ export function useSingleVideoPlayback({
     }
 
     void tryPlay()
-  }, [adPlacement, isPageVisible, isVideoReady, loop, pauseAllVideos, shouldLoadVideo, shouldPause, postId])
+  }, [adPlacement, enableInstreamAds, isPageVisible, isVideoReady, loop, pauseAllVideos, shouldLoadVideo, shouldPause, postId])
 
   useEffect(() => {
     return () => {

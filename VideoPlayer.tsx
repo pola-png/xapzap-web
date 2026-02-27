@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react'
 import { cn } from './utils'
-import { playAdcashInstreamAd } from './lib/instream-ads'
 
 interface VideoPlayerProps {
   src: string
@@ -27,10 +26,7 @@ export function VideoPlayer({ src, poster, className, autoPlay = false, muted = 
     video.muted = isMuted
     
     if (autoPlay) {
-      void (async () => {
-        await playAdcashInstreamAd({ placement: 'video-player:autoplay' })
-        video.play().catch(() => {})
-      })()
+      video.play().catch(() => {})
     }
   }, [autoPlay, isMuted])
 
@@ -39,10 +35,7 @@ export function VideoPlayer({ src, poster, className, autoPlay = false, muted = 
       if (isPlaying) {
         videoRef.current.pause()
       } else {
-        void (async () => {
-          await playAdcashInstreamAd({ placement: 'video-player:manual' })
-          videoRef.current?.play().catch(() => {})
-        })()
+        videoRef.current.play()
       }
       setIsPlaying(!isPlaying)
     }
