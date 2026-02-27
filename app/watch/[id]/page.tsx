@@ -40,6 +40,15 @@ function normalizeMediaUrls(postData: any): string[] {
     return [postData.videoUrl]
   }
 
+  if (typeof postData.mediaUrl === 'string' && postData.mediaUrl.length > 0) {
+    return [postData.mediaUrl]
+  }
+
+  // Some legacy records use this typo key.
+  if (typeof postData.mediaURl === 'string' && postData.mediaURl.length > 0) {
+    return [postData.mediaURl]
+  }
+
   return []
 }
 

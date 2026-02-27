@@ -100,7 +100,11 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
             ? postData.mediaUrls
             : typeof postData.mediaUrls === 'string' && postData.mediaUrls
               ? [postData.mediaUrls]
-              : (postData.videoUrl ? [postData.videoUrl] : []),
+              : (postData.videoUrl
+                  ? [postData.videoUrl]
+                  : (postData.mediaUrl
+                      ? [postData.mediaUrl]
+                      : (postData.mediaURl ? [postData.mediaURl] : []))),
           timestamp: new Date(postData.$createdAt || postData.createdAt),
           createdAt: postData.$createdAt || postData.createdAt,
           likes: postData.likes || 0,

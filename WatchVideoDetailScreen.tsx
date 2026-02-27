@@ -110,6 +110,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   const {
     videoRef,
+    isVideoReady,
     pauseAllVideos,
     playVideo,
     pauseVideo,
@@ -314,6 +315,13 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     showPlaybackControls(isPlaying)
   }
 
+  const videoSource = toProxyUrl(
+    post.mediaUrls?.[0] ||
+    (post as any).mediaUrl ||
+    (post as any).mediaURl ||
+    (post as any).videoUrl
+  )
+
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60)
     const seconds = Math.floor(time % 60)
@@ -485,15 +493,22 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       {/* Video Player Container */}
       <div className="w-full aspect-video bg-black relative overflow-hidden">
         {shouldLoadVideo ? (
+        <>
         <video
           ref={videoRef}
-          src={toProxyUrl(post.mediaUrls?.[0])}
+          src={videoSource}
           className="w-full h-full object-contain transition-opacity duration-300"
           onClick={handleVideoSurfaceTap}
           playsInline
           autoPlay={false}
           preload="metadata"
         />
+        {!isVideoReady && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-white" />
+          </div>
+        )}
+        </>
         ) : (
           <div className="w-full h-full bg-gray-900" />
         )}
