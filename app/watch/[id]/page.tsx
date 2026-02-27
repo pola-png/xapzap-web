@@ -1,4 +1,3 @@
-import { notFound } from 'next/navigation'
 import appwriteService from '../../../appwriteService'
 import { Post } from '../../../types'
 import { extractIdFromSlug } from '../../../lib/slug'
@@ -113,10 +112,10 @@ export default async function WatchDetailPage({ params }: WatchDetailPageProps) 
             </video>
           </div>
         ) : null}
-        <WatchDetailClient initialPost={initialPost} />
+        <WatchDetailClient initialPost={initialPost} slugId={params.id} />
       </>
     )
   } catch {
-    notFound()
+    return <WatchDetailClient slugId={params.id} />
   }
 }

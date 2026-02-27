@@ -1,4 +1,3 @@
-import { notFound } from 'next/navigation'
 import appwriteService from '../../../appwriteService'
 import { Post } from '../../../types'
 import { extractIdFromSlug } from '../../../lib/slug'
@@ -113,10 +112,10 @@ export default async function ReelDetailPage({ params }: ReelDetailPageProps) {
             </video>
           </div>
         ) : null}
-        <ReelDetailClient initialPost={initialPost} />
+        <ReelDetailClient initialPost={initialPost} slugId={params.id} />
       </>
     )
   } catch {
-    notFound()
+    return <ReelDetailClient slugId={params.id} />
   }
 }
