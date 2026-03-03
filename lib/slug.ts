@@ -9,10 +9,14 @@ export function generateSlug(title: string, id: string): string {
 }
 
 export function extractIdFromSlug(slug: string): string {
-  // Extract last UUID segment (format: title-slug-uuid)
-  const uuidPattern = /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i
-  const match = slug.match(uuidPattern)
-  return match ? match[0] : slug.split('-').pop() || slug
+  const normalized = typeof slug === 'string' ? slug.trim() : ''
+  if (!normalized) return ''
+
+  // Default slug format is "title-part-id", where id is the last segment.
+  const lastSegment = normalized.split('-').pop()?.trim() || ''
+  if (lastSegment) return lastSegment
+
+  return normalized
 }
 
 export function extractCandidateIdsFromSlug(slug: string): string[] {
@@ -31,8 +35,9 @@ export function extractCandidateIdsFromSlug(slug: string): string[] {
 
   pushSafe(extractIdFromSlug(normalized))
 
-  const appwriteIdMatches = normalized.match(/[a-z0-9]{20}/gi) || []
-  appwriteIdMatches.forEach((value) => pushSafe(value))
+  // Accept variable-length alphanumeric IDs (not fixed to 20/24 chars).
+  const dynamicIdMatches = normalized.match(/[a-z0-9]{6,1024}/gi) || []
+  dynamicIdMatches.forEach((value) => pushSafe(value))
 
   const uuidMatches =
     normalized.match(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/gi) || []

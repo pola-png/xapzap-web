@@ -102,19 +102,21 @@ function buildInitialPost(postData: any, profile: any): Post {
 }
 
 type WatchDetailPageProps = {
-  params: { id: string }
+  params: { id?: string | string[] } | Promise<{ id?: string | string[] }>
 }
 
 function normalizeRouteId(value: unknown): string | null {
-  if (typeof value !== 'string') return null
-  const normalized = value.trim()
+  const raw = Array.isArray(value) ? value[0] : value
+  if (typeof raw !== 'string') return null
+  const normalized = raw.trim()
   if (!normalized) return null
   if (normalized === 'undefined' || normalized === 'null' || normalized === 'nan') return null
   return normalized
 }
 
 export default async function WatchDetailPage({ params }: WatchDetailPageProps) {
-  const slugId = normalizeRouteId(params.id) || ''
+  const resolvedParams = await params
+  const slugId = normalizeRouteId(resolvedParams?.id) || ''
   const postId = normalizeRouteId(extractIdFromSlug(slugId))
   const candidateIds = extractCandidateIdsFromSlug(slugId)
     .map((id) => normalizeRouteId(id))

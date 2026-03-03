@@ -1,15 +1,16 @@
 import { Metadata } from 'next'
 import appwriteService from '../../../appwriteService'
-import { extractIdFromSlug } from '../../../lib/slug'
+import { extractCandidateIdsFromSlug, extractIdFromSlug } from '../../../lib/slug'
 
 export const dynamic = 'force-dynamic'
 
 type Props = {
-  params: { id: string }
+  params: { id?: string | string[] } | Promise<{ id?: string | string[] }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
+    const resolvedParams = await params
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'
     const toImageAbsoluteUrl = (value?: string) => {
       if (!value) return ''
@@ -27,9 +28,33 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       return `${siteUrl}/${value}`
     }
 
-    const postId = extractIdFromSlug(params.id)
-    const post = await appwriteService.getPost(postId)
-    const profile = await appwriteService.getProfileByUserId(post.userId)
+    const normalizeRouteId = (value: unknown): string | null => {
+      const raw = Array.isArray(value) ? value[0] : value
+      if (typeof raw !== 'string') return null
+      const normalized = raw.trim()
+      if (!normalized) return null
+      if (normalized === 'undefined' || normalized === 'null' || normalized === 'nan') return null
+      return normalized
+    }
+
+    const slugId = normalizeRouteId(resolvedParams?.id) || ''
+    const postId = normalizeRouteId(extractIdFromSlug(slugId))
+    const candidateIds = extractCandidateIdsFromSlug(slugId)
+      .map((id) => normalizeRouteId(id))
+      .filter((id): id is string => Boolean(id))
+
+    let post: any = null
+    for (const candidateId of candidateIds.length > 0 ? candidateIds : [postId as string]) {
+      try {
+        post = await appwriteService.getPost(candidateId)
+        if (post) break
+      } catch {
+        // Try next candidate
+      }
+    }
+    if (!post) throw new Error('Post not found')
+
+    const profile = post.userId ? await appwriteService.getProfileByUserId(post.userId) : null
     // Respect per-post SEO overrides when present
     const baseTitle = post.seoTitle || post.title || post.caption || 'Video'
     const title = `${baseTitle} by ${profile?.displayName || 'User'}`
@@ -40,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       `Watch ${profile?.displayName || 'User'}'s video on XapZap. ${post.views || 0} views, ${post.likes || 0} likes.`
     const thumbnailUrl = toImageAbsoluteUrl(post.thumbnailUrl || '/og-image.jpg')
     const videoUrl = toVideoAbsoluteUrl(post.mediaUrl || (post.mediaUrls && post.mediaUrls[0]) || '')
-    const url = `${siteUrl}/watch/${params.id}`
+    const url = `${siteUrl}/watch/${slugId}`
 
     return {
       title,

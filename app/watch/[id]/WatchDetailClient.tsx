@@ -15,27 +15,45 @@ interface WatchDetailClientProps {
 }
 
 export default function WatchDetailClient({ initialPost = null, slugId }: WatchDetailClientProps) {
+  const [resolvedSlugId, setResolvedSlugId] = useState(slugId)
   const [post, setPost] = useState<Post | null>(() => initialPost || getCachedRoutePost(slugId))
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
+    if (resolvedSlugId) return
+    if (typeof window === 'undefined') return
+
+    const match = window.location.pathname.match(/\/watch\/([^/?#]+)/i)
+    const fromPath = match?.[1]?.trim()
+    if (fromPath) {
+      setResolvedSlugId(fromPath)
+    }
+  }, [resolvedSlugId])
+
+  useEffect(() => {
+    const activeSlugId = resolvedSlugId || slugId
+
     if (initialPost) {
       setPost(initialPost)
       setError(null)
       return
     }
 
-    const cachedPost = getCachedRoutePost(slugId)
+    const cachedPost = getCachedRoutePost(activeSlugId)
     if (cachedPost) {
       setPost(cachedPost)
+      setError(null)
       return
     }
 
     let active = true
     const loadPost = async () => {
       try {
-        const candidateIds = extractCandidateIdsFromSlug(slugId)
+        const candidateIds = extractCandidateIdsFromSlug(activeSlugId)
+        if (candidateIds.length === 0) {
+          throw new Error(`No candidate IDs resolved for slug: ${activeSlugId}`)
+        }
         let postData: any = null
 
         for (const candidateId of candidateIds) {
@@ -48,7 +66,7 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
         }
 
         if (!postData) {
-          throw new Error(`Post lookup failed for slug: ${slugId}`)
+          throw new Error(`Post lookup failed for slug: ${activeSlugId}`)
         }
 
         const postDocId = String(postData.$id || postData.id || '').trim()
@@ -117,12 +135,12 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
         if (active) {
           setPost(enrichedPost)
           setError(null)
-          cacheRoutePost(slugId, enrichedPost)
+          cacheRoutePost(activeSlugId, enrichedPost)
         }
       } catch (loadError) {
         console.error('Watch detail fallback load failed:', loadError)
         if (active) {
-          const cached = getCachedRoutePost(slugId)
+          const cached = getCachedRoutePost(activeSlugId)
           if (cached) {
             setPost(cached)
             setError(null)
@@ -137,7 +155,7 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
     return () => {
       active = false
     }
-  }, [initialPost, slugId])
+  }, [initialPost, resolvedSlugId, slugId])
 
   useEffect(() => {
     if (!post?.id) return

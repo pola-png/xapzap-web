@@ -1,6 +1,6 @@
 import appwriteService from '../../../appwriteService'
 import { Post } from '../../../types'
-import { extractIdFromSlug } from '../../../lib/slug'
+import { extractCandidateIdsFromSlug, extractIdFromSlug } from '../../../lib/slug'
 import { generateVideoStructuredData } from '../../../lib/structured-data'
 import { hasVerifiedBadge } from '../../../lib/verification'
 import ReelDetailClient from './ReelDetailClient'
@@ -50,6 +50,15 @@ function normalizeMediaUrls(postData: any): string[] {
     return [postData.videoUrl]
   }
 
+  if (typeof postData.mediaUrl === 'string' && postData.mediaUrl.length > 0) {
+    return [postData.mediaUrl]
+  }
+
+  // Some legacy records use this typo key.
+  if (typeof postData.mediaURl === 'string' && postData.mediaURl.length > 0) {
+    return [postData.mediaURl]
+  }
+
   return []
 }
 
@@ -93,24 +102,67 @@ function buildInitialPost(postData: any, profile: any): Post {
 }
 
 type ReelDetailPageProps = {
-  params: { id: string }
+  params: { id?: string | string[] } | Promise<{ id?: string | string[] }>
+}
+
+function normalizeRouteId(value: unknown): string | null {
+  const raw = Array.isArray(value) ? value[0] : value
+  if (typeof raw !== 'string') return null
+  const normalized = raw.trim()
+  if (!normalized) return null
+  if (normalized === 'undefined' || normalized === 'null' || normalized === 'nan') return null
+  return normalized
 }
 
 export default async function ReelDetailPage({ params }: ReelDetailPageProps) {
+  const resolvedParams = await params
+  const slugId = normalizeRouteId(resolvedParams?.id) || ''
+  const postId = normalizeRouteId(extractIdFromSlug(slugId))
+  const candidateIds = extractCandidateIdsFromSlug(slugId)
+    .map((id) => normalizeRouteId(id))
+    .filter((id): id is string => Boolean(id))
+
+  if (!slugId || (!postId && candidateIds.length === 0)) {
+    return <ReelDetailClient initialPost={null} slugId={slugId || ''} />
+  }
+
   try {
-    const postId = extractIdFromSlug(params.id)
-    const postData = await appwriteService.getPost(postId)
-    const profile = await appwriteService.getProfileByUserId(postData.userId)
+    let postData: any = null
+
+    for (const candidateId of candidateIds.length > 0 ? candidateIds : [postId as string]) {
+      try {
+        postData = await appwriteService.getPost(candidateId)
+        if (postData) break
+      } catch {
+        // Try next candidate
+      }
+    }
+
+    if (!postData || typeof postData !== 'object') {
+      return <ReelDetailClient initialPost={null} slugId={slugId} />
+    }
+
+    const safeUserId = normalizeRouteId(postData.userId)
+    const profile = safeUserId
+      ? await appwriteService.getProfileByUserId(safeUserId)
+      : null
     const initialPost = buildInitialPost(postData, profile)
     const videoUrl = initialPost.mediaUrls[0] || ''
-    const structuredData = generateVideoStructuredData(initialPost)
+    let structuredData: Record<string, unknown> | null = null
+    try {
+      structuredData = generateVideoStructuredData(initialPost)
+    } catch (error) {
+      console.error('Reels structured data generation failed:', error)
+    }
 
     return (
       <>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
+        {structuredData && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          />
+        )}
         {videoUrl ? (
           <div className="sr-only" aria-hidden="true">
             <video
@@ -122,10 +174,11 @@ export default async function ReelDetailPage({ params }: ReelDetailPageProps) {
             </video>
           </div>
         ) : null}
-        <ReelDetailClient initialPost={initialPost} slugId={params.id} />
+        <ReelDetailClient initialPost={initialPost} slugId={slugId} />
       </>
     )
-  } catch {
-    return <ReelDetailClient slugId={params.id} />
+  } catch (error) {
+    console.error('Reels page data load failed:', error)
+    return <ReelDetailClient initialPost={null} slugId={slugId} />
   }
 }

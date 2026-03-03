@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ReelsDetailScreen } from '../../../VideoDetailScreen'
 import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
-import { extractIdFromSlug } from '../../../lib/slug'
+import { extractCandidateIdsFromSlug } from '../../../lib/slug'
 import { hasVerifiedBadge } from '../../../lib/verification'
 
 interface ReelDetailClientProps {
@@ -14,20 +14,38 @@ interface ReelDetailClientProps {
 }
 
 export default function ReelDetailClient({ initialPost = null, slugId }: ReelDetailClientProps) {
+  const [resolvedSlugId, setResolvedSlugId] = useState(slugId)
   const [post, setPost] = useState<Post | null>(initialPost)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
+    if (resolvedSlugId) return
+    if (typeof window === 'undefined') return
+
+    const match = window.location.pathname.match(/\/reels\/([^/?#]+)/i)
+    const fromPath = match?.[1]?.trim()
+    if (fromPath) {
+      setResolvedSlugId(fromPath)
+    }
+  }, [resolvedSlugId])
+
+  useEffect(() => {
+    const activeSlugId = resolvedSlugId || slugId
+
     if (initialPost) {
       setPost(initialPost)
+      setError(null)
       return
     }
 
     let active = true
     const loadPost = async () => {
       try {
-        const candidateIds = Array.from(new Set([extractIdFromSlug(slugId), slugId].filter(Boolean)))
+        const candidateIds = extractCandidateIdsFromSlug(activeSlugId)
+        if (candidateIds.length === 0) {
+          throw new Error(`No candidate IDs resolved for slug: ${activeSlugId}`)
+        }
         let postData: any = null
 
         for (const candidateId of candidateIds) {
@@ -40,23 +58,37 @@ export default function ReelDetailClient({ initialPost = null, slugId }: ReelDet
         }
 
         if (!postData) {
-          throw new Error(`Post lookup failed for slug: ${slugId}`)
+          throw new Error(`Post lookup failed for slug: ${activeSlugId}`)
         }
 
-        const profile = await appwriteService.getProfileByUserId(postData.userId)
+        const postDocId = String(postData.$id || postData.id || '').trim()
+        let profile: any = null
+        try {
+          profile = postData.userId
+            ? await appwriteService.getProfileByUserId(postData.userId)
+            : null
+        } catch {
+          profile = null
+        }
+
         const user = await appwriteService.getCurrentUser()
-        const interactions = user
-          ? await Promise.all([
-              appwriteService.isPostLikedBy(user.$id, postData.$id),
-              appwriteService.isPostSavedBy(user.$id, postData.$id),
-              appwriteService.isPostRepostedBy(user.$id, postData.$id),
+        let interactions: [boolean, boolean, boolean] = [false, false, false]
+        if (user && postDocId) {
+          try {
+            interactions = await Promise.all([
+              appwriteService.isPostLikedBy(user.$id, postDocId),
+              appwriteService.isPostSavedBy(user.$id, postDocId),
+              appwriteService.isPostRepostedBy(user.$id, postDocId),
             ])
-          : [false, false, false]
+          } catch {
+            interactions = [false, false, false]
+          }
+        }
 
         const enrichedPost = {
           ...postData,
-          id: postData.$id,
-          postId: postData.postId || postData.$id,
+          id: postDocId || postData.postId || '',
+          postId: postData.postId || postDocId,
           userId: postData.userId || '',
           username: postData.username || 'User',
           userAvatar: postData.userAvatar || '',
@@ -72,7 +104,11 @@ export default function ReelDetailClient({ initialPost = null, slugId }: ReelDet
             ? postData.mediaUrls
             : typeof postData.mediaUrls === 'string' && postData.mediaUrls
               ? [postData.mediaUrls]
-              : (postData.videoUrl ? [postData.videoUrl] : []),
+              : (postData.videoUrl
+                  ? [postData.videoUrl]
+                  : (postData.mediaUrl
+                      ? [postData.mediaUrl]
+                      : (postData.mediaURl ? [postData.mediaURl] : []))),
           timestamp: new Date(postData.$createdAt || postData.createdAt),
           createdAt: postData.$createdAt || postData.createdAt,
           likes: postData.likes || 0,
@@ -104,7 +140,7 @@ export default function ReelDetailClient({ initialPost = null, slugId }: ReelDet
     return () => {
       active = false
     }
-  }, [initialPost, slugId])
+  }, [initialPost, resolvedSlugId, slugId])
 
   useEffect(() => {
     if (!initialPost) return
