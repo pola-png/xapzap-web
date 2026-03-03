@@ -1,5 +1,5 @@
 import { Post } from '../types'
-import { extractIdFromSlug } from './slug'
+import { extractCandidateIdsFromSlug, extractIdFromSlug } from './slug'
 
 const CACHE_PREFIX = 'xapzap:route-post:'
 const CACHE_TTL_MS = 15 * 60 * 1000
@@ -67,12 +67,16 @@ function writeByKey(key: string, post: Post) {
 export function cacheRoutePost(slugId: string, post: Post) {
   if (!slugId) return
   const resolvedId = getResolvedPostId(post)
-  const keys = Array.from(new Set([slugId, extractIdFromSlug(slugId), resolvedId].filter(Boolean)))
+  const keys = Array.from(
+    new Set([slugId, ...extractCandidateIdsFromSlug(slugId), extractIdFromSlug(slugId), resolvedId].filter(Boolean))
+  )
   keys.forEach((key) => writeByKey(key, post))
 }
 
 export function getCachedRoutePost(slugId: string): Post | null {
-  const keys = Array.from(new Set([slugId, extractIdFromSlug(slugId)].filter(Boolean)))
+  const keys = Array.from(
+    new Set([slugId, ...extractCandidateIdsFromSlug(slugId), extractIdFromSlug(slugId)].filter(Boolean))
+  )
   for (const key of keys) {
     const cached = readByKey(key)
     if (cached) return cached

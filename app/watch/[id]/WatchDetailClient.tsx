@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { VideoDetailScreen } from '../../../VideoDetailScreen'
 import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
-import { extractIdFromSlug, generateSlug } from '../../../lib/slug'
+import { extractCandidateIdsFromSlug, generateSlug } from '../../../lib/slug'
 import { hasVerifiedBadge } from '../../../lib/verification'
 import { cacheRoutePost, getCachedRoutePost } from '../../../lib/route-post-cache'
 
@@ -35,13 +35,7 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
     let active = true
     const loadPost = async () => {
       try {
-        const candidateIds = Array.from(
-          new Set([extractIdFromSlug(slugId), slugId].filter((id) => {
-            if (!id) return false
-            const normalized = String(id).trim().toLowerCase()
-            return normalized !== 'undefined' && normalized !== 'null' && normalized !== 'nan'
-          }))
-        )
+        const candidateIds = extractCandidateIdsFromSlug(slugId)
         let postData: any = null
 
         for (const candidateId of candidateIds) {

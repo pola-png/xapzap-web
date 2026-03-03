@@ -1,6 +1,6 @@
 import appwriteService from '../../../appwriteService'
 import { Post } from '../../../types'
-import { extractIdFromSlug } from '../../../lib/slug'
+import { extractCandidateIdsFromSlug, extractIdFromSlug } from '../../../lib/slug'
 import { generateVideoStructuredData } from '../../../lib/structured-data'
 import { hasVerifiedBadge } from '../../../lib/verification'
 import WatchDetailClient from './WatchDetailClient'
@@ -106,13 +106,26 @@ function normalizeRouteId(value: unknown): string | null {
 export default async function WatchDetailPage({ params }: WatchDetailPageProps) {
   const slugId = normalizeRouteId(params.id) || ''
   const postId = normalizeRouteId(extractIdFromSlug(slugId))
+  const candidateIds = extractCandidateIdsFromSlug(slugId)
+    .map((id) => normalizeRouteId(id))
+    .filter((id): id is string => Boolean(id))
 
-  if (!slugId || !postId) {
+  if (!slugId || (!postId && candidateIds.length === 0)) {
     return <WatchDetailClient initialPost={null} slugId={slugId || ''} />
   }
 
   try {
-    const postData = await appwriteService.getPost(postId)
+    let postData: any = null
+
+    for (const candidateId of candidateIds.length > 0 ? candidateIds : [postId as string]) {
+      try {
+        postData = await appwriteService.getPost(candidateId)
+        if (postData) break
+      } catch {
+        // Try next candidate
+      }
+    }
+
     if (!postData || typeof postData !== 'object') {
       return <WatchDetailClient initialPost={null} slugId={slugId} />
     }
