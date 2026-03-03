@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { PostCard } from './PostCard'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { feedCache } from './lib/cache'
 import { useFeedStore } from './feedStore'
 import { hasVerifiedBadge } from './lib/verification'
+import { AdcashBanner300x100 } from './components/AdcashBanner300x100'
 
 export function NewsScreen() {
   const feedStore = useFeedStore()
@@ -99,12 +100,16 @@ export function NewsScreen() {
             <p className="text-sm text-muted-foreground mt-2">Breaking news and updates will appear here</p>
           </div>
         ) : (
-          posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              feedType="news"
-            />
+          posts.map((post, index) => (
+            <Fragment key={post.id}>
+              <PostCard
+                post={post}
+                feedType="news"
+              />
+              {index < posts.length - 1 && (
+                <AdcashBanner300x100 slotKey={`news-${post.id}-${index}`} />
+              )}
+            </Fragment>
           ))
         )}
         {loading && posts.length === 0 && (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { PostCard } from './PostCard'
 import { CommentModal } from './CommentModal'
@@ -11,6 +11,7 @@ import { generateSlug } from './lib/slug'
 import { useFeedStore } from './feedStore'
 import { hasVerifiedBadge } from './lib/verification'
 import { cacheRoutePost } from './lib/route-post-cache'
+import { AdcashBanner300x100 } from './components/AdcashBanner300x100'
 
 export function WatchScreen() {
   const router = useRouter()
@@ -189,14 +190,18 @@ export function WatchScreen() {
       <>
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-4 pb-20 sm:pb-24">
-            {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                feedType="watch"
-                onVideoClick={handleVideoClick}
-                onCommentClick={() => handleCommentClick(post)}
-              />
+            {posts.map((post, index) => (
+              <Fragment key={post.id}>
+                <PostCard
+                  post={post}
+                  feedType="watch"
+                  onVideoClick={handleVideoClick}
+                  onCommentClick={() => handleCommentClick(post)}
+                />
+                {index < posts.length - 1 && (
+                  <AdcashBanner300x100 slotKey={`watch-comments-${post.id}-${index}`} />
+                )}
+              </Fragment>
             ))}
           </div>
         </div>
@@ -214,14 +219,18 @@ export function WatchScreen() {
             <p className="text-sm text-muted-foreground mt-2">Videos from creators you follow will appear here</p>
           </div>
         ) : (
-          posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              feedType="watch"
-              onVideoClick={handleVideoClick}
-              onCommentClick={() => handleCommentClick(post)}
-            />
+          posts.map((post, index) => (
+            <Fragment key={post.id}>
+              <PostCard
+                post={post}
+                feedType="watch"
+                onVideoClick={handleVideoClick}
+                onCommentClick={() => handleCommentClick(post)}
+              />
+              {index < posts.length - 1 && (
+                <AdcashBanner300x100 slotKey={`watch-${post.id}-${index}`} />
+              )}
+            </Fragment>
           ))
         )}
         {loading && posts.length === 0 && (

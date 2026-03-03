@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Calendar, MessageCircle, UserPlus, UserMinus, Share, Settings, BarChart3, DollarSign, Menu } from 'lucide-react'
 import { PostCard } from '../../../PostCard'
@@ -10,6 +10,7 @@ import { useProfileStore } from '../../../profileStore'
 import { useAuthStore } from '../../../authStore'
 import { VerifiedBadge } from '../../../components/VerifiedBadge'
 import { hasVerifiedBadge } from '../../../lib/verification'
+import { AdcashBanner300x100 } from '../../../components/AdcashBanner300x100'
 
 type ProfileData = {
   displayName?: string
@@ -640,13 +641,17 @@ export default function ProfilePage() {
               <p className="text-gray-400">No {activeTab} yet</p>
             </div>
           ) : (
-            filteredPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                currentUserId={currentUserId}
-                feedType="home"
-              />
+            filteredPosts.map((post, index) => (
+              <Fragment key={post.id}>
+                <PostCard
+                  post={post}
+                  currentUserId={currentUserId}
+                  feedType="home"
+                />
+                {index < filteredPosts.length - 1 && (
+                  <AdcashBanner300x100 slotKey={`profile-${userId}-${post.id}-${index}`} />
+                )}
+              </Fragment>
             ))
           )}
         </div>

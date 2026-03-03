@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { StoryBar } from "./StoryBar"
 import { PostCard } from "./PostCard"
@@ -10,6 +10,7 @@ import appwriteService from "./appwriteService"
 import { useAuthStore } from "./authStore"
 import { useFeedStore } from "./feedStore"
 import { hasVerifiedBadge } from "./lib/verification"
+import { AdcashBanner300x100 } from "./components/AdcashBanner300x100"
 
 export function HomeScreen() {
   const router = useRouter()
@@ -212,14 +213,18 @@ export function HomeScreen() {
       )}
       {showStorySection && <StoryBar />}
       <div className="space-y-4 pb-20 sm:pb-24">
-        {posts.map((post) => (
-          <PostCard
-            key={post.id}
-            post={post}
-            currentUserId={currentUserId}
-            feedType="home"
-            onCommentClick={() => handleCommentClick(post)}
-          />
+        {posts.map((post, index) => (
+          <Fragment key={post.id}>
+            <PostCard
+              post={post}
+              currentUserId={currentUserId}
+              feedType="home"
+              onCommentClick={() => handleCommentClick(post)}
+            />
+            {index < posts.length - 1 && (
+              <AdcashBanner300x100 slotKey={`home-${post.id}-${index}`} />
+            )}
+          </Fragment>
         ))}
         {loading && (
           <div className="flex items-center justify-center py-12">

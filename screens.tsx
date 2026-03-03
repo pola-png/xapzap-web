@@ -1,10 +1,11 @@
 'use client'
 
 import { Search, X, User, Hash, TrendingUp } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import appwriteService from './appwriteService'
 import { PostCard } from './PostCard'
 import { formatCount } from './utils'
+import { AdcashBanner300x100 } from './components/AdcashBanner300x100'
 
 interface SearchScreenProps {
   onClose: () => void
@@ -218,7 +219,28 @@ export function SearchScreen({ onClose }: SearchScreenProps) {
           ) : query.trim() ? (
             results.length > 0 ? (
               <div className="divide-y divide-border">
-                {results.map(renderResult)}
+                {results.map((result, index) => {
+                  const node = renderResult(result)
+                  if (result.type !== 'post') return node
+
+                  const hasAnotherPostAhead = results
+                    .slice(index + 1)
+                    .some((item) => item.type === 'post')
+
+                  const resultKey =
+                    result.type === 'post'
+                      ? `overlay-result-post-${result.data.id || index}`
+                      : `overlay-result-${result.type}-${index}`
+
+                  return (
+                    <Fragment key={resultKey}>
+                      {node}
+                      {hasAnotherPostAhead && (
+                        <AdcashBanner300x100 slotKey={`overlay-search-post-${result.data.id || index}-${index}`} />
+                      )}
+                    </Fragment>
+                  )
+                })}
               </div>
             ) : (
               <div className="text-center py-12">

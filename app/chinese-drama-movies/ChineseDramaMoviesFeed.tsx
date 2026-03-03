@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import appwriteService from '../../appwriteService'
 import { PostCard } from '../../PostCard'
 import { Post } from '../../types'
+import { AdcashBanner300x100 } from '../../components/AdcashBanner300x100'
 
 const KEYWORDS = [
   'chinese',
@@ -112,15 +113,22 @@ export function ChineseDramaMoviesFeed() {
 
   return (
     <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
-      {filteredPosts.map((post) => (
-        <div key={post.id} className="border-b border-border last:border-b-0">
-          <PostCard
-            post={post}
-            feedType={post.postType === 'reel' ? 'reels' : post.postType === 'news' ? 'news' : 'home'}
-          />
-        </div>
+      {filteredPosts.map((post, index) => (
+        <Fragment key={post.id}>
+          <div className="border-b border-border last:border-b-0">
+            <PostCard
+              post={post}
+              feedType={post.postType === 'reel' ? 'reels' : post.postType === 'news' ? 'news' : 'home'}
+            />
+          </div>
+          {index < filteredPosts.length - 1 && (
+            <AdcashBanner300x100
+              slotKey={`chinese-drama-${post.id}-${index}`}
+              className="border-b border-border"
+            />
+          )}
+        </Fragment>
       ))}
     </div>
   )
 }
-

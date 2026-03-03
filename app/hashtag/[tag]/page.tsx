@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Hash } from 'lucide-react'
 import { PostCard } from '../../../PostCard'
 import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
+import { AdcashBanner300x100 } from '../../../components/AdcashBanner300x100'
 
 export default function HashtagPage() {
   const params = useParams()
@@ -105,13 +106,17 @@ export default function HashtagPage() {
           </div>
         ) : (
           <div className="divide-y divide-gray-800">
-            {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                currentUserId={currentUserId}
-                feedType="home"
-              />
+            {posts.map((post, index) => (
+              <Fragment key={post.id}>
+                <PostCard
+                  post={post}
+                  currentUserId={currentUserId}
+                  feedType="home"
+                />
+                {index < posts.length - 1 && (
+                  <AdcashBanner300x100 slotKey={`hashtag-${tag}-${post.id}-${index}`} />
+                )}
+              </Fragment>
             ))}
           </div>
         )}

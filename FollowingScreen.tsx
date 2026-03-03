@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { PostCard } from './PostCard'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { useFeedStore } from './feedStore'
+import { AdcashBanner300x100 } from './components/AdcashBanner300x100'
 
 export function FollowingScreen() {
   const feedStore = useFeedStore()
@@ -114,12 +115,16 @@ export function FollowingScreen() {
             <p className="text-sm text-muted-foreground mt-2">Follow creators to see their posts here</p>
           </div>
         ) : (
-          posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              feedType="following"
-            />
+          posts.map((post, index) => (
+            <Fragment key={post.id}>
+              <PostCard
+                post={post}
+                feedType="following"
+              />
+              {index < posts.length - 1 && (
+                <AdcashBanner300x100 slotKey={`following-${post.id}-${index}`} />
+              )}
+            </Fragment>
           ))
         )}
       </div>
