@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 declare global {
   interface Window {
@@ -52,13 +52,16 @@ type AdcashBanner300x100Props = {
 
 export function AdcashBanner300x100({ slotKey, className = '' }: AdcashBanner300x100Props) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const [hasFill, setHasFill] = useState(false)
   const zoneId = process.env.NEXT_PUBLIC_ADCASH_BANNER_ZONE_ID || '11032670'
 
   useEffect(() => {
     let cancelled = false
+    let pollTimer: number | null = null
 
     const renderBanner = async () => {
       if (!containerRef.current) return
+      setHasFill(false)
 
       try {
         await ensureAdcashLibrary()
@@ -73,23 +76,59 @@ export function AdcashBanner300x100({ slotKey, className = '' }: AdcashBanner300
       runner.type = 'text/javascript'
       runner.text = `aclib.runBanner({ zoneId: '${zoneId}' });`
       containerRef.current.appendChild(runner)
+
+      // Detect real fill (iframe or non-empty rendered element) and only then reveal slot.
+      const startedAt = Date.now()
+      const timeoutMs = 6000
+      pollTimer = window.setInterval(() => {
+        if (!containerRef.current) return
+        const root = containerRef.current
+        const frame = root.querySelector('iframe')
+        const hasRenderableChild = Array.from(root.children).some((child) => {
+          const element = child as HTMLElement
+          return element.tagName.toLowerCase() !== 'script' && element.offsetHeight > 0
+        })
+        const filled = Boolean(frame) || hasRenderableChild
+
+        if (filled) {
+          setHasFill(true)
+          if (pollTimer !== null) {
+            window.clearInterval(pollTimer)
+            pollTimer = null
+          }
+          return
+        }
+
+        if (Date.now() - startedAt >= timeoutMs) {
+          setHasFill(false)
+          if (pollTimer !== null) {
+            window.clearInterval(pollTimer)
+            pollTimer = null
+          }
+        }
+      }, 250)
     }
 
     void renderBanner()
 
     return () => {
       cancelled = true
+      if (pollTimer !== null) {
+        window.clearInterval(pollTimer)
+      }
     }
   }, [slotKey, zoneId])
 
   return (
-    <div className={`my-3 flex justify-center ${className}`}>
+    <div
+      className={`${hasFill ? 'my-3' : 'my-0 h-0'} flex justify-center overflow-hidden transition-all ${className}`}
+      aria-hidden={!hasFill}
+    >
       <div
         ref={containerRef}
-        className="w-[300px] h-[100px] overflow-hidden"
+        className={`${hasFill ? 'w-[300px] h-[100px]' : 'w-0 h-0'} overflow-hidden`}
         aria-label="Sponsored banner"
       />
     </div>
   )
 }
-
