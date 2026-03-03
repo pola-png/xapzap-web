@@ -30,7 +30,7 @@ interface PostCardProps {
 
 export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'home', onVideoClick, onCommentClick }: PostCardProps) => {
   const router = useRouter()
-  const resolvedPostId = post.id || post.postId || (post as any).$id || ''
+  const resolvedPostId = (post as any).$id || post.id || post.postId || ''
 
   const buildVideoSlug = () => generateSlug(post.title || post.content || 'video', resolvedPostId)
 

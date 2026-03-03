@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { VideoDetailScreen } from '../../../VideoDetailScreen'
 import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
-import { extractIdFromSlug } from '../../../lib/slug'
+import { extractIdFromSlug, generateSlug } from '../../../lib/slug'
 import { hasVerifiedBadge } from '../../../lib/verification'
 import { cacheRoutePost, getCachedRoutePost } from '../../../lib/route-post-cache'
 
@@ -50,6 +50,37 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
             if (postData) break
           } catch {
             // Try next candidate
+          }
+        }
+
+        if (!postData) {
+          // Last-resort recovery for legacy or malformed slugs:
+          // scan recent watch/posts feeds and match by SEO slug pattern.
+          const slugLower = String(slugId).trim().toLowerCase()
+          const feedResults = await Promise.allSettled([
+            appwriteService.fetchWatchFeed(120),
+            appwriteService.fetchPosts(120),
+          ])
+
+          for (const settled of feedResults) {
+            if (settled.status !== 'fulfilled') continue
+            const docs = Array.isArray((settled.value as any)?.documents)
+              ? (settled.value as any).documents
+              : []
+
+            const matched = docs.find((doc: any) => {
+              const docId = String(doc?.$id || doc?.id || doc?.postId || '').trim()
+              if (!docId) return false
+              const explicitSlug = String(doc?.slug || '').trim().toLowerCase()
+              if (explicitSlug && explicitSlug === slugLower) return true
+              const computedSlug = generateSlug(doc?.title || doc?.content || 'video', docId).toLowerCase()
+              return computedSlug === slugLower
+            })
+
+            if (matched) {
+              postData = matched
+              break
+            }
           }
         }
 
