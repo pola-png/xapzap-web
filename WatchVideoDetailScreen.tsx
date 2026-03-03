@@ -67,9 +67,14 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const toProxyUrl = (url?: string) => {
+  const toImageProxyUrl = (url?: string) => {
     if (!url) return ''
     return url.startsWith('/media/') ? `/api/image-proxy?path=${url.substring(1)}` : url
+  }
+
+  const toVideoProxyUrl = (url?: string) => {
+    if (!url) return ''
+    return url.startsWith('/media/') ? `/api/video-proxy?path=${url.substring(1)}` : url
   }
 
   useEffect(() => {
@@ -315,7 +320,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     showPlaybackControls(isPlaying)
   }
 
-  const videoSource = toProxyUrl(
+  const videoSource = toVideoProxyUrl(
     post.mediaUrls?.[0] ||
     (post as any).mediaUrl ||
     (post as any).mediaURl ||
@@ -404,7 +409,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         
         if (post.thumbnailUrl && navigator.canShare) {
           try {
-            const response = await fetch(toProxyUrl(post.thumbnailUrl))
+            const response = await fetch(toImageProxyUrl(post.thumbnailUrl))
             const blob = await response.blob()
             const file = new File([blob], 'thumbnail.jpg', { type: blob.type })
             shareData.files = [file]
@@ -467,7 +472,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       <div className="bg-background/95 backdrop-blur-md p-4 sm:p-5 z-20 flex items-center justify-between border-b border-border/50 shadow-sm transition-all">
         <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
           {post.userAvatar ? (
-            <img src={toProxyUrl(post.userAvatar)} alt={post.displayName} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover ring-2 ring-border transition-transform hover:scale-105" />
+            <img src={toImageProxyUrl(post.userAvatar)} alt={post.displayName} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover ring-2 ring-border transition-transform hover:scale-105" />
           ) : (
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-lg shadow-md">
               {(post.displayName || 'U')[0].toUpperCase()}
@@ -695,7 +700,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <div className="flex-1 overflow-y-auto p-4 sm:p-5">
             <div className="border-b border-border pb-5 mb-5">
               <div className="flex gap-3">
-                <img src={toProxyUrl(selectedCommentForReplies.userAvatar)} alt={selectedCommentForReplies.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                <img src={toImageProxyUrl(selectedCommentForReplies.userAvatar)} alt={selectedCommentForReplies.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                 <div className="flex-1">
                   <div className="bg-muted rounded-2xl px-4 py-3">
                     <div className="flex items-center gap-2 mb-1.5">
@@ -720,7 +725,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
               <div className="space-y-5">
                 {repliesList.map((reply: any) => (
                   <div key={reply.$id} className="flex gap-3">
-                    <img src={toProxyUrl(reply.userAvatar)} alt={reply.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                    <img src={toImageProxyUrl(reply.userAvatar)} alt={reply.username} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
                     <div className="flex-1">
                       <div className="bg-muted rounded-2xl px-4 py-3">
                         <div className="flex items-center gap-2 mb-1.5">
@@ -751,7 +756,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <div className="p-3 bg-background border-b border-border">
               <div className="flex items-center gap-2 sm:gap-3">
                 {currentUserAvatar ? (
-                  <img src={toProxyUrl(currentUserAvatar)} alt="You" className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
+                  <img src={toImageProxyUrl(currentUserAvatar)} alt="You" className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
                     U
@@ -790,7 +795,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                   <div key={comment.$id}>
                     <div className="flex gap-3">
                     <img 
-                      src={toProxyUrl(comment.userAvatar)} 
+                      src={toImageProxyUrl(comment.userAvatar)} 
                       alt={comment.username} 
                       className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer" 
                       onClick={(e) => {
@@ -894,7 +899,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
             <div className="absolute bottom-0 inset-x-0 p-3 bg-background border-t border-border">
               <div className="flex items-center gap-2 sm:gap-3">
                 {currentUserAvatar ? (
-                  <img src={toProxyUrl(currentUserAvatar)} alt="You" className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
+                  <img src={toImageProxyUrl(currentUserAvatar)} alt="You" className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
                     U
@@ -971,7 +976,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
                 >
                   <div className="flex gap-3">
                   <img 
-                    src={toProxyUrl(comment.userAvatar)} 
+                    src={toImageProxyUrl(comment.userAvatar)} 
                     alt={comment.username} 
                     className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer" 
                     onClick={(e) => {
@@ -1074,7 +1079,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <div className="p-3 bg-muted/30 border-t border-border/30">
           <div className="flex items-center gap-2 sm:gap-3">
             {currentUserAvatar ? (
-              <img src={toProxyUrl(currentUserAvatar)} alt="You" className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
+              <img src={toImageProxyUrl(currentUserAvatar)} alt="You" className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
             ) : (
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
                 U

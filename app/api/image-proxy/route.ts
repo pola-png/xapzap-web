@@ -15,6 +15,8 @@ const wasabiConfig = {
 const bucketName = process.env.WASABI_BUCKET || 'xapzap-media'
 const s3Client = new S3Client(wasabiConfig)
 
+export const runtime = 'nodejs'
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -27,37 +29,26 @@ export async function GET(request: NextRequest) {
     }
 
     const key = path.startsWith('/') ? path.substring(1) : path
+    const ext = key.split('.').pop()?.toLowerCase()
+    const isVideo = ext === 'mp4' || ext === 'webm' || ext === 'mov'
+
+    if (isVideo) {
+      return NextResponse.json(
+        { error: 'Use /api/video-proxy for video files' },
+        { status: 415 }
+      )
+    }
 
     // Fetch from Wasabi
     const command = new GetObjectCommand({
       Bucket: bucketName,
-      Key: key
+      Key: key,
     })
 
     const response = await s3Client.send(command)
 
     if (!response.Body) {
       return NextResponse.json({ error: 'File not found' }, { status: 404 })
-    }
-
-    const ext = key.split('.').pop()?.toLowerCase()
-    const isVideo = ext === 'mp4' || ext === 'webm' || ext === 'mov'
-
-    // Videos: pass through without optimization
-    if (isVideo) {
-      const chunks = []
-      for await (const chunk of response.Body as any) {
-        chunks.push(chunk)
-      }
-      const buffer = Buffer.concat(chunks)
-
-      return new NextResponse(buffer, {
-        status: 200,
-        headers: {
-          'Content-Type': response.ContentType || 'video/mp4',
-          'Cache-Control': 'public, max-age=31536000, immutable',
-        }
-      })
     }
 
     // Images: optimize with Sharp

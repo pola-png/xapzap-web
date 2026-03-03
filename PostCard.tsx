@@ -530,14 +530,21 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
     if (!post.mediaUrls || post.mediaUrls.length === 0) return null
     if (!shouldLoadMedia) return <div className="w-full aspect-square rounded-xl mb-3 bg-gray-100 dark:bg-gray-800" />
 
-    const toProxyUrl = (url: string) => {
+    const toImageProxyUrl = (url: string) => {
       if (url.startsWith('/media/')) {
         return `/api/image-proxy?path=${url.substring(1)}`
       }
       return url
     }
 
-    const imageUrl = toProxyUrl(post.mediaUrls[0])
+    const toVideoProxyUrl = (url: string) => {
+      if (url.startsWith('/media/')) {
+        return `/api/video-proxy?path=${url.substring(1)}`
+      }
+      return url
+    }
+
+    const imageUrl = toImageProxyUrl(post.mediaUrls[0])
 
     if (post.postType === 'image') {
       return (
@@ -563,7 +570,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             }}
           >
             <img
-              src={toProxyUrl(post.mediaUrls[currentImageIndex])}
+              src={toImageProxyUrl(post.mediaUrls[currentImageIndex])}
               alt="Post"
               className="w-full h-full object-cover object-top"
               loading="lazy"
@@ -584,7 +591,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
         </div>
       )
     } else if (post.postType === 'video') {
-      const thumbnailUrl = toProxyUrl(post.thumbnailUrl || post.mediaUrls[0])
+      const thumbnailUrl = toImageProxyUrl(post.thumbnailUrl || post.mediaUrls[0])
       
       return (
         <>
@@ -614,8 +621,8 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
         </>
       )
     } else if (post.postType === 'reel') {
-      const videoUrl = toProxyUrl(post.mediaUrls[0])
-      const thumbnailUrl = toProxyUrl(post.thumbnailUrl || post.mediaUrls[0])
+      const videoUrl = toVideoProxyUrl(post.mediaUrls[0])
+      const thumbnailUrl = toImageProxyUrl(post.thumbnailUrl || post.mediaUrls[0])
       
       // Reel display - 1:1 on feeds, 9:16 on reels/details
       if ((feedType as string) === 'reels') {

@@ -11,10 +11,18 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'
-    const toAbsoluteUrl = (value?: string) => {
+    const toImageAbsoluteUrl = (value?: string) => {
       if (!value) return ''
       if (value.startsWith('http')) return value
       if (value.startsWith('/media/')) return `${siteUrl}/api/image-proxy?path=${value.substring(1)}`
+      if (value.startsWith('/')) return `${siteUrl}${value}`
+      return `${siteUrl}/${value}`
+    }
+
+    const toVideoAbsoluteUrl = (value?: string) => {
+      if (!value) return ''
+      if (value.startsWith('http')) return value
+      if (value.startsWith('/media/')) return `${siteUrl}/api/video-proxy?path=${value.substring(1)}`
       if (value.startsWith('/')) return `${siteUrl}${value}`
       return `${siteUrl}/${value}`
     }
@@ -30,8 +38,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       post.content ||
       post.caption ||
       `Watch ${profile?.displayName || 'User'}'s video on XapZap. ${post.views || 0} views, ${post.likes || 0} likes.`
-    const thumbnailUrl = toAbsoluteUrl(post.thumbnailUrl || '/og-image.jpg')
-    const videoUrl = toAbsoluteUrl(post.mediaUrl || (post.mediaUrls && post.mediaUrls[0]) || '')
+    const thumbnailUrl = toImageAbsoluteUrl(post.thumbnailUrl || '/og-image.jpg')
+    const videoUrl = toVideoAbsoluteUrl(post.mediaUrl || (post.mediaUrls && post.mediaUrls[0]) || '')
     const url = `${siteUrl}/watch/${params.id}`
 
     return {

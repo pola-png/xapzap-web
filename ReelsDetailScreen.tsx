@@ -35,6 +35,16 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
+  const toImageProxyUrl = (url?: string) => {
+    if (!url) return ''
+    return url.startsWith('/media/') ? `/api/image-proxy?path=${url.substring(1)}` : url
+  }
+
+  const toVideoProxyUrl = (url?: string) => {
+    if (!url) return ''
+    return url.startsWith('/media/') ? `/api/video-proxy?path=${url.substring(1)}` : url
+  }
+
   useEffect(() => {
     setShouldLoadVideo(true)
   }, [])
@@ -220,7 +230,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <>
         <video
           ref={videoRef}
-          src={post.mediaUrls && post.mediaUrls[0]?.startsWith('/media/') ? `/api/image-proxy?path=${post.mediaUrls[0].substring(1)}` : post.mediaUrls && post.mediaUrls[0]}
+          src={toVideoProxyUrl(post.mediaUrls?.[0])}
           className="w-full h-full object-cover"
           onClick={handleVideoClick}
           playsInline
@@ -345,7 +355,7 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <div className="max-w-md">
             <div className="flex items-center gap-3 mb-3">
               {post.userAvatar ? (
-                <img src={post.userAvatar.startsWith('/media/') ? `/api/image-proxy?path=${post.userAvatar.substring(1)}` : post.userAvatar} alt={post.displayName} className="w-14 h-14 rounded-full object-cover border-2 border-white" />
+                <img src={toImageProxyUrl(post.userAvatar)} alt={post.displayName} className="w-14 h-14 rounded-full object-cover border-2 border-white" />
               ) : (
                 <div className="w-14 h-14 rounded-full bg-gray-600 border-2 border-white flex items-center justify-center text-white font-semibold text-lg">
                   {(post.displayName || 'U')[0].toUpperCase()}

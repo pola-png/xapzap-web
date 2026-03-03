@@ -41,9 +41,14 @@ export function ReelsScreen() {
   const currentIndexRef = useRef(0)
   const playTicketRef = useRef(0)
 
-  const toProxyUrl = (url?: string) => {
+  const toImageProxyUrl = (url?: string) => {
     if (!url) return ''
     return url.startsWith('/media/') ? `/api/image-proxy?path=${url.substring(1)}` : url
+  }
+
+  const toVideoProxyUrl = (url?: string) => {
+    if (!url) return ''
+    return url.startsWith('/media/') ? `/api/video-proxy?path=${url.substring(1)}` : url
   }
 
   const getVideoSource = (post: Post) => {
@@ -53,7 +58,7 @@ export function ReelsScreen() {
       : (typeof rawMediaUrls === 'string' && rawMediaUrls ? [rawMediaUrls] : [])
     const primaryMedia = mediaUrls.find((url: string) => typeof url === 'string' && url.length > 0)
     const legacyVideoUrl = (post as any).videoUrl as string | undefined
-    return toProxyUrl(primaryMedia || legacyVideoUrl)
+    return toVideoProxyUrl(primaryMedia || legacyVideoUrl)
   }
 
   const pauseAllVideos = (except?: HTMLVideoElement | null) => {
@@ -770,7 +775,7 @@ export function ReelsScreen() {
                 <div className="flex items-center gap-3 mb-3">
                   {post.avatarUrl ? (
                     <img 
-                      src={post.avatarUrl.startsWith('/media/') ? `/api/image-proxy?path=${post.avatarUrl.substring(1)}` : post.avatarUrl} 
+                      src={toImageProxyUrl(post.avatarUrl)}
                       alt={post.displayName} 
                       className="w-14 h-14 rounded-full object-cover border-2 border-white" 
                     />

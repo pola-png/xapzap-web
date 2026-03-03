@@ -9,11 +9,21 @@ export const dynamic = 'force-dynamic'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'
 
-function toProxyUrl(url?: string): string {
+function toImageProxyUrl(url?: string): string {
   if (!url) return ''
   if (url.startsWith('http')) return url
   if (url.startsWith('/media/')) {
     return `${SITE_URL}/api/image-proxy?path=${url.substring(1)}`
+  }
+  if (url.startsWith('/')) return `${SITE_URL}${url}`
+  return `${SITE_URL}/${url}`
+}
+
+function toVideoProxyUrl(url?: string): string {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  if (url.startsWith('/media/')) {
+    return `${SITE_URL}/api/video-proxy?path=${url.substring(1)}`
   }
   if (url.startsWith('/')) return `${SITE_URL}${url}`
   return `${SITE_URL}/${url}`
@@ -60,8 +70,8 @@ function buildInitialPost(postData: any, profile: any): Post {
     postType: postData.postType || 'reel',
     title: postData.title || '',
     caption: postData.caption || '',
-    thumbnailUrl: toProxyUrl(postData.thumbnailUrl || ''),
-    mediaUrls: mediaUrls.map((url) => toProxyUrl(url)),
+    thumbnailUrl: toImageProxyUrl(postData.thumbnailUrl || ''),
+    mediaUrls: mediaUrls.map((url) => toVideoProxyUrl(url)),
     timestamp: new Date(postData.$createdAt || postData.createdAt || new Date().toISOString()),
     createdAt: postData.$createdAt || postData.createdAt || new Date().toISOString(),
     likes: postData.likes || 0,

@@ -1,10 +1,18 @@
 export function generateVideoStructuredData(post: any) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'
 
-  const toAbsoluteUrl = (value?: string) => {
+  const toImageAbsoluteUrl = (value?: string) => {
     if (!value) return ''
     if (value.startsWith('http')) return value
     if (value.startsWith('/media/')) return `${siteUrl}/api/image-proxy?path=${value.substring(1)}`
+    if (value.startsWith('/')) return `${siteUrl}${value}`
+    return `${siteUrl}/${value}`
+  }
+
+  const toVideoAbsoluteUrl = (value?: string) => {
+    if (!value) return ''
+    if (value.startsWith('http')) return value
+    if (value.startsWith('/media/')) return `${siteUrl}/api/video-proxy?path=${value.substring(1)}`
     if (value.startsWith('/')) return `${siteUrl}${value}`
     return `${siteUrl}/${value}`
   }
@@ -17,9 +25,9 @@ export function generateVideoStructuredData(post: any) {
     '@type': 'VideoObject',
     name: post.caption || post.title || 'Video',
     description: post.content || post.caption || 'Watch this video on XapZap',
-    thumbnailUrl: toAbsoluteUrl(post.thumbnailUrl || ''),
+    thumbnailUrl: toImageAbsoluteUrl(post.thumbnailUrl || ''),
     uploadDate: post.createdAt || post.$createdAt,
-    contentUrl: toAbsoluteUrl(post.mediaUrl || (post.mediaUrls && post.mediaUrls[0]) || ''),
+    contentUrl: toVideoAbsoluteUrl(post.mediaUrl || (post.mediaUrls && post.mediaUrls[0]) || ''),
     embedUrl: `${siteUrl}${routeBase}/${entityId}`,
     interactionStatistic: [
       {
