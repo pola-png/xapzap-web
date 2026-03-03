@@ -72,7 +72,7 @@ export function ReelsScreen() {
 
   const playVideoWithAd = useCallback(async (video: HTMLVideoElement, postId: string, reason: 'manual' | 'autoplay') => {
     const ticket = ++playTicketRef.current
-    await playAdcashInstreamAd({ placement: `reels-feed:${reason}` })
+    await playAdcashInstreamAd({ placement: `reels-feed:${reason}`, videoId: postId })
 
     if (ticket !== playTicketRef.current) return
     if (commentModalPost || !isPageVisible) return

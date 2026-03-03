@@ -70,7 +70,7 @@ export function useSingleVideoPlayback({
     ) {
       hasAttemptedAdForPost.current = true
       if (ticket !== playTicket.current) return
-      await playAdcashInstreamAd({ placement: `${adPlacement}:manual` })
+      await playAdcashInstreamAd({ placement: `${adPlacement}:manual`, videoId: postId })
     }
     if (ticket !== playTicket.current) return
     if (!videoRef.current || videoRef.current !== video) return
@@ -216,7 +216,7 @@ export function useSingleVideoPlayback({
       ) {
         hasAttemptedAdForPost.current = true
         if (ticket !== playTicket.current) return
-        await playAdcashInstreamAd({ placement: `${adPlacement}:autoplay` })
+        await playAdcashInstreamAd({ placement: `${adPlacement}:autoplay`, videoId: postId })
       }
       if (ticket !== playTicket.current) return
       const latestVideo = videoRef.current

@@ -8,8 +8,20 @@ export function generateSlug(title: string, id: string): string {
   return `${slug}-${id}`
 }
 
+function normalizeSlugInput(value: unknown): string {
+  if (typeof value !== 'string') return ''
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+
+  try {
+    return decodeURIComponent(trimmed)
+  } catch {
+    return trimmed
+  }
+}
+
 export function extractIdFromSlug(slug: string): string {
-  const normalized = typeof slug === 'string' ? slug.trim() : ''
+  const normalized = normalizeSlugInput(slug)
   if (!normalized) return ''
 
   // Default slug format is "title-part-id", where id is the last segment.
@@ -20,7 +32,7 @@ export function extractIdFromSlug(slug: string): string {
 }
 
 export function extractCandidateIdsFromSlug(slug: string): string[] {
-  const normalized = typeof slug === 'string' ? slug.trim() : ''
+  const normalized = normalizeSlugInput(slug)
   if (!normalized) return []
 
   const ids = new Set<string>()
@@ -35,8 +47,16 @@ export function extractCandidateIdsFromSlug(slug: string): string[] {
 
   pushSafe(extractIdFromSlug(normalized))
 
-  // Accept variable-length alphanumeric IDs (not fixed to 20/24 chars).
-  const dynamicIdMatches = normalized.match(/[a-z0-9]{6,1024}/gi) || []
+  // Try every trailing suffix after "-" so IDs with embedded hyphens can resolve.
+  // Example: "title-part-id-with-hyphen" => tries:
+  // "part-id-with-hyphen", "id-with-hyphen", "with-hyphen", "hyphen".
+  const segments = normalized.split('-').filter(Boolean)
+  for (let i = 1; i < segments.length; i += 1) {
+    pushSafe(segments.slice(i).join('-'))
+  }
+
+  // Accept variable-length alphanumeric candidates.
+  const dynamicIdMatches = normalized.match(/[a-z0-9]{6,4096}/gi) || []
   dynamicIdMatches.forEach((value) => pushSafe(value))
 
   const uuidMatches =

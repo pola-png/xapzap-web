@@ -10,6 +10,7 @@ type InstreamAdPayload = {
 
 type PlayInstreamAdOptions = {
   placement?: string
+  videoId?: string
 }
 
 const PLAY_COUNT_KEY = 'xapzap_instream_play_count'
@@ -77,9 +78,14 @@ async function ping(urls: string[]) {
   )
 }
 
-async function fetchInstreamAdPayload(): Promise<InstreamAdPayload | null> {
+async function fetchInstreamAdPayload(options: PlayInstreamAdOptions): Promise<InstreamAdPayload | null> {
   try {
-    const response = await fetch('/api/ads/instream', {
+    const params = new URLSearchParams()
+    if (options.videoId) params.set('videoId', options.videoId)
+    if (options.placement) params.set('placement', options.placement)
+    const endpoint = params.toString() ? `/api/ads/instream?${params.toString()}` : '/api/ads/instream'
+
+    const response = await fetch(endpoint, {
       method: 'GET',
       cache: 'no-store',
     })
@@ -246,7 +252,7 @@ export async function playAdcashInstreamAd(options: PlayInstreamAdOptions = {}):
   }
 
   activeAdPromise = (async () => {
-    const payload = await fetchInstreamAdPayload()
+    const payload = await fetchInstreamAdPayload(options)
     if (!payload) return false
     const shown = await renderAdOverlay(payload)
     if (shown) {

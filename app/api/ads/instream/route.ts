@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-const DEFAULT_TIMEOUT_MS = 8000
+const DEFAULT_TIMEOUT_MS = Math.max(3000, Number(process.env.ADCASH_TIMEOUT_MS || 12000))
 const MAX_WRAPPER_DEPTH = 4
+const DEBUG_ADCASH = process.env.ADCASH_DEBUG === 'true'
 
 type VastPayload = {
   mediaUrl: string
@@ -75,6 +76,34 @@ function withCacheBuster(url: string): string {
     .replace(/\{cachebuster\}/gi, cacheBuster)
 }
 
+function buildTagUrl(rawTagUrl: string, videoId: string, placement: string): string {
+  let url = rawTagUrl.trim()
+  if (!url) return ''
+
+  const hasVideoPlaceholder = /\[VIDEO_ID\]|\{\{videoId\}\}|\{videoId\}/i.test(url)
+  if (hasVideoPlaceholder) {
+    url = url
+      .replace(/\[VIDEO_ID\]/gi, encodeURIComponent(videoId))
+      .replace(/\{\{videoId\}\}/gi, encodeURIComponent(videoId))
+      .replace(/\{videoId\}/gi, encodeURIComponent(videoId))
+  }
+
+  const parsed = new URL(url)
+  if (videoId && !hasVideoPlaceholder && !parsed.searchParams.has('videoId')) {
+    parsed.searchParams.set('videoId', videoId)
+  }
+  if (placement && !parsed.searchParams.has('placement')) {
+    parsed.searchParams.set('placement', placement)
+  }
+
+  return parsed.toString()
+}
+
+function debugLog(...args: unknown[]) {
+  if (!DEBUG_ADCASH) return
+  console.log('[adcash:instream]', ...args)
+}
+
 async function fetchVastXml(url: string, signal: AbortSignal): Promise<string | null> {
   let parsedUrl: URL
   try {
@@ -117,6 +146,10 @@ async function resolveVastPayload(
 
   const inline = parseVast(xml)
   if (inline) {
+    debugLog('Resolved inline VAST payload', {
+      mediaUrl: inline.mediaUrl,
+      impressions: inline.impressionUrls.length,
+    })
     return {
       ...inline,
       impressionUrls: [...ownImpressions, ...inline.impressionUrls],
@@ -127,11 +160,14 @@ async function resolveVastPayload(
 
   const wrapperUrl = extractWrapperUrl(xml)
   if (!wrapperUrl) {
+    debugLog('No inline media and no wrapper URL')
     return null
   }
 
+  debugLog('Following wrapper VAST URL', { depth: depth + 1 })
   const nested = await resolveVastPayload(wrapperUrl, signal, depth + 1)
   if (!nested) {
+    debugLog('Wrapper resolution returned no payload')
     return null
   }
 
@@ -144,20 +180,26 @@ async function resolveVastPayload(
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const rawTagUrl =
     process.env.ADCASH_VAST_URL ||
     process.env.NEXT_PUBLIC_ADCASH_VAST_URL ||
     ''
 
-  const tagUrl = rawTagUrl.trim()
+  const { searchParams } = new URL(request.url)
+  const videoId = (searchParams.get('videoId') || '').trim()
+  const placement = (searchParams.get('placement') || '').trim()
+  const tagUrl = buildTagUrl(rawTagUrl, videoId, placement)
+
   if (!tagUrl) {
+    debugLog('No ADCASH_VAST_URL configured')
     return new NextResponse(null, { status: 204 })
   }
 
   try {
     void new URL(tagUrl)
   } catch {
+    debugLog('Invalid configured VAST URL', { tagUrl })
     return NextResponse.json(
       { error: 'Invalid ADCASH VAST URL configuration.' },
       { status: 400 }
@@ -168,8 +210,10 @@ export async function GET() {
   const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
 
   try {
+    debugLog('Fetching VAST URL', { tagUrl, videoId, placement })
     const parsed = await resolveVastPayload(tagUrl, controller.signal)
     if (!parsed) {
+      debugLog('No ad fill returned', { videoId, placement })
       return new NextResponse(null, { status: 204 })
     }
 
@@ -180,6 +224,12 @@ export async function GET() {
       },
     })
   } catch (error: any) {
+    debugLog('Ad fetch failed', {
+      errorName: error?.name,
+      message: error?.message,
+      videoId,
+      placement,
+    })
     const message =
       error?.name === 'AbortError'
         ? 'Ad request timed out.'
