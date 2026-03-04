@@ -267,8 +267,10 @@ export function VideoDetailsStep({
                 <video
                   src={videoPreviewUrl}
                   className="h-full w-full object-cover"
+                  poster={activeThumbnailPreviewUrl || undefined}
                   muted
                   playsInline
+                  preload="metadata"
                   onLoadedMetadata={(e) => onVideoMetadata((e.currentTarget as HTMLVideoElement).duration || 0)}
                 />
               ) : (

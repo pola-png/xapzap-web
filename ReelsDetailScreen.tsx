@@ -154,6 +154,18 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
     setIsMuted(video.muted)
   }
 
+  const videoSource = toVideoProxyUrl(
+    post.mediaUrls?.[0] ||
+    (post as any).mediaUrl ||
+    (post as any).mediaURl ||
+    (post as any).videoUrl
+  )
+  const videoPoster = toImageProxyUrl(
+    post.thumbnailUrl ||
+    (post as any).thumbnailUrl ||
+    (post as any).thumbnail
+  )
+
   const handleVideoClick = () => {
     togglePlay()
     setShowControls(true)
@@ -230,7 +242,8 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <>
         <video
           ref={videoRef}
-          src={toVideoProxyUrl(post.mediaUrls?.[0])}
+          src={videoSource}
+          poster={videoPoster || undefined}
           className="w-full h-full object-cover"
           onClick={handleVideoClick}
           playsInline

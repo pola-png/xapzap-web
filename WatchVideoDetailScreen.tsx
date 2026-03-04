@@ -326,6 +326,11 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
     (post as any).mediaURl ||
     (post as any).videoUrl
   )
+  const videoPoster = toImageProxyUrl(
+    post.thumbnailUrl ||
+    (post as any).thumbnailUrl ||
+    (post as any).thumbnail
+  )
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60)
@@ -502,6 +507,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <video
           ref={videoRef}
           src={videoSource}
+          poster={videoPoster || undefined}
           className="w-full h-full object-contain transition-opacity duration-300"
           onClick={handleVideoSurfaceTap}
           playsInline

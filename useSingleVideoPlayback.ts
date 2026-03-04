@@ -121,10 +121,11 @@ export function useSingleVideoPlayback({
     const handleLoadStart = () => setIsVideoReady(false)
     const handleLoadedMetadata = () => {
       onDurationChange?.(video.duration)
-      if (video.readyState >= 3) setIsVideoReady(true)
+      // Metadata is enough to show a visual preview (poster/first frame)
+      setIsVideoReady(true)
     }
     const handleCanPlay = () => {
-      if (video.readyState >= 3) setIsVideoReady(true)
+      setIsVideoReady(true)
     }
     const handleCanPlayThrough = () => setIsVideoReady(true)
     const handleTimeUpdate = () => {
