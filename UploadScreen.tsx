@@ -141,7 +141,6 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           durationGuardMessage={DURATION_GUARD_MESSAGE}
           title={flow.title}
           description={flow.description}
-          content={flow.content}
           seoTitle={flow.seoTitle}
           seoDescription={flow.seoDescription}
           seoKeywords={flow.seoKeywords}
@@ -155,11 +154,11 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           hasSelectedVideo={!!flow.selectedVideoFile}
           onBack={() => flow.setVideoStep('select')}
           onClose={handleCloseUpload}
+          onPickVideo={() => videoInputRef.current?.click()}
           onPickThumbnail={() => thumbnailInputRef.current?.click()}
           onVideoMetadata={flow.handleVideoMetadata}
           onChangeTitle={flow.setTitle}
           onChangeDescription={flow.setDescription}
-          onChangeContent={flow.setContent}
           onChangeSeoTitle={flow.setSeoTitle}
           onChangeSeoDescription={flow.setSeoDescription}
           onChangeSeoKeywords={flow.setSeoKeywords}

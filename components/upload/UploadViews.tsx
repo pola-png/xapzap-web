@@ -175,7 +175,6 @@ interface VideoDetailsStepProps {
   durationGuardMessage: string
   title: string
   description: string
-  content: string
   seoTitle: string
   seoDescription: string
   seoKeywords: string
@@ -189,11 +188,11 @@ interface VideoDetailsStepProps {
   hasSelectedVideo: boolean
   onBack: () => void
   onClose: () => void
+  onPickVideo: () => void
   onPickThumbnail: () => void
   onVideoMetadata: (duration: number) => void
   onChangeTitle: (value: string) => void
   onChangeDescription: (value: string) => void
-  onChangeContent: (value: string) => void
   onChangeSeoTitle: (value: string) => void
   onChangeSeoDescription: (value: string) => void
   onChangeSeoKeywords: (value: string) => void
@@ -215,7 +214,6 @@ export function VideoDetailsStep({
   durationGuardMessage,
   title,
   description,
-  content,
   seoTitle,
   seoDescription,
   seoKeywords,
@@ -229,11 +227,11 @@ export function VideoDetailsStep({
   hasSelectedVideo,
   onBack,
   onClose,
+  onPickVideo,
   onPickThumbnail,
   onVideoMetadata,
   onChangeTitle,
   onChangeDescription,
-  onChangeContent,
   onChangeSeoTitle,
   onChangeSeoDescription,
   onChangeSeoKeywords,
@@ -246,7 +244,7 @@ export function VideoDetailsStep({
 }: VideoDetailsStepProps) {
   return (
     <div className={`min-h-screen ${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'}`}>
-      <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pb-28">
+      <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pb-8">
         <div className="flex items-center justify-between py-4">
           <button onClick={onBack} className={`rounded-full p-2 ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
             <ChevronLeft size={20} />
@@ -259,7 +257,12 @@ export function VideoDetailsStep({
 
         <div className={`rounded-2xl p-3 ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
           <div className="flex items-start gap-3">
-            <div className="relative h-28 w-40 overflow-hidden rounded-xl bg-black">
+            <button
+              onClick={onPickVideo}
+              className={`relative h-28 w-40 overflow-hidden rounded-xl border ${
+                isDark ? 'border-gray-700 bg-black' : 'border-gray-200 bg-black'
+              }`}
+            >
               {videoPreviewUrl ? (
                 <video
                   src={videoPreviewUrl}
@@ -271,7 +274,9 @@ export function VideoDetailsStep({
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-xs text-white/70">No preview</div>
               )}
-            </div>
+              <span className="absolute left-1 top-1 rounded bg-black/75 px-1.5 py-0.5 text-[10px] text-white">Video</span>
+              <span className="absolute bottom-1 left-1 rounded bg-black/75 px-1.5 py-0.5 text-[10px] text-white">Change</span>
+            </button>
 
             <button
               onClick={onPickThumbnail}
@@ -287,7 +292,8 @@ export function VideoDetailsStep({
                   <span className="mt-1 text-[11px]">Thumbnail</span>
                 </div>
               )}
-              <span className="absolute bottom-1 left-1 rounded bg-black/75 px-1.5 py-0.5 text-[10px] text-white">Edit</span>
+              <span className="absolute left-1 top-1 rounded bg-black/75 px-1.5 py-0.5 text-[10px] text-white">Thumbnail</span>
+              <span className="absolute bottom-1 left-1 rounded bg-black/75 px-1.5 py-0.5 text-[10px] text-white">Change</span>
             </button>
           </div>
         </div>
@@ -313,15 +319,6 @@ export function VideoDetailsStep({
             onChange={(e) => onChangeDescription(e.target.value)}
             placeholder="Description"
             rows={4}
-            className={`w-full resize-none rounded-xl border px-3 py-3 text-sm ${
-              isDark ? 'border-gray-700 bg-gray-900 text-white placeholder:text-gray-500' : 'border-gray-200 bg-white text-gray-900'
-            }`}
-          />
-          <textarea
-            value={content}
-            onChange={(e) => onChangeContent(e.target.value)}
-            placeholder={selectedType === 'reel' ? 'Caption' : 'Caption / extra context'}
-            rows={3}
             className={`w-full resize-none rounded-xl border px-3 py-3 text-sm ${
               isDark ? 'border-gray-700 bg-gray-900 text-white placeholder:text-gray-500' : 'border-gray-200 bg-white text-gray-900'
             }`}
@@ -411,17 +408,15 @@ export function VideoDetailsStep({
           </div>
         )}
 
-        <div className={`fixed bottom-0 left-0 right-0 border-t p-4 ${isDark ? 'border-gray-800 bg-gray-950' : 'border-gray-200 bg-white'}`}>
-          <div className="mx-auto w-full max-w-3xl">
-            <button
-              onClick={onUpload}
-              disabled={uploading || overDurationLimit || !hasSelectedVideo}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {uploading ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
-              {uploading ? 'Uploading...' : 'Upload'}
-            </button>
-          </div>
+        <div className="mt-4">
+          <button
+            onClick={onUpload}
+            disabled={uploading || overDurationLimit || !hasSelectedVideo}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {uploading ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+            {uploading ? 'Uploading...' : 'Post'}
+          </button>
         </div>
       </div>
     </div>
