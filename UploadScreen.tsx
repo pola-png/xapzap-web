@@ -146,7 +146,11 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           seoDescription={flow.seoDescription}
           seoKeywords={flow.seoKeywords}
           seoCategory={flow.seoCategory}
+          aiBrief={flow.aiBrief}
+          aiAudience={flow.aiAudience}
+          aiFocusKeywords={flow.aiFocusKeywords}
           canUseAi={flow.canUseAi}
+          isGeneratingAi={flow.isGeneratingAi}
           uploading={flow.uploading}
           hasSelectedVideo={!!flow.selectedVideoFile}
           onBack={() => flow.setVideoStep('select')}
@@ -160,6 +164,9 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
           onChangeSeoDescription={flow.setSeoDescription}
           onChangeSeoKeywords={flow.setSeoKeywords}
           onChangeSeoCategory={flow.setSeoCategory}
+          onChangeAiBrief={flow.setAiBrief}
+          onChangeAiAudience={flow.setAiAudience}
+          onChangeAiFocusKeywords={flow.setAiFocusKeywords}
           onGenerateSeo={flow.handleGenerateSeo}
           onUpload={flow.handleUpload}
         />

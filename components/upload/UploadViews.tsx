@@ -180,7 +180,11 @@ interface VideoDetailsStepProps {
   seoDescription: string
   seoKeywords: string
   seoCategory: string
+  aiBrief: string
+  aiAudience: string
+  aiFocusKeywords: string
   canUseAi: boolean
+  isGeneratingAi: boolean
   uploading: boolean
   hasSelectedVideo: boolean
   onBack: () => void
@@ -194,6 +198,9 @@ interface VideoDetailsStepProps {
   onChangeSeoDescription: (value: string) => void
   onChangeSeoKeywords: (value: string) => void
   onChangeSeoCategory: (value: string) => void
+  onChangeAiBrief: (value: string) => void
+  onChangeAiAudience: (value: string) => void
+  onChangeAiFocusKeywords: (value: string) => void
   onGenerateSeo: () => void
   onUpload: () => void
 }
@@ -213,7 +220,11 @@ export function VideoDetailsStep({
   seoDescription,
   seoKeywords,
   seoCategory,
+  aiBrief,
+  aiAudience,
+  aiFocusKeywords,
   canUseAi,
+  isGeneratingAi,
   uploading,
   hasSelectedVideo,
   onBack,
@@ -227,6 +238,9 @@ export function VideoDetailsStep({
   onChangeSeoDescription,
   onChangeSeoKeywords,
   onChangeSeoCategory,
+  onChangeAiBrief,
+  onChangeAiAudience,
+  onChangeAiFocusKeywords,
   onGenerateSeo,
   onUpload,
 }: VideoDetailsStepProps) {
@@ -314,62 +328,88 @@ export function VideoDetailsStep({
           />
         </div>
 
-        <div className={`mt-4 rounded-2xl p-3 ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-semibold">SEO</p>
-            <button
-              onClick={onGenerateSeo}
-              disabled={!canUseAi}
-              className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
-            >
-              <Sparkles size={14} />
-              Auto Fill
-            </button>
+        {canUseAi && (
+          <div className={`mt-4 rounded-2xl p-3 ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}>
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-sm font-semibold">SEO</p>
+              <button
+                onClick={onGenerateSeo}
+                disabled={isGeneratingAi}
+                className="inline-flex items-center gap-1 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
+              >
+                {isGeneratingAi ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                {isGeneratingAi ? 'Generating...' : 'Auto Fill'}
+              </button>
+            </div>
+            <div className="mb-3 space-y-2">
+              <textarea
+                value={aiBrief}
+                onChange={(e) => onChangeAiBrief(e.target.value)}
+                placeholder="AI Brief: describe what this video is about and what angle you want"
+                rows={3}
+                className={`w-full resize-none rounded-lg border px-3 py-2 text-sm ${
+                  isDark ? 'border-gray-700 bg-gray-950 text-white placeholder:text-gray-500' : 'border-gray-200 bg-white text-gray-900'
+                }`}
+              />
+              <input
+                type="text"
+                value={aiAudience}
+                onChange={(e) => onChangeAiAudience(e.target.value)}
+                placeholder="Target Audience (optional)"
+                className={`w-full rounded-lg border px-3 py-2 text-sm ${
+                  isDark ? 'border-gray-700 bg-gray-950 text-white placeholder:text-gray-500' : 'border-gray-200 bg-white text-gray-900'
+                }`}
+              />
+              <input
+                type="text"
+                value={aiFocusKeywords}
+                onChange={(e) => onChangeAiFocusKeywords(e.target.value)}
+                placeholder="Focus Keywords (comma separated)"
+                className={`w-full rounded-lg border px-3 py-2 text-sm ${
+                  isDark ? 'border-gray-700 bg-gray-950 text-white placeholder:text-gray-500' : 'border-gray-200 bg-white text-gray-900'
+                }`}
+              />
+            </div>
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={seoTitle}
+                onChange={(e) => onChangeSeoTitle(e.target.value)}
+                placeholder="SEO Title"
+                className={`w-full rounded-lg border px-3 py-2 text-sm ${
+                  isDark ? 'border-gray-700 bg-gray-950 text-white placeholder:text-gray-500' : 'border-gray-200 bg-white text-gray-900'
+                }`}
+              />
+              <textarea
+                value={seoDescription}
+                onChange={(e) => onChangeSeoDescription(e.target.value)}
+                placeholder="SEO Description"
+                rows={2}
+                className={`w-full resize-none rounded-lg border px-3 py-2 text-sm ${
+                  isDark ? 'border-gray-700 bg-gray-950 text-white placeholder:text-gray-500' : 'border-gray-200 bg-white text-gray-900'
+                }`}
+              />
+              <input
+                type="text"
+                value={seoKeywords}
+                onChange={(e) => onChangeSeoKeywords(e.target.value)}
+                placeholder="SEO Keywords (comma separated)"
+                className={`w-full rounded-lg border px-3 py-2 text-sm ${
+                  isDark ? 'border-gray-700 bg-gray-950 text-white placeholder:text-gray-500' : 'border-gray-200 bg-white text-gray-900'
+                }`}
+              />
+              <input
+                type="text"
+                value={seoCategory}
+                onChange={(e) => onChangeSeoCategory(e.target.value)}
+                placeholder="SEO Category"
+                className={`w-full rounded-lg border px-3 py-2 text-sm ${
+                  isDark ? 'border-gray-700 bg-gray-950 text-white placeholder:text-gray-500' : 'border-gray-200 bg-white text-gray-900'
+                }`}
+              />
+            </div>
           </div>
-          {!canUseAi && (
-            <p className={`mb-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-              AI fill is available for verified, Basic, and Business users.
-            </p>
-          )}
-          <div className="space-y-2">
-            <input
-              type="text"
-              value={seoTitle}
-              onChange={(e) => onChangeSeoTitle(e.target.value)}
-              placeholder="SEO Title"
-              className={`w-full rounded-lg border px-3 py-2 text-sm ${
-                isDark ? 'border-gray-700 bg-gray-950 text-white placeholder:text-gray-500' : 'border-gray-200 bg-white text-gray-900'
-              }`}
-            />
-            <textarea
-              value={seoDescription}
-              onChange={(e) => onChangeSeoDescription(e.target.value)}
-              placeholder="SEO Description"
-              rows={2}
-              className={`w-full resize-none rounded-lg border px-3 py-2 text-sm ${
-                isDark ? 'border-gray-700 bg-gray-950 text-white placeholder:text-gray-500' : 'border-gray-200 bg-white text-gray-900'
-              }`}
-            />
-            <input
-              type="text"
-              value={seoKeywords}
-              onChange={(e) => onChangeSeoKeywords(e.target.value)}
-              placeholder="SEO Keywords (comma separated)"
-              className={`w-full rounded-lg border px-3 py-2 text-sm ${
-                isDark ? 'border-gray-700 bg-gray-950 text-white placeholder:text-gray-500' : 'border-gray-200 bg-white text-gray-900'
-              }`}
-            />
-            <input
-              type="text"
-              value={seoCategory}
-              onChange={(e) => onChangeSeoCategory(e.target.value)}
-              placeholder="SEO Category"
-              className={`w-full rounded-lg border px-3 py-2 text-sm ${
-                isDark ? 'border-gray-700 bg-gray-950 text-white placeholder:text-gray-500' : 'border-gray-200 bg-white text-gray-900'
-              }`}
-            />
-          </div>
-        </div>
+        )}
 
         <div className={`fixed bottom-0 left-0 right-0 border-t p-4 ${isDark ? 'border-gray-800 bg-gray-950' : 'border-gray-200 bg-white'}`}>
           <div className="mx-auto w-full max-w-3xl">

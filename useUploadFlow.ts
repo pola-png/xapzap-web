@@ -43,6 +43,10 @@ export function useUploadFlow({ onUploadSuccess }: UseUploadFlowOptions) {
   const [seoDescription, setSeoDescription] = useState('')
   const [seoKeywords, setSeoKeywords] = useState('')
   const [seoCategory, setSeoCategory] = useState('')
+  const [aiBrief, setAiBrief] = useState('')
+  const [aiAudience, setAiAudience] = useState('')
+  const [aiFocusKeywords, setAiFocusKeywords] = useState('')
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false)
 
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null)
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null)
@@ -110,7 +114,7 @@ export function useUploadFlow({ onUploadSuccess }: UseUploadFlowOptions) {
         setIsAdmin(admin)
         setCreatorPlan(access.plan)
         setCanUploadLongVideo(access.canUploadLongVideo)
-        setCanUseAi(access.canUseAi)
+        setCanUseAi(admin || access.plan === 'business')
         setAvatarUrl(profile?.avatarUrl || '')
         setDisplayName(profile?.displayName || profile?.username || user.name || 'You')
       } catch {
@@ -164,6 +168,9 @@ export function useUploadFlow({ onUploadSuccess }: UseUploadFlowOptions) {
     setSeoDescription('')
     setSeoKeywords('')
     setSeoCategory('')
+    setAiBrief('')
+    setAiAudience('')
+    setAiFocusKeywords('')
     clearVideo()
     clearImages()
   }
@@ -297,18 +304,69 @@ export function useUploadFlow({ onUploadSuccess }: UseUploadFlowOptions) {
     })
   }
 
-  const handleGenerateSeo = () => {
+  const applyLocalSeoFallback = () => {
     if (!canUseAi) return
     if (!isVideoType) return
 
     const baseText = `${title} ${description} ${content}`.trim()
     const hashtags = (baseText.match(/#\w+/g) || []).map((tag) => tag.replace('#', '').toLowerCase())
-    const keywordFallback = Array.from(new Set(hashtags)).slice(0, 8).join(', ')
+    const focusHints = aiFocusKeywords
+      .split(',')
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean)
+    const keywordFallback = Array.from(new Set([...focusHints, ...hashtags])).slice(0, 10).join(', ')
 
     setSeoTitle((prev) => prev || title || `${selectedType === 'reel' ? 'Reel' : 'Video'} update`)
     setSeoDescription((prev) => prev || description || content.slice(0, 160))
     setSeoKeywords((prev) => prev || keywordFallback)
     setSeoCategory((prev) => prev || 'Entertainment')
+  }
+
+  const handleGenerateSeo = async () => {
+    if (!canUseAi) return
+    if (!isVideoType) return
+    if (isGeneratingAi) return
+
+    setIsGeneratingAi(true)
+    try {
+      const response = await fetch('/api/ai/upload-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${(await appwriteService.createJWT()).jwt}`,
+        },
+        body: JSON.stringify({
+          postType: selectedType,
+          title,
+          description,
+          content,
+          seoTitle,
+          seoDescription,
+          seoKeywords,
+          seoCategory,
+          aiBrief,
+          aiAudience,
+          aiFocusKeywords,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('AI generation request failed.')
+      }
+
+      const payload = await response.json()
+      if (payload?.title) setTitle(String(payload.title))
+      if (payload?.description) setDescription(String(payload.description))
+      if (payload?.seoTitle) setSeoTitle(String(payload.seoTitle))
+      if (payload?.seoDescription) setSeoDescription(String(payload.seoDescription))
+      if (payload?.seoKeywords) setSeoKeywords(String(payload.seoKeywords))
+      if (payload?.seoCategory) setSeoCategory(String(payload.seoCategory))
+    } catch {
+      applyLocalSeoFallback()
+      alert('AI service is unavailable right now. Applied local SEO suggestions.')
+    } finally {
+      setIsGeneratingAi(false)
+    }
   }
 
   const uploadToWasabi = async (file: File) => {
@@ -517,6 +575,13 @@ export function useUploadFlow({ onUploadSuccess }: UseUploadFlowOptions) {
     setSeoKeywords,
     seoCategory,
     setSeoCategory,
+    aiBrief,
+    setAiBrief,
+    aiAudience,
+    setAiAudience,
+    aiFocusKeywords,
+    setAiFocusKeywords,
+    isGeneratingAi,
 
     selectedVideoFile,
     videoPreviewUrl,

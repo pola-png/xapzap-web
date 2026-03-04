@@ -78,7 +78,7 @@ export function getUploadAccess(profile: any, isAdmin = false): UploadAccess {
   const canUploadVideo = true
   const canUploadReel = canUploadVideo
   const canUploadNews = isAdmin || plan === 'business'
-  const canUseAi = isAdmin || isVerifiedCreator || plan === 'basic' || plan === 'business'
+  const canUseAi = isAdmin || plan === 'business'
   const canUploadLongVideo = isAdmin || isVerifiedCreator || plan === 'basic' || plan === 'business'
 
   return {
