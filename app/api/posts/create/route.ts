@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Client, Account, Databases, ID } from 'appwrite'
+import { Client, Account, Databases, ID, Query } from 'appwrite'
 import storageService from '../../../../storage'
 import { canUploadPostType } from '../../../../lib/creator-plan'
 
@@ -63,9 +63,10 @@ export async function POST(request: NextRequest) {
     // Get user profile for displayName
     const profileResult = await databases.listDocuments(
       databaseId,
-      'profiles'
+      'profiles',
+      [Query.equal('userId', user.$id), Query.limit(1)]
     )
-    const profile = profileResult.documents.find((doc: any) => doc.userId === user.$id)
+    const profile = profileResult.documents[0] || null
 
     const formData = await request.formData()
     const postData: any = {}
@@ -91,12 +92,31 @@ export async function POST(request: NextRequest) {
     }
     postData.content = formData.get('content') as string || ''
     postData.title = formData.get('title') as string || ''
+    postData.description = formData.get('description') as string || ''
+    postData.caption = formData.get('caption') as string || ''
+
+    const textBgColor = formData.get('textBgColor') as string
+    if (textBgColor) {
+      postData.textBgColor = textBgColor
+    }
+
+    const seoTitle = formData.get('seoTitle') as string
+    const seoDescription = formData.get('seoDescription') as string
+    const seoKeywords = formData.get('seoKeywords') as string
+    const seoCategory = formData.get('seoCategory') as string
+    if (seoTitle) postData.seoTitle = seoTitle
+    if (seoDescription) postData.seoDescription = seoDescription
+    if (seoKeywords) postData.seoKeywords = seoKeywords
+    if (seoCategory) postData.seoCategory = seoCategory
 
     // Get uploaded media URLs from Appwrite function
-    const mediaUrl = formData.get('mediaUrl') as string
+    const mediaUrls = formData
+      .getAll('mediaUrl')
+      .map((value) => String(value || '').trim())
+      .filter(Boolean)
     const thumbnailUrl = formData.get('thumbnailUrl') as string
 
-    postData.mediaUrls = mediaUrl ? [mediaUrl] : []
+    postData.mediaUrls = mediaUrls
     if (thumbnailUrl) {
       postData.thumbnailUrl = thumbnailUrl
     }

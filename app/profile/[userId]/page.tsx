@@ -11,6 +11,7 @@ import { useAuthStore } from '../../../authStore'
 import { VerifiedBadge } from '../../../components/VerifiedBadge'
 import { hasVerifiedBadge } from '../../../lib/verification'
 import { AdcashBanner300x100 } from '../../../components/AdcashBanner300x100'
+import { getUploadProgressByUser, removeUploadProgressItem, UploadProgressItem } from '../../../lib/upload-progress'
 
 type ProfileData = {
   displayName?: string
@@ -47,6 +48,7 @@ export default function ProfilePage() {
     following: 0
   })
   const [activeTab, setActiveTab] = useState<TabType>('posts')
+  const [uploadProgressItems, setUploadProgressItems] = useState<UploadProgressItem[]>([])
   const profileStore = useProfileStore()
   const authStore = useAuthStore()
   const [shouldLoadCover, setShouldLoadCover] = useState(false)
@@ -58,6 +60,31 @@ export default function ProfilePage() {
   }, [])
 
   const isCurrentUser = authStore.currentUserId === userId
+
+  useEffect(() => {
+    if (!isCurrentUser) {
+      setUploadProgressItems([])
+      return
+    }
+
+    const loadUploadProgress = () => {
+      const items = getUploadProgressByUser(userId).filter((item) => {
+        const ageMs = Date.now() - item.updatedAt
+        return ageMs <= 1000 * 60 * 60 * 6
+      })
+      setUploadProgressItems(items)
+    }
+
+    loadUploadProgress()
+    const intervalId = window.setInterval(loadUploadProgress, 800)
+    const onStorage = () => loadUploadProgress()
+    window.addEventListener('storage', onStorage)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.removeEventListener('storage', onStorage)
+    }
+  }, [isCurrentUser, userId])
 
   useEffect(() => {
     const cached = profileStore.getProfile(userId)
@@ -636,6 +663,56 @@ export default function ProfilePage() {
 
         {/* Posts */}
         <div className="space-y-4">
+          {isCurrentUser &&
+            uploadProgressItems.map((item) => (
+              <div
+                key={`upload-progress-${item.id}`}
+                className="rounded-2xl border border-[rgb(var(--border-color))] bg-[rgb(var(--bg-secondary))] p-4"
+              >
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[rgb(var(--text-primary))]">
+                      {item.title || item.content || 'Uploading post...'}
+                    </p>
+                    <p className="text-xs text-[rgb(var(--text-secondary))]">
+                      {item.status === 'completed'
+                        ? 'Upload completed'
+                        : item.status === 'failed'
+                          ? 'Upload failed'
+                          : 'Uploading...'}
+                    </p>
+                  </div>
+                  {(item.status === 'completed' || item.status === 'failed') && (
+                    <button
+                      onClick={() => {
+                        removeUploadProgressItem(item.id)
+                        setUploadProgressItems((prev) => prev.filter((entry) => entry.id !== item.id))
+                      }}
+                      className="rounded-full border border-[rgb(var(--border-color))] px-3 py-1 text-xs text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))]"
+                    >
+                      Dismiss
+                    </button>
+                  )}
+                </div>
+                <div className="h-2 w-full rounded-full bg-black/20">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      item.status === 'failed'
+                        ? 'bg-red-500'
+                        : item.status === 'completed'
+                          ? 'bg-green-500'
+                          : 'bg-blue-500'
+                    }`}
+                    style={{ width: `${Math.max(2, Math.min(100, item.progress))}%` }}
+                  />
+                </div>
+                <div className="mt-2 flex items-center justify-between text-xs text-[rgb(var(--text-secondary))]">
+                  <span>{item.message}</span>
+                  <span>{Math.round(item.progress)}%</span>
+                </div>
+              </div>
+            ))}
+
           {filteredPosts.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-400">No {activeTab} yet</p>
