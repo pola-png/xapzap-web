@@ -1,6 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { Suspense } from 'react'
 import { AuthWrapper } from '../AuthWrapper'
 import { MainLayoutWrapper } from '../MainLayoutWrapper'
 import { generateWebsiteStructuredData, generateOrganizationStructuredData } from '../lib/structured-data'
@@ -106,9 +107,9 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <AuthWrapper>
-          <MainLayoutWrapper>
-            {children}
-          </MainLayoutWrapper>
+          <Suspense fallback={children}>
+            <MainLayoutWrapper>{children}</MainLayoutWrapper>
+          </Suspense>
         </AuthWrapper>
       </body>
     </html>
