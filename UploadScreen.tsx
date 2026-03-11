@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   NewsComposer,
@@ -47,15 +47,24 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   const requestedType = searchParams.get('type') as UploadKind | null
   const hasRequestedType = !!requestedType && ['video', 'reel', 'image', 'news'].includes(requestedType)
 
+  useLayoutEffect(() => {
+    if (flow.selectedType) return
+    if (!hasRequestedType) return
+    if (!requestedType) return
+    if (requestedType === 'news') return
+
+    flow.selectType(requestedType, false, 'free')
+  }, [flow.selectedType, flow.selectType, hasRequestedType, requestedType])
+
   useEffect(() => {
     if (flow.selectedType) return
     if (!flow.hasLoadedUser) return
     if (!hasRequestedType) return
     if (!requestedType) return
+    if (requestedType !== 'news') return
 
-    const disabled = requestedType === 'news' ? !(flow.isAdmin || flow.creatorPlan === 'business') : false
-    const requires = requestedType === 'news' ? 'business' : 'free'
-    flow.selectType(requestedType, disabled, requires)
+    const disabled = !(flow.isAdmin || flow.creatorPlan === 'business')
+    flow.selectType(requestedType, disabled, 'business')
   }, [
     flow.selectedType,
     flow.hasLoadedUser,
@@ -65,25 +74,6 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     hasRequestedType,
     requestedType,
   ])
-
-  useEffect(() => {
-    if (flow.selectedType) return
-
-    const hasTypeInLocation =
-      typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('type')
-
-    if (hasRequestedType || hasTypeInLocation) return
-
-    const timeout = setTimeout(() => {
-      if (flow.selectedType) return
-      const stillNoType =
-        typeof window !== 'undefined' && !new URLSearchParams(window.location.search).has('type')
-      if (!stillNoType) return
-      router.replace('/?create=1')
-    }, 250)
-
-    return () => clearTimeout(timeout)
-  }, [flow.selectedType, hasRequestedType, router])
 
   useEffect(() => {
     if (!flow.selectedType) return
@@ -131,26 +121,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
   }
 
   if (!flow.selectedType) {
-    return (
-      <>
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className={`w-full max-w-sm rounded-2xl shadow-2xl ${flow.isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
-            <div className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-base font-semibold">Create Post</p>
-                  <p className={`mt-1 text-sm ${flow.isDark ? 'text-gray-300' : 'text-gray-600'}`}>Redirectingâ€¦</p>
-                </div>
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" aria-label="Loading" />
-              </div>
-            </div>
-          </div>
-        </div>
-        <input ref={videoInputRef} type="file" accept="video/*" onChange={flow.handleVideoSelect} className="hidden" />
-        <input ref={imageInputRef} type="file" accept="image/*" multiple onChange={flow.handleImagesSelect} className="hidden" />
-        <input ref={thumbnailInputRef} type="file" accept="image/*" onChange={flow.handleThumbnailSelect} className="hidden" />
-      </>
-    )
+    return null
   }
 
   return (

@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, Settings, Bookmark, BarChart3, DollarSign, MessageCircle, LogOut, FileText } from 'lucide-react'
+import { ArrowLeft, Settings, Bookmark, BarChart3, DollarSign, MessageCircle, LogOut, FileText, Gift } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import appwriteService from '../../../appwriteService'
 import { useAuthStore } from '../../../authStore'
@@ -56,6 +56,14 @@ export default function MenuPage() {
           <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
             <DollarSign size={20} />
             <span className="font-medium">Monetization</span>
+          </button>
+
+          <button
+            onClick={() => router.push('/referrals')}
+            className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left"
+          >
+            <Gift size={20} />
+            <span className="font-medium">Referrals</span>
           </button>
 
           <button

@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import appwriteService from '../../../appwriteService'
 
 export default function SignUpPage() {
   const router = useRouter()
+  const [referralCode, setReferralCode] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -14,6 +15,11 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get('ref') || ''
+    setReferralCode(code.trim())
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,7 +53,7 @@ export default function SignUpPage() {
     setError('')
 
     try {
-      await appwriteService.signUp(email, password, username, displayName)
+      await appwriteService.signUp(email, password, username, displayName, referralCode || undefined)
       router.push('/profile/edit')
     } catch (err: any) {
       setError(err.message || 'Sign up failed')
@@ -66,6 +72,11 @@ export default function SignUpPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {referralCode && (
+              <div className="text-sm text-gray-300 bg-gray-800/50 border border-gray-700 rounded-lg p-3">
+                Signing up with referral code: <span className="font-semibold text-white">{referralCode}</span>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Full Name

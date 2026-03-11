@@ -73,7 +73,7 @@ class AppwriteService {
     }
   }
 
-  async signUp(email: string, password: string, username: string, displayName?: string) {
+  async signUp(email: string, password: string, username: string, displayName?: string, referralCode?: string) {
     try {
       // Create account
       await this.account.create(
@@ -101,6 +101,34 @@ class AppwriteService {
           displayName: displayName || username
         }
       )
+
+      const safeReferralCode = this.normalizeIdentifier(referralCode)
+      if (safeReferralCode) {
+        try {
+          const referrerProfile = await this.findProfileByUsername(safeReferralCode)
+          const referrerUserId = this.normalizeIdentifier(referrerProfile?.userId || referrerProfile?.$id)
+
+          if (referrerUserId && referrerUserId !== user.$id) {
+            const alreadyFollowing = await this.isFollowing(user.$id, referrerUserId)
+            if (!alreadyFollowing) {
+              await this.databases.createDocument(
+                this.databaseId,
+                this.collections.follows,
+                ID.unique(),
+                {
+                  followerId: user.$id,
+                  followeeId: referrerUserId,
+                  followedAt: new Date().toISOString(),
+                  status: 'referral',
+                  notificationEnabled: true,
+                }
+              )
+            }
+          }
+        } catch (error) {
+          console.error('Failed to apply referral code:', error)
+        }
+      }
 
       return user
     } catch (error: any) {
@@ -218,6 +246,55 @@ class AppwriteService {
       } catch {
         return null
       }
+    }
+  }
+
+  async findProfileByUsername(username: string) {
+    const safeUsername = this.normalizeIdentifier(username)
+    if (!safeUsername) return null
+
+    try {
+      const result = await this.databases.listDocuments(
+        this.databaseId,
+        this.collections.profiles,
+        [Query.equal('username', safeUsername), Query.limit(1)]
+      )
+      return result.documents[0] ?? null
+    } catch {
+      return null
+    }
+  }
+
+  async fetchReferralFollows(userId: string) {
+    const safeUserId = this.normalizeIdentifier(userId)
+    if (!safeUserId) return [] as Array<{ userId: string; username: string; displayName: string; avatarUrl?: string }>
+
+    try {
+      const result = await this.databases.listDocuments(
+        this.databaseId,
+        this.collections.follows,
+        [Query.equal('followeeId', safeUserId), Query.equal('status', 'referral'), Query.orderDesc('followedAt'), Query.limit(100)]
+      )
+
+      const followerIds = result.documents
+        .map((doc: any) => this.normalizeIdentifier(doc.followerId))
+        .filter((value): value is string => !!value)
+
+      const uniqueFollowerIds = Array.from(new Set(followerIds))
+      const profiles = await Promise.all(uniqueFollowerIds.map((id) => this.getProfileByUserId(id)))
+
+      return profiles
+        .filter((p): p is any => !!p)
+        .map((profile) => ({
+          userId: String(profile.userId || profile.$id || '').trim(),
+          username: String(profile.username || '').trim(),
+          displayName: String(profile.displayName || profile.username || 'User').trim(),
+          avatarUrl: profile.avatarUrl ? String(profile.avatarUrl) : undefined,
+        }))
+        .filter((item) => item.userId && item.username)
+    } catch (error) {
+      console.error('Failed to fetch referral follows:', error)
+      return [] as Array<{ userId: string; username: string; displayName: string; avatarUrl?: string }>
     }
   }
 
