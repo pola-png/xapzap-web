@@ -99,6 +99,18 @@ body {
   scrollbar-width: none;
 }
 
+@layer utilities {
+  .safe-area-inset-bottom {
+    padding-bottom: constant(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-inset-bottom-p4 {
+    padding-bottom: calc(constant(safe-area-inset-bottom) + 1rem);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  }
+}
+
 /* Hide bottom navigation when video detail screen is open */
 body.hide-bottom-nav nav[class*="fixed bottom-0"] {
   display: none;

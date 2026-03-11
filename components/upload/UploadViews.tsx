@@ -95,7 +95,7 @@ export function VideoSelectStep({
 }: VideoSelectStepProps) {
   return (
     <div className={`min-h-screen ${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'}`}>
-      <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pb-6">
+      <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pb-28">
         <div className="flex items-center justify-between py-4">
           <button onClick={onBack} className={`rounded-full p-2 ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
             <ChevronLeft size={20} />
@@ -138,12 +138,14 @@ export function VideoSelectStep({
 
           {(durationError || overDurationLimit) && (
             <div className={`mt-3 rounded-xl px-3 py-2 text-sm ${isDark ? 'bg-red-500/10 text-red-200' : 'bg-red-50 text-red-700'}`}>
-              {durationGuardMessage}
-            </div>
-          )}
+            {durationGuardMessage}
+          </div>
+        )}
         </div>
+      </div>
 
-        <div className="mt-4 flex items-center gap-3">
+      <div className={`fixed bottom-0 left-0 right-0 border-t p-4 safe-area-inset-bottom-p4 ${isDark ? 'border-gray-800 bg-gray-950' : 'border-gray-200 bg-white'}`}>
+        <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
           <button
             onClick={onChooseVideo}
             className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold ${
@@ -244,7 +246,7 @@ export function VideoDetailsStep({
 }: VideoDetailsStepProps) {
   return (
     <div className={`min-h-screen ${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'}`}>
-      <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pb-8">
+      <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pb-28">
         <div className="flex items-center justify-between py-4">
           <button onClick={onBack} className={`rounded-full p-2 ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}>
             <ChevronLeft size={20} />
@@ -409,8 +411,10 @@ export function VideoDetailsStep({
             </div>
           </div>
         )}
+      </div>
 
-        <div className="mt-4">
+      <div className={`fixed bottom-0 left-0 right-0 border-t p-4 safe-area-inset-bottom-p4 ${isDark ? 'border-gray-800 bg-gray-950' : 'border-gray-200 bg-white'}`}>
+        <div className="mx-auto w-full max-w-3xl">
           <button
             onClick={onUpload}
             disabled={uploading || overDurationLimit || !hasSelectedVideo}
@@ -571,7 +575,7 @@ export function TextImageComposer({
           )}
         </div>
 
-        <div className={`fixed bottom-0 left-0 right-0 border-t p-4 ${isDark ? 'border-gray-800 bg-gray-950' : 'border-gray-200 bg-white'}`}>
+        <div className={`fixed bottom-0 left-0 right-0 border-t p-4 safe-area-inset-bottom-p4 ${isDark ? 'border-gray-800 bg-gray-950' : 'border-gray-200 bg-white'}`}>
           <div className="mx-auto w-full max-w-3xl">
             <button
               onClick={onUpload}
@@ -645,7 +649,7 @@ export function NewsComposer({
           />
         </div>
 
-        <div className={`fixed bottom-0 left-0 right-0 border-t p-4 ${isDark ? 'border-gray-800 bg-gray-950' : 'border-gray-200 bg-white'}`}>
+        <div className={`fixed bottom-0 left-0 right-0 border-t p-4 safe-area-inset-bottom-p4 ${isDark ? 'border-gray-800 bg-gray-950' : 'border-gray-200 bg-white'}`}>
           <div className="mx-auto w-full max-w-3xl">
             <button
               onClick={onUpload}

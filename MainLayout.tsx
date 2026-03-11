@@ -251,7 +251,7 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
             </div>
           </div>
         )}
-        <main className="pb-20">{children}</main>
+        <main className={hideBottomNav ? '' : 'pb-20'}>{children}</main>
         {!hideBottomNav && (
         <nav className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--bg-primary))] border-t border-[rgb(var(--border-color))] safe-area-inset-bottom">
           <div className="flex items-center justify-around py-2 px-2">

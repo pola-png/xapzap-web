@@ -17,6 +17,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [user, setUser] = useState<any>(null)
   const [userAvatar, setUserAvatar] = useState('')
+  const hideBottomNav = pathname.startsWith('/upload')
 
   useEffect(() => {
     loadUserData()
@@ -181,38 +182,40 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
             </div>
           </div>
         )}
-        <main className="pb-20">{children}</main>
-        <nav className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--bg-primary))] border-t border-[rgb(var(--border-color))] safe-area-inset-bottom">
-          <div className="flex items-center justify-around py-2 px-2">
-            {[
-              { icon: Home, path: '/', label: 'Home' },
-              { icon: MessageCircle, path: '/chat', label: 'Chat', badge: unreadChats },
-              { icon: PlusSquare, path: '/upload', label: 'Create', onClick: handleCreateClick },
-              { icon: Bell, path: '/notifications', label: 'Notifications', badge: unreadNotifications },
-              { icon: User, path: '/profile', label: 'Profile' }
-            ].map((item) => {
-              const Icon = item.icon
-              return (
-                <button
-                  key={item.path}
-                  onClick={item.onClick || (() => handleNavClick(item.path))}
-                  className={cn(
-                    "p-3 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-lg relative",
-                    pathname === item.path ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-secondary))]"
-                  )}
-                  aria-label={item.label}
-                >
-                  <Icon size={24} />
-                  {item.badge && item.badge > 0 && (
-                    <span className="absolute top-1 right-1 bg-red-500 text-white text-sm rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        </nav>
+        <main className={hideBottomNav ? '' : 'pb-20'}>{children}</main>
+        {!hideBottomNav && (
+          <nav className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--bg-primary))] border-t border-[rgb(var(--border-color))] safe-area-inset-bottom">
+            <div className="flex items-center justify-around py-2 px-2">
+              {[
+                { icon: Home, path: '/', label: 'Home' },
+                { icon: MessageCircle, path: '/chat', label: 'Chat', badge: unreadChats },
+                { icon: PlusSquare, path: '/upload', label: 'Create', onClick: handleCreateClick },
+                { icon: Bell, path: '/notifications', label: 'Notifications', badge: unreadNotifications },
+                { icon: User, path: '/profile', label: 'Profile' }
+              ].map((item) => {
+                const Icon = item.icon
+                return (
+                  <button
+                    key={item.path}
+                    onClick={item.onClick || (() => handleNavClick(item.path))}
+                    className={cn(
+                      "p-3 min-w-[48px] min-h-[48px] flex items-center justify-center rounded-lg relative",
+                      pathname === item.path ? "text-[#1DA1F2]" : "text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-secondary))]"
+                    )}
+                    aria-label={item.label}
+                  >
+                    <Icon size={24} />
+                    {item.badge && item.badge > 0 && (
+                      <span className="absolute top-1 right-1 bg-red-500 text-white text-sm rounded-full px-1.5 min-w-[18px] h-[18px] flex items-center justify-center">
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </nav>
+        )}
       </div>
     </div>
   )
