@@ -1,6 +1,6 @@
 export default function UploadLoading() {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm">
       <div className="w-full max-w-sm rounded-2xl border border-[rgb(var(--border-color))] bg-[rgb(var(--bg-primary))] p-5 shadow-2xl">
         <div className="flex items-center justify-between">
           <div>
@@ -13,4 +13,3 @@ export default function UploadLoading() {
     </div>
   )
 }
-

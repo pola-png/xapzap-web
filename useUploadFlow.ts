@@ -68,6 +68,7 @@ export function useUploadFlow({ onUploadSuccess }: UseUploadFlowOptions) {
   const [canUseAi, setCanUseAi] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState('')
   const [displayName, setDisplayName] = useState('You')
+  const [hasLoadedUser, setHasLoadedUser] = useState(false)
 
   const textColors = [
     '#111827',
@@ -122,6 +123,8 @@ export function useUploadFlow({ onUploadSuccess }: UseUploadFlowOptions) {
         setCreatorPlan('free')
         setCanUploadLongVideo(false)
         setCanUseAi(false)
+      } finally {
+        setHasLoadedUser(true)
       }
     }
 
@@ -595,6 +598,7 @@ export function useUploadFlow({ onUploadSuccess }: UseUploadFlowOptions) {
     isAdmin,
     currentUserId,
     creatorPlan,
+    hasLoadedUser,
     canUseAi,
     textColors,
     avatarUrl,

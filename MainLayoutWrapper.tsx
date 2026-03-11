@@ -2,9 +2,11 @@
 
 import { ReactNode, useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Home, MessageCircle, PlusSquare, Bell, User, Search, Video, Film, Radio, Newspaper, Users } from 'lucide-react'
+import { Home, MessageCircle, PlusSquare, Bell, User, Search, Video, Film, Radio, Newspaper, Users, Image as ImageIcon } from 'lucide-react'
 import { cn } from './utils'
 import appwriteService from './appwriteService'
+
+type UploadKind = 'video' | 'reel' | 'image' | 'news'
 
 interface MainLayoutWrapperProps {
   children: ReactNode
@@ -18,6 +20,8 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
   const [user, setUser] = useState<any>(null)
   const [userAvatar, setUserAvatar] = useState('')
   const hideBottomNav = pathname.startsWith('/upload')
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false)
+  const [pendingUploadKind, setPendingUploadKind] = useState<UploadKind | null>(null)
 
   useEffect(() => {
     loadUserData()
@@ -35,6 +39,13 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
     return () => clearTimeout(timeout)
   }, [])
 
+  useEffect(() => {
+    if (pathname.startsWith('/upload')) {
+      setIsCreateSheetOpen(false)
+      setPendingUploadKind(null)
+    }
+  }, [pathname])
+
   const loadUserData = async () => {
     const currentUser = await appwriteService.getCurrentUser().catch(() => null)
     if (!currentUser) return
@@ -48,11 +59,18 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
   }
 
   const handleCreateClick = () => {
-    router.push('/upload')
+    setPendingUploadKind(null)
+    setIsCreateSheetOpen(true)
+    router.prefetch('/upload')
   }
 
   const handleNavClick = (path: string) => {
     router.push(path)
+  }
+
+  const handleUploadKindSelect = (kind: UploadKind) => {
+    setPendingUploadKind(kind)
+    router.push(`/upload?type=${kind}`)
   }
 
   const sidebarItems = [
@@ -68,6 +86,66 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
 
   return (
     <div className="min-h-screen bg-[rgb(var(--bg-primary))]">
+      {isCreateSheetOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm"
+          onClick={() => {
+            if (!pendingUploadKind) setIsCreateSheetOpen(false)
+          }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-[rgb(var(--border-color))] bg-[rgb(var(--bg-primary))] p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <p className="text-base font-semibold text-[rgb(var(--text-primary))]">Create Post</p>
+                <p className="mt-1 text-sm text-[rgb(var(--text-secondary))]">
+                  {pendingUploadKind ? 'Opening upload…' : 'Choose what to upload'}
+                </p>
+              </div>
+              {!pendingUploadKind && (
+                <button
+                  className="rounded-full p-2 text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-secondary))]"
+                  onClick={() => setIsCreateSheetOpen(false)}
+                  aria-label="Close create sheet"
+                >
+                  ✕
+                </button>
+              )}
+              {pendingUploadKind && (
+                <div
+                  className="h-8 w-8 animate-spin rounded-full border-2 border-[rgb(var(--border-color))] border-t-[rgb(var(--accent-blue))]"
+                  aria-label="Loading"
+                />
+              )}
+            </div>
+
+            <div className={cn('grid grid-cols-2 gap-2', pendingUploadKind && 'opacity-60')}>
+              {[
+                { kind: 'video' as const, label: 'Video', icon: Video },
+                { kind: 'reel' as const, label: 'Reel', icon: Film },
+                { kind: 'image' as const, label: 'Text/Image', icon: ImageIcon },
+                { kind: 'news' as const, label: 'News', icon: Newspaper },
+              ].map((item) => {
+                const Icon = item.icon
+                return (
+                  <button
+                    key={item.kind}
+                    disabled={!!pendingUploadKind}
+                    onClick={() => handleUploadKindSelect(item.kind)}
+                    className="flex flex-col items-center justify-center rounded-xl p-4 text-center transition hover:bg-[rgb(var(--bg-secondary))] disabled:cursor-not-allowed"
+                  >
+                    <Icon size={28} className="mb-2 text-[rgb(var(--text-primary))]" />
+                    <span className="text-sm font-semibold text-[rgb(var(--text-primary))]">{item.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Desktop Layout */}
       <div className="hidden lg:flex flex-col min-h-screen">
         {/* Header */}

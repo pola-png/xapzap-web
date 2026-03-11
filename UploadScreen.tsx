@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Film, Image as ImageIcon, Newspaper, Video } from 'lucide-react'
 import {
   NewsComposer,
   TextImageComposer,
+  UploadKind,
   UploadTypeOption,
   UploadTypeSelector,
   VideoDetailsStep,
@@ -22,6 +23,7 @@ interface UploadScreenProps {
 
 export function UploadScreen({ onClose }: UploadScreenProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const videoInputRef = useRef<HTMLInputElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const thumbnailInputRef = useRef<HTMLInputElement>(null)
@@ -82,6 +84,19 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
       disabled: !(flow.isAdmin || flow.creatorPlan === 'business'),
     },
   ]
+
+  useEffect(() => {
+    if (flow.selectedType) return
+    if (!flow.hasLoadedUser) return
+
+    const requestedType = searchParams.get('type') as UploadKind | null
+    if (!requestedType) return
+    if (!['video', 'reel', 'image', 'news'].includes(requestedType)) return
+
+    const disabled = requestedType === 'news' ? !(flow.isAdmin || flow.creatorPlan === 'business') : false
+    const requires = requestedType === 'news' ? 'business' : 'free'
+    flow.selectType(requestedType, disabled, requires)
+  }, [flow.selectedType, flow.hasLoadedUser, flow.isAdmin, flow.creatorPlan, flow.selectType, searchParams])
 
   useEffect(() => {
     if (!flow.selectedType) return
