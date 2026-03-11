@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -68,8 +68,21 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
 
   useEffect(() => {
     if (flow.selectedType) return
-    if (hasRequestedType) return
-    router.replace('/?create=1')
+
+    const hasTypeInLocation =
+      typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('type')
+
+    if (hasRequestedType || hasTypeInLocation) return
+
+    const timeout = setTimeout(() => {
+      if (flow.selectedType) return
+      const stillNoType =
+        typeof window !== 'undefined' && !new URLSearchParams(window.location.search).has('type')
+      if (!stillNoType) return
+      router.replace('/?create=1')
+    }, 250)
+
+    return () => clearTimeout(timeout)
   }, [flow.selectedType, hasRequestedType, router])
 
   useEffect(() => {
@@ -105,7 +118,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
 
             <div className="flex flex-1 flex-col items-center justify-center">
               <div className="h-10 w-10 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" aria-label="Loading" />
-              <p className={`mt-4 text-sm ${flow.isDark ? 'text-gray-300' : 'text-gray-600'}`}>Preparing {requestedType} upload…</p>
+              <p className={`mt-4 text-sm ${flow.isDark ? 'text-gray-300' : 'text-gray-600'}`}>Preparing {requestedType} upload...</p>
             </div>
           </div>
         </div>
@@ -126,7 +139,7 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-base font-semibold">Create Post</p>
-                  <p className={`mt-1 text-sm ${flow.isDark ? 'text-gray-300' : 'text-gray-600'}`}>Redirecting…</p>
+                  <p className={`mt-1 text-sm ${flow.isDark ? 'text-gray-300' : 'text-gray-600'}`}>Redirectingâ€¦</p>
                 </div>
                 <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" aria-label="Loading" />
               </div>
@@ -245,4 +258,3 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     </>
   )
 }
-
