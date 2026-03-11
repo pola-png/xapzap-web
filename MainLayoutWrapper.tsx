@@ -24,6 +24,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
     // Prefetch the most likely next routes eagerly
     router.prefetch('/watch')
     router.prefetch('/reels')
+    router.prefetch('/upload')
 
     // Defer lower-priority prefetches to avoid blocking first paint
     const timeout = setTimeout(() => {
