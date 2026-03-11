@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode, useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Home, MessageCircle, PlusSquare, Bell, User, Search, Video, Film, Radio, Newspaper, Users, Image as ImageIcon } from 'lucide-react'
 import { cn } from './utils'
 import appwriteService from './appwriteService'
@@ -15,6 +15,7 @@ interface MainLayoutWrapperProps {
 export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [unreadChats, setUnreadChats] = useState(0)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [user, setUser] = useState<any>(null)
@@ -45,6 +46,15 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
       setPendingUploadKind(null)
     }
   }, [pathname])
+
+  useEffect(() => {
+    if (searchParams.get('create') !== '1') return
+    if (pathname.startsWith('/upload')) return
+
+    setPendingUploadKind(null)
+    setIsCreateSheetOpen(true)
+    router.replace(pathname)
+  }, [searchParams, pathname, router])
 
   const loadUserData = async () => {
     const currentUser = await appwriteService.getCurrentUser().catch(() => null)

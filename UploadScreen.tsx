@@ -2,20 +2,14 @@
 
 import { useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Film, Image as ImageIcon, Newspaper, Video } from 'lucide-react'
 import {
   NewsComposer,
   TextImageComposer,
   UploadKind,
-  UploadTypeOption,
-  UploadTypeSelector,
   VideoDetailsStep,
   VideoSelectStep,
 } from './components/upload/UploadViews'
-import {
-  DURATION_GUARD_MESSAGE,
-  useUploadFlow,
-} from './useUploadFlow'
+import { DURATION_GUARD_MESSAGE, useUploadFlow } from './useUploadFlow'
 
 interface UploadScreenProps {
   onClose?: () => void
@@ -50,53 +44,33 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     },
   })
 
-  const contentTypes: UploadTypeOption[] = [
-    {
-      id: 'video',
-      label: 'Video',
-      icon: Video,
-      description: 'Upload video',
-      requires: 'free',
-      disabled: false,
-    },
-    {
-      id: 'reel',
-      label: 'Reel',
-      icon: Film,
-      description: 'Upload short reel',
-      requires: 'free',
-      disabled: false,
-    },
-    {
-      id: 'image',
-      label: 'Text/Image',
-      icon: ImageIcon,
-      description: 'Text post or photos',
-      requires: 'free',
-      disabled: false,
-    },
-    {
-      id: 'news',
-      label: 'News',
-      icon: Newspaper,
-      description: 'Business only',
-      requires: 'business',
-      disabled: !(flow.isAdmin || flow.creatorPlan === 'business'),
-    },
-  ]
+  const requestedType = searchParams.get('type') as UploadKind | null
+  const hasRequestedType = !!requestedType && ['video', 'reel', 'image', 'news'].includes(requestedType)
 
   useEffect(() => {
     if (flow.selectedType) return
     if (!flow.hasLoadedUser) return
-
-    const requestedType = searchParams.get('type') as UploadKind | null
+    if (!hasRequestedType) return
     if (!requestedType) return
-    if (!['video', 'reel', 'image', 'news'].includes(requestedType)) return
 
     const disabled = requestedType === 'news' ? !(flow.isAdmin || flow.creatorPlan === 'business') : false
     const requires = requestedType === 'news' ? 'business' : 'free'
     flow.selectType(requestedType, disabled, requires)
-  }, [flow.selectedType, flow.hasLoadedUser, flow.isAdmin, flow.creatorPlan, flow.selectType, searchParams])
+  }, [
+    flow.selectedType,
+    flow.hasLoadedUser,
+    flow.isAdmin,
+    flow.creatorPlan,
+    flow.selectType,
+    hasRequestedType,
+    requestedType,
+  ])
+
+  useEffect(() => {
+    if (flow.selectedType) return
+    if (hasRequestedType) return
+    router.replace('/?create=1')
+  }, [flow.selectedType, hasRequestedType, router])
 
   useEffect(() => {
     if (!flow.selectedType) return
@@ -106,15 +80,59 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     }
   }, [flow.selectedType, flow.setVideoStep])
 
+  if (!flow.selectedType && hasRequestedType) {
+    return (
+      <>
+        <div className={`min-h-screen ${flow.isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'}`}>
+          <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 pb-6">
+            <div className="flex items-center justify-between py-4">
+              <button
+                onClick={() => router.back()}
+                className={`rounded-full p-2 ${flow.isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                aria-label="Back"
+              >
+                Back
+              </button>
+              <h1 className="text-lg font-semibold">Create Post</h1>
+              <button
+                onClick={handleCloseUpload}
+                className={`rounded-full p-2 ${flow.isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                aria-label="Close upload"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="flex flex-1 flex-col items-center justify-center">
+              <div className="h-10 w-10 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" aria-label="Loading" />
+              <p className={`mt-4 text-sm ${flow.isDark ? 'text-gray-300' : 'text-gray-600'}`}>Preparing {requestedType} upload…</p>
+            </div>
+          </div>
+        </div>
+
+        <input ref={videoInputRef} type="file" accept="video/*" onChange={flow.handleVideoSelect} className="hidden" />
+        <input ref={imageInputRef} type="file" accept="image/*" multiple onChange={flow.handleImagesSelect} className="hidden" />
+        <input ref={thumbnailInputRef} type="file" accept="image/*" onChange={flow.handleThumbnailSelect} className="hidden" />
+      </>
+    )
+  }
+
   if (!flow.selectedType) {
     return (
       <>
-        <UploadTypeSelector
-          isDark={flow.isDark}
-          contentTypes={contentTypes}
-          onClose={handleCloseUpload}
-          onSelect={(type) => flow.selectType(type.id, type.disabled, type.requires)}
-        />
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className={`w-full max-w-sm rounded-2xl shadow-2xl ${flow.isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
+            <div className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-base font-semibold">Create Post</p>
+                  <p className={`mt-1 text-sm ${flow.isDark ? 'text-gray-300' : 'text-gray-600'}`}>Redirecting…</p>
+                </div>
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" aria-label="Loading" />
+              </div>
+            </div>
+          </div>
+        </div>
         <input ref={videoInputRef} type="file" accept="video/*" onChange={flow.handleVideoSelect} className="hidden" />
         <input ref={imageInputRef} type="file" accept="image/*" multiple onChange={flow.handleImagesSelect} className="hidden" />
         <input ref={thumbnailInputRef} type="file" accept="image/*" onChange={flow.handleThumbnailSelect} className="hidden" />
@@ -227,3 +245,4 @@ export function UploadScreen({ onClose }: UploadScreenProps) {
     </>
   )
 }
+
