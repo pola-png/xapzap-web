@@ -29,6 +29,9 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     if (path === '/premium') return true
     if (path === '/monetization') return true
     if (path === '/about') return true
+    if (path === '/privacy') return true
+    if (path === '/terms') return true
+    if (path === '/account-deletion') return true
     if (path === '/for-you') return true
     if (path === '/chinese-drama-movies') return true
     if (path === '/profile') return true

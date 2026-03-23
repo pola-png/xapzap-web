@@ -15,6 +15,10 @@ interface MainLayoutWrapperProps {
 export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const isLegalPage =
+    pathname === '/privacy' ||
+    pathname === '/terms' ||
+    pathname === '/account-deletion'
   const [unreadChats, setUnreadChats] = useState(0)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [user, setUser] = useState<any>(null)
@@ -23,6 +27,7 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false)
 
   useEffect(() => {
+    if (isLegalPage) return
     loadUserData()
     // Prefetch the most likely next routes eagerly
     router.prefetch('/watch')
@@ -36,13 +41,18 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
     }, 3000)
 
     return () => clearTimeout(timeout)
-  }, [])
+  }, [isLegalPage])
 
   useEffect(() => {
+    if (isLegalPage) return
     if (pathname.startsWith('/upload')) {
       setIsCreateSheetOpen(false)
     }
-  }, [pathname])
+  }, [isLegalPage, pathname])
+
+  if (isLegalPage) {
+    return <div className="min-h-screen bg-[rgb(var(--bg-primary))]">{children}</div>
+  }
 
   const loadUserData = async () => {
     const currentUser = await appwriteService.getCurrentUser().catch(() => null)

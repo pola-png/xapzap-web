@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Storage, ID, Query } from 'appwrite'
+import { Client, Account, Databases, Storage, Functions, ID, Query, ExecutionMethod } from 'appwrite'
 import { Chat, Message } from './types'
 import { getUploadAccess } from './lib/creator-plan'
 
@@ -8,6 +8,7 @@ class AppwriteService {
   private account: Account
   private databases: Databases
   private storage: Storage
+  private functions: Functions
 
   // Configuration - matching Flutter app exactly
   private readonly endpoint = 'https://nyc.cloud.appwrite.io/v1'
@@ -38,6 +39,7 @@ class AppwriteService {
   }
 
   private readonly mediaBucketId = '6915baaa00381391d7b2'
+  private readonly blockFilterFunctionId = process.env.NEXT_PUBLIC_APPWRITE_BLOCK_FILTER_FUNCTION_ID || '69bfdc350034b3294afe'
 
   private normalizeIdentifier(value: unknown): string | null {
     if (typeof value !== 'string') return null
@@ -55,6 +57,7 @@ class AppwriteService {
     this.account = new Account(this.client)
     this.databases = new Databases(this.client)
     this.storage = new Storage(this.client)
+    this.functions = new Functions(this.client)
   }
 
   static getInstance(): AppwriteService {
@@ -157,6 +160,43 @@ class AppwriteService {
       return await this.account.createJWT()
     } catch (error: any) {
       throw new Error(error.message || 'Failed to create JWT')
+    }
+  }
+
+  async deleteCurrentAccount() {
+    try {
+      if (!this.blockFilterFunctionId) {
+        throw new Error('Account deletion is unavailable until the block filter function ID is configured.')
+      }
+
+      const jwt = await this.createJWT()
+      const execution = await this.functions.createExecution(
+        this.blockFilterFunctionId,
+        JSON.stringify({ confirm: true, userJwt: jwt.jwt }),
+        false,
+        '/v1/account/delete',
+        ExecutionMethod.POST,
+        {
+          'content-type': 'application/json'
+        }
+      )
+
+      let payload: any = {}
+      if (execution.responseBody?.trim()) {
+        try {
+          payload = JSON.parse(execution.responseBody)
+        } catch {
+          payload = {}
+        }
+      }
+
+      if (execution.responseStatusCode < 200 || execution.responseStatusCode >= 300) {
+        throw new Error(payload?.error || payload?.message || `Account deletion failed with HTTP ${execution.responseStatusCode}.`)
+      }
+
+      return payload
+    } catch (error: any) {
+      throw new Error(error.message || 'Account deletion failed')
     }
   }
 

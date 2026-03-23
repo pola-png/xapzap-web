@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, Settings, Bookmark, BarChart3, DollarSign, MessageCircle, LogOut, FileText, Gift } from 'lucide-react'
+import { ArrowLeft, Settings, Bookmark, BarChart3, DollarSign, MessageCircle, LogOut, FileText, Gift, ShieldAlert, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import appwriteService from '../../../appwriteService'
 import { useAuthStore } from '../../../authStore'
@@ -91,19 +91,28 @@ export default function MenuPage() {
             <span className="font-medium">About XapZap</span>
           </button>
 
-          <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
-            <span className="text-xl">T</span>
+          <button
+            onClick={() => router.push('/terms')}
+            className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left"
+          >
+            <FileText size={20} />
             <span className="font-medium">Terms of Service</span>
           </button>
 
-          <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
-            <span className="text-xl">P</span>
+          <button
+            onClick={() => router.push('/privacy')}
+            className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left"
+          >
+            <ShieldAlert size={20} />
             <span className="font-medium">Privacy Policy</span>
           </button>
 
-          <button className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left">
-            <span className="text-xl">C</span>
-            <span className="font-medium">Community Guidelines</span>
+          <button
+            onClick={() => router.push('/account-deletion')}
+            className="w-full flex items-center gap-3 p-4 hover:bg-accent rounded-lg transition-colors text-left"
+          >
+            <Trash2 size={20} />
+            <span className="font-medium">Account Deletion</span>
           </button>
         </div>
 
