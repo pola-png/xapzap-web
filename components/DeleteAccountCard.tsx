@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import appwriteService from '../appwriteService'
@@ -62,6 +61,21 @@ export default function DeleteAccountCard() {
     }
   }
 
+  if (!isSignedIn) {
+    return (
+      <div className="rounded-2xl border border-[rgb(var(--border-color))] bg-[rgb(var(--bg-primary))] p-5">
+        <h2 className="text-lg font-bold text-[rgb(var(--text-primary))]">
+          Account deletion
+        </h2>
+        <p className="mt-2 text-sm leading-7 text-[rgb(var(--text-secondary))] sm:text-base">
+          The live delete action is only shown to authenticated users. Sign in to your
+          XapZap account first, then return to this page to permanently delete the
+          account.
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="rounded-2xl border border-red-200 bg-red-50/70 p-5 dark:border-red-900 dark:bg-red-950/30">
       <h2 className="text-lg font-bold text-[rgb(var(--text-primary))]">
@@ -85,39 +99,15 @@ export default function DeleteAccountCard() {
           <span>I understand this action is permanent and cannot be undone.</span>
         </label>
 
-        {!isSignedIn ? (
-          <p className="mt-4 text-sm leading-6 text-[rgb(var(--text-secondary))]">
-            Sign in first to use the live deletion action.
-          </p>
-        ) : null}
-
         <div className="mt-4 flex flex-wrap gap-3">
           <button
             type="button"
             onClick={handleDelete}
-            disabled={!isSignedIn || !confirmed || isDeleting}
+            disabled={!confirmed || isDeleting}
             className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isDeleting ? 'Deleting...' : 'Delete My Account'}
           </button>
-          <Link
-            href="/auth/signin"
-            className="rounded-full border border-[rgb(var(--border-color))] px-4 py-2.5 text-sm font-semibold text-[rgb(var(--text-primary))] transition hover:border-[#1DA1F2] hover:text-[#1DA1F2]"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/privacy"
-            className="rounded-full border border-[rgb(var(--border-color))] px-4 py-2.5 text-sm font-semibold text-[rgb(var(--text-primary))] transition hover:border-[#1DA1F2] hover:text-[#1DA1F2]"
-          >
-            Privacy Policy
-          </Link>
-          <Link
-            href="/terms"
-            className="rounded-full border border-[rgb(var(--border-color))] px-4 py-2.5 text-sm font-semibold text-[rgb(var(--text-primary))] transition hover:border-[#1DA1F2] hover:text-[#1DA1F2]"
-          >
-            Terms of Service
-          </Link>
         </div>
       </div>
 

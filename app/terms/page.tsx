@@ -5,7 +5,7 @@ import { LegalPage } from '../../components/LegalPage'
 export const metadata: Metadata = {
   title: 'Terms of Service',
   description:
-    'Read the XapZap Terms of Service for the website and app, including user obligations, moderation rules, content policies, account enforcement, and deletion behavior.',
+    'Read the XapZap Terms of Service for the website and app, including user obligations, prohibited conduct, moderation rules, account enforcement, and deletion behavior.',
 }
 
 const sections = [
@@ -20,9 +20,14 @@ const sections = [
       'Users must provide accurate information, maintain the security of their credentials, and use only accounts they are authorized to control. Users are responsible for activity that occurs through their account unless they promptly report unauthorized access. XapZap may restrict, suspend, or remove accounts that violate eligibility rules, misrepresent identity, or expose the platform to legal or security risk.',
   },
   {
-    title: 'Acceptable use',
+    title: 'Prohibited conduct',
     body:
-      'Users may not use XapZap for unlawful conduct, harassment, hate speech, threats, sexual exploitation, spam, scams, malware distribution, impersonation, coordinated manipulation, fraud, or other abusive behavior. Attempts to bypass platform restrictions, abuse platform features, scrape protected data, or interfere with normal service operation are also prohibited.',
+      'Users may not use XapZap for unlawful conduct, harassment, bullying, hate speech, violent threats, terrorism support, sexual exploitation, child sexual abuse material, spam, scams, fraud, phishing, malware distribution, impersonation, account trading, deceptive identity use, coordinated manipulation, vote or engagement manipulation, or other abusive behavior. Attempts to bypass platform restrictions, evade enforcement, scrape protected data, abuse reporting systems, automate misuse, or interfere with normal service operation are also prohibited.',
+  },
+  {
+    title: 'Privacy and contact restrictions',
+    body:
+      'Users must not post, request, trade, solicit, or encourage the sharing of personal contact details or sensitive personal information on XapZap when doing so could create privacy, fraud, stalking, or safety risk. This includes phone numbers, private email addresses, home addresses, banking details, passwords, one-time codes, government identifiers, or similar information. Users must not pressure other users to move to private messaging apps or off-platform channels for suspicious, exploitative, or unsafe activity.',
   },
   {
     title: 'User-generated content',
@@ -30,14 +35,19 @@ const sections = [
       'Users are responsible for the text, profile information, and other materials they submit to XapZap. By posting content, users represent that they have the right to share it and that it does not violate law, infringe third-party rights, or breach these terms. Public content may be viewed, shared, or referenced by others according to product design and platform availability.',
   },
   {
+    title: 'Content restrictions',
+    body:
+      'Users must not publish content that is illegal, defamatory, infringing, misleading, sexually exploitative, graphically violent, privacy-invasive, or intended to facilitate fraud, trafficking, extortion, blackmail, doxxing, or real-world harm. Users must not impersonate individuals, brands, or public entities in a misleading way and must not misrepresent affiliation, endorsement, or authority.',
+  },
+  {
     title: 'Moderation and enforcement',
     body:
-      'XapZap may review, restrict, remove, downrank, block, suspend, or ban content and accounts that violate these terms, the Privacy Policy, platform rules, or applicable law. Enforcement may be based on user reports, automated detection, internal review, or a combination of those methods. We may act without prior notice when safety, legal exposure, abuse prevention, or service integrity requires it.',
+      'XapZap may review, restrict, remove, downrank, block, suspend, disable features on, or permanently ban content and accounts that violate these terms, the Privacy Policy, platform rules, or applicable law. Enforcement may be based on user reports, automated detection, internal review, trusted flaggers, or a combination of those methods. We may act without prior notice when safety, child protection, legal exposure, abuse prevention, or service integrity requires it.',
   },
   {
     title: 'Deletion and residual records',
     body:
-      'Users may permanently delete their account through the supported deletion flow. XapZap attempts to remove core account data immediately after a confirmed deletion succeeds. Any limited residual records retained for security, moderation, fraud prevention, legal compliance, or system propagation must be described accurately in policy text. XapZap should not publish a guaranteed 30-day auto-delete promise unless that retention cleanup is actually implemented and enforced in production.',
+      'Users may permanently delete their account through the supported deletion flow. XapZap attempts to remove core account data immediately after a confirmed deletion succeeds. Limited residual records may remain where required for security, moderation, fraud prevention, legal compliance, or system propagation.',
   },
   {
     title: 'Availability of the service',
@@ -57,7 +67,7 @@ const sections = [
   {
     title: 'Contact',
     body:
-      'For policy, moderation, or account questions, contact support@xapzap.com.',
+      'For policy, moderation, or account questions, contact xapzaptech@gmail.com.',
   },
 ]
 
@@ -66,7 +76,7 @@ export default function TermsPage() {
     <LegalPage
       title="XapZap Terms of Service"
       eyebrow="Legal"
-      intro="This page contains the public terms that govern use of XapZap on the website and app. It is intended for user reference, platform compliance, and store review."
+      intro="These Terms of Service govern use of XapZap on both the website and app and set the platform rules for account use, public content, safety, and enforcement."
       sections={sections}
       currentPath="/terms"
     />

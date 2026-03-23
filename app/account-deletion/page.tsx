@@ -6,14 +6,14 @@ import { LegalPage } from '../../components/LegalPage'
 export const metadata: Metadata = {
   title: 'Account Deletion',
   description:
-    'Read how XapZap account deletion works, what data is removed, what may be retained, and how the supported deletion flow operates across the app and website.',
+    'Read how XapZap account deletion works, what data is removed, what limited records may still be retained, and how the supported deletion flow operates across the app and website.',
 }
 
 const sections = [
   {
     title: 'Purpose of this page',
     body:
-      'This page explains how XapZap account deletion works across the website and app. It is intended for users, reviewers, and compliance teams who need a public description of the deletion process and data removal behavior.',
+      'This page explains how XapZap account deletion works across the website and app. It is intended for users who need a clear public description of the deletion process and data removal behavior.',
   },
   {
     title: 'How deletion works',
@@ -23,7 +23,7 @@ const sections = [
   {
     title: 'What may still remain temporarily',
     body:
-      'Some limited residual technical, moderation, safety, or legal records may remain where necessary for system propagation, fraud prevention, security review, trust and safety history, dispute handling, or legal compliance. Any statement about a fixed automatic cleanup deadline must match the real production retention workflow. If XapZap wants to publish a 30-day cleanup promise, that rule should first be implemented and enforced operationally.',
+      'Some limited residual technical, moderation, safety, or legal records may remain where necessary for system propagation, fraud prevention, security review, trust and safety history, dispute handling, or legal compliance.',
   },
   {
     title: 'Effect on access and visibility',
@@ -38,7 +38,7 @@ const sections = [
   {
     title: 'Questions about deletion',
     body:
-      'For deletion, privacy, or moderation questions, contact support@xapzap.com.',
+      'For deletion, privacy, or moderation questions, contact xapzaptech@gmail.com.',
   },
 ]
 
@@ -47,7 +47,7 @@ export default function AccountDeletionPage() {
     <LegalPage
       title="XapZap Account Deletion"
       eyebrow="Legal"
-      intro="This public page describes the XapZap account deletion process for the website and app. It can be used as the deletion policy URL for Play Console and user reference."
+      intro="This page describes the XapZap account deletion process for both the website and app, including what is deleted immediately and what limited records may still be retained."
       sections={sections}
       currentPath="/account-deletion"
     >
