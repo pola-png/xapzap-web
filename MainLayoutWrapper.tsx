@@ -18,7 +18,8 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
   const isLegalPage =
     pathname === '/privacy' ||
     pathname === '/terms' ||
-    pathname === '/account-deletion'
+    pathname === '/account-deletion' ||
+    pathname === '/safety-standards'
   const [unreadChats, setUnreadChats] = useState(0)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [user, setUser] = useState<any>(null)

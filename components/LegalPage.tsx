@@ -11,7 +11,7 @@ interface LegalPageProps {
   eyebrow: string
   intro: string
   sections: LegalSection[]
-  currentPath: '/privacy' | '/terms' | '/account-deletion'
+  currentPath: '/privacy' | '/terms' | '/account-deletion' | '/safety-standards'
   children?: ReactNode
 }
 
@@ -67,6 +67,9 @@ export function LegalPage({
                 <LegalLink href="/account-deletion" currentPath={currentPath}>
                   Account Deletion
                 </LegalLink>
+                <LegalLink href="/safety-standards" currentPath={currentPath}>
+                  Safety Standards
+                </LegalLink>
               </div>
             </div>
           </div>
@@ -81,8 +84,8 @@ function LegalLink({
   currentPath,
   children,
 }: {
-  href: '/privacy' | '/terms' | '/account-deletion'
-  currentPath: '/privacy' | '/terms' | '/account-deletion'
+  href: '/privacy' | '/terms' | '/account-deletion' | '/safety-standards'
+  currentPath: '/privacy' | '/terms' | '/account-deletion' | '/safety-standards'
   children: ReactNode
 }) {
   const active = href === currentPath

@@ -32,6 +32,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     if (path === '/privacy') return true
     if (path === '/terms') return true
     if (path === '/account-deletion') return true
+    if (path === '/safety-standards') return true
     if (path === '/for-you') return true
     if (path === '/chinese-drama-movies') return true
     if (path === '/profile') return true
