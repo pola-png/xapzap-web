@@ -22,7 +22,7 @@ const sections = [
   {
     title: 'Prohibited conduct',
     body:
-      'Users may not use XapZap for unlawful conduct, harassment, bullying, hate speech, violent threats, terrorism support, sexual exploitation, child sexual abuse material, spam, scams, fraud, phishing, malware distribution, impersonation, account trading, deceptive identity use, coordinated manipulation, vote or engagement manipulation, or other abusive behavior. Attempts to bypass platform restrictions, evade enforcement, scrape protected data, abuse reporting systems, automate misuse, or interfere with normal service operation are also prohibited.',
+      'Users must not use XapZap for unlawful conduct, harassment, bullying, hate speech, violent threats, terrorism support, sexual exploitation, child sexual abuse material, spam, scams, fraud, phishing, malware distribution, impersonation, account trading, deceptive identity use, coordinated manipulation, vote or engagement manipulation, or other abusive behavior. Attempts to bypass platform restrictions, evade enforcement, scrape protected data, abuse reporting systems, automate misuse, or interfere with normal service operation are also prohibited.',
   },
   {
     title: 'Privacy and contact restrictions',
@@ -45,9 +45,14 @@ const sections = [
       'XapZap may review, restrict, remove, downrank, block, suspend, disable features on, or permanently ban content and accounts that violate these terms, the Privacy Policy, platform rules, or applicable law. Enforcement may be based on user reports, automated detection, internal review, trusted flaggers, or a combination of those methods. We may act without prior notice when safety, child protection, legal exposure, abuse prevention, or service integrity requires it.',
   },
   {
+    title: 'Violations and consequences',
+    body:
+      'Violations of these terms can result in content removal, loss of visibility, feature restrictions, temporary suspension, permanent account bans, device or account blocking, and denial of future access to XapZap. Serious or repeated violations can lead to immediate enforcement without warning. XapZap may also preserve relevant records and cooperate with lawful requests, safety investigations, fraud investigations, or law enforcement where required.',
+  },
+  {
     title: 'Deletion and residual records',
     body:
-      'Users may permanently delete their account through the supported deletion flow. XapZap attempts to remove core account data immediately after a confirmed deletion succeeds. Limited residual records may remain where required for security, moderation, fraud prevention, legal compliance, or system propagation.',
+      'Users can permanently delete their account through the supported deletion flow. XapZap attempts to remove core account data immediately after a confirmed deletion succeeds. Limited residual records may remain where required for security, moderation, fraud prevention, legal compliance, or system propagation.',
   },
   {
     title: 'Availability of the service',
