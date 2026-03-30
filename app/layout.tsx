@@ -79,6 +79,11 @@ export default function RootLayout({
         <meta name="clckd" content="9e74e972a063854e6f79469ab24a989d" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3088816615654692"
+          crossOrigin="anonymous"
+        />
+        <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
