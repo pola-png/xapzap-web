@@ -2,25 +2,101 @@ import { MetadataRoute } from 'next'
 import appwriteService from '../appwriteService'
 import { generateSlug } from '../lib/slug'
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'
 
+function toAbsoluteImageUrl(value?: string): string {
+  if (!value) return `${SITE_URL}/og-image.jpg`
+  if (value.startsWith('http')) return value
+  if (value.startsWith('/media/')) return `${SITE_URL}/api/image-proxy?path=${value.substring(1)}`
+  if (value.startsWith('/')) return `${SITE_URL}${value}`
+  return `${SITE_URL}/${value}`
+}
+
+function toAbsoluteVideoUrl(value?: string): string {
+  if (!value) return ''
+  if (value.startsWith('http')) return value
+  if (value.startsWith('/media/')) return `${SITE_URL}/api/video-proxy?path=${value.substring(1)}`
+  if (value.startsWith('/')) return `${SITE_URL}${value}`
+  return `${SITE_URL}/${value}`
+}
+
+function getPrimaryVideoUrl(post: any): string {
+  if (typeof post.mediaUrl === 'string' && post.mediaUrl.length > 0) return post.mediaUrl
+  if (typeof post.videoUrl === 'string' && post.videoUrl.length > 0) return post.videoUrl
+  if (typeof post.mediaURl === 'string' && post.mediaURl.length > 0) return post.mediaURl
+  if (Array.isArray(post.mediaUrls) && typeof post.mediaUrls[0] === 'string') return post.mediaUrls[0]
+  return ''
+}
+
+function normalizeText(value: unknown, fallback: string): string {
+  if (typeof value !== 'string') return fallback
+  const normalized = value.replace(/\s+/g, ' ').trim()
+  return normalized || fallback
+}
+
+function getDurationSeconds(post: any): number | undefined {
+  const rawDurationMs = post.durationMs
+  if (rawDurationMs === null || rawDurationMs === undefined) return undefined
+  const durationMs = Number(rawDurationMs)
+  if (!Number.isFinite(durationMs) || durationMs <= 0) return undefined
+  return Math.max(1, Math.floor(durationMs / 1000))
+}
+
+function createVideoSitemapEntry(
+  post: any,
+  pathPrefix: '/watch' | '/reels',
+  slug: string,
+): MetadataRoute.Sitemap[number] {
+  const pageUrl = `${SITE_URL}${pathPrefix}/${slug}`
+  const thumbnailUrl = toAbsoluteImageUrl(post.thumbnailUrl)
+  const videoUrl = toAbsoluteVideoUrl(getPrimaryVideoUrl(post))
+  const title = normalizeText(post.seoTitle || post.title || post.caption, pathPrefix === '/reels' ? 'XapZap Reel' : 'XapZap Video')
+  const description = normalizeText(
+    post.seoDescription || post.content || post.caption,
+    pathPrefix === '/reels' ? 'Watch this reel on XapZap.' : 'Watch this video on XapZap.',
+  )
+  const duration = getDurationSeconds(post)
+
+  return {
+    url: pageUrl,
+    lastModified: new Date(post.$updatedAt || post.$createdAt),
+    changeFrequency: 'weekly',
+    priority: 1.0,
+    videos: videoUrl
+      ? [
+          {
+            title,
+            description,
+            thumbnail_loc: thumbnailUrl,
+            content_loc: videoUrl,
+            player_loc: pageUrl,
+            publication_date: new Date(post.$createdAt || post.createdAt || post.$updatedAt || Date.now()).toISOString(),
+            family_friendly: 'yes',
+            live: 'no',
+            ...(duration ? { duration } : {}),
+          },
+        ]
+      : undefined,
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static routes with high priority
   const routes = [
-    { url: `${baseUrl}`, priority: 1, changeFrequency: 'hourly' as const },
-    { url: `${baseUrl}/for-you`, priority: 0.9, changeFrequency: 'hourly' as const },
-    { url: `${baseUrl}/watch`, priority: 0.9, changeFrequency: 'hourly' as const },
-    { url: `${baseUrl}/reels`, priority: 0.9, changeFrequency: 'hourly' as const },
-    { url: `${baseUrl}/news`, priority: 0.9, changeFrequency: 'hourly' as const },
-    { url: `${baseUrl}/chinese-drama-movies`, priority: 0.9, changeFrequency: 'daily' as const },
-    { url: `${baseUrl}/about`, priority: 0.8, changeFrequency: 'monthly' as const },
-    { url: `${baseUrl}/premium`, priority: 0.8, changeFrequency: 'weekly' as const },
-    { url: `${baseUrl}/monetization`, priority: 0.8, changeFrequency: 'weekly' as const },
-    { url: `${baseUrl}/following`, priority: 0.7, changeFrequency: 'hourly' as const },
-    { url: `${baseUrl}/live`, priority: 0.8, changeFrequency: 'always' as const },
-    { url: `${baseUrl}/search`, priority: 0.6, changeFrequency: 'daily' as const },
-    { url: `${baseUrl}/auth/signin`, priority: 0.5, changeFrequency: 'monthly' as const },
-    { url: `${baseUrl}/auth/signup`, priority: 0.5, changeFrequency: 'monthly' as const },
+    { url: `${SITE_URL}`, priority: 1, changeFrequency: 'hourly' as const },
+    { url: `${SITE_URL}/for-you`, priority: 0.9, changeFrequency: 'hourly' as const },
+    { url: `${SITE_URL}/watch`, priority: 0.9, changeFrequency: 'hourly' as const },
+    { url: `${SITE_URL}/reels`, priority: 0.9, changeFrequency: 'hourly' as const },
+    { url: `${SITE_URL}/news`, priority: 0.9, changeFrequency: 'hourly' as const },
+    { url: `${SITE_URL}/chinese-drama-movies`, priority: 0.9, changeFrequency: 'daily' as const },
+    { url: `${SITE_URL}/about`, priority: 0.8, changeFrequency: 'monthly' as const },
+    { url: `${SITE_URL}/premium`, priority: 0.8, changeFrequency: 'weekly' as const },
+    { url: `${SITE_URL}/monetization`, priority: 0.8, changeFrequency: 'weekly' as const },
+    { url: `${SITE_URL}/following`, priority: 0.7, changeFrequency: 'hourly' as const },
+    { url: `${SITE_URL}/live`, priority: 0.8, changeFrequency: 'always' as const },
+    { url: `${SITE_URL}/search`, priority: 0.6, changeFrequency: 'daily' as const },
+    { url: `${SITE_URL}/auth/signin`, priority: 0.5, changeFrequency: 'monthly' as const },
+    { url: `${SITE_URL}/auth/signup`, priority: 0.5, changeFrequency: 'monthly' as const },
   ].map((route) => ({
     ...route,
     lastModified: new Date(),
@@ -44,12 +120,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           return
         }
         const slug = post.slug || generateSlug(post.caption || post.title || 'video', post.$id)
-        allUrls.push({
-          url: `${baseUrl}/watch/${slug}`,
-          lastModified: new Date(post.$updatedAt || post.$createdAt),
-          changeFrequency: 'weekly',
-          priority: 1.0,
-        })
+        allUrls.push(createVideoSitemapEntry(post, '/watch', slug))
       })
 
       videoCount += videos.documents.length
@@ -71,12 +142,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           return
         }
         const slug = post.slug || generateSlug(post.caption || 'reel', post.$id)
-        allUrls.push({
-          url: `${baseUrl}/reels/${slug}`,
-          lastModified: new Date(post.$updatedAt || post.$createdAt),
-          changeFrequency: 'weekly',
-          priority: 1.0,
-        })
+        allUrls.push(createVideoSitemapEntry(post, '/reels', slug))
       })
 
       reelsCount += reels.documents.length
@@ -99,7 +165,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }
         const slug = post.slug || generateSlug(post.title || post.caption || 'article', post.$id)
         allUrls.push({
-          url: `${baseUrl}/news/${slug}`,
+          url: `${SITE_URL}/news/${slug}`,
           lastModified: new Date(post.$updatedAt || post.$createdAt),
           changeFrequency: 'daily',
           priority: 1.0,

@@ -165,6 +165,15 @@ Google supports up to 50,000 URLs per sitemap file and 50,000 sitemap files per 
 3. Track search performance
 4. Fix crawl errors
 
+### Google Search Console Verification
+The app already supports Google verification via `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` in [`app/layout.tsx`](c:\XapZap\xapzap-web\app\layout.tsx).
+
+To finish Search Console exposure in production:
+1. Set `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` to the token from Google Search Console.
+2. Deploy the site so the verification meta tag is present in the HTML.
+3. In Google Search Console, verify the property and submit `https://xapzap.com/sitemap.xml`.
+4. Request indexing for a few sample `/watch/...` and `/reels/...` URLs to accelerate discovery.
+
 ### Key Metrics to Track
 - Pages indexed (target: 100,000+)
 - Average position (target: top 10)
