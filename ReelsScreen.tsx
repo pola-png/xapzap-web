@@ -12,6 +12,7 @@ import { formatCount, formatTimeAgo } from './utils'
 import { playAdcashInstreamAd } from './lib/instream-ads'
 import { VerifiedBadge } from './components/VerifiedBadge'
 import { hasVerifiedBadge, isPremiumBadge } from './lib/verification'
+import { normalizeWasabiImage, normalizeWasabiVideo } from './lib/wasabi'
 
 export function ReelsScreen() {
   const feedStore = useFeedStore()
@@ -44,12 +45,12 @@ export function ReelsScreen() {
 
   const toImageProxyUrl = (url?: string) => {
     if (!url) return ''
-    return url.startsWith('/media/') ? `/api/image-proxy?path=${url.substring(1)}` : url
+    return normalizeWasabiImage(url) || url
   }
 
   const toVideoProxyUrl = (url?: string) => {
     if (!url) return ''
-    return url.startsWith('/media/') ? `/api/video-proxy?path=${url.substring(1)}` : url
+    return normalizeWasabiVideo(url) || url
   }
 
   const getVideoSource = (post: Post) => {

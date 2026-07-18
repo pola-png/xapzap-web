@@ -6,7 +6,7 @@ import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChar
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { OptimizedImage } from './components/OptimizedImage'
-import { normalizeWasabiImageArray, normalizeWasabiImage } from './lib/wasabi'
+import { normalizeWasabiImageArray, normalizeWasabiImage, normalizeWasabiVideo } from './lib/wasabi'
 import { feedCache } from './lib/cache'
 import { generateSlug } from './lib/slug'
 import { parseHashtags } from './lib/hashtag'
@@ -531,17 +531,11 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
     if (!shouldLoadMedia) return <div className="w-full aspect-square rounded-xl mb-3 bg-gray-100 dark:bg-gray-800" />
 
     const toImageProxyUrl = (url: string) => {
-      if (url.startsWith('/media/')) {
-        return `/api/image-proxy?path=${url.substring(1)}`
-      }
-      return url
+      return normalizeWasabiImage(url) || url
     }
 
     const toVideoProxyUrl = (url: string) => {
-      if (url.startsWith('/media/')) {
-        return `/api/video-proxy?path=${url.substring(1)}`
-      }
-      return url
+      return normalizeWasabiVideo(url) || url
     }
 
     const imageUrl = toImageProxyUrl(post.mediaUrls[0])
@@ -748,7 +742,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           >
             {userProfile?.avatarUrl ? (
               <img
-                src={userProfile.avatarUrl.startsWith('/media/') ? `/api/image-proxy?path=${userProfile.avatarUrl.substring(1)}` : userProfile.avatarUrl}
+                src={normalizeWasabiImage(userProfile.avatarUrl) || userProfile.avatarUrl}
                 alt={userProfile.displayName || 'User'}
                 className="w-10 h-10 rounded-full object-cover"
               />

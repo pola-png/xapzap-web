@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Eye, Loader2, X } from 'lucide-react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
-import { normalizeWasabiImage } from './lib/wasabi'
+import { normalizeWasabiImage, normalizeWasabiVideo } from './lib/wasabi'
 import { parseHashtags } from './lib/hashtag'
 import { formatCount, formatTimeAgo } from './utils'
 import { CommentModal } from './CommentModal'
@@ -69,12 +69,12 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
   const toImageProxyUrl = (url?: string) => {
     if (!url) return ''
-    return url.startsWith('/media/') ? `/api/image-proxy?path=${url.substring(1)}` : url
+    return normalizeWasabiImage(url) || url
   }
 
   const toVideoProxyUrl = (url?: string) => {
     if (!url) return ''
-    return url.startsWith('/media/') ? `/api/video-proxy?path=${url.substring(1)}` : url
+    return normalizeWasabiVideo(url) || url
   }
 
   useEffect(() => {

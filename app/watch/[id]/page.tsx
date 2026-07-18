@@ -3,6 +3,7 @@ import { Post } from '../../../types'
 import { extractCandidateIdsFromSlug, extractIdFromSlug } from '../../../lib/slug'
 import { generateVideoStructuredData } from '../../../lib/structured-data'
 import { hasVerifiedBadge } from '../../../lib/verification'
+import { toWasabiProxyPath, toWasabiVideoProxyPath } from '../../../lib/wasabi'
 import WatchDetailClient from './WatchDetailClient'
 
 export const dynamic = 'force-dynamic'
@@ -11,22 +12,18 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'
 
 function toImageProxyUrl(url?: string): string {
   if (!url) return ''
-  if (url.startsWith('http')) return url
-  if (url.startsWith('/media/')) {
-    return `${SITE_URL}/api/image-proxy?path=${url.substring(1)}`
-  }
-  if (url.startsWith('/')) return `${SITE_URL}${url}`
-  return `${SITE_URL}/${url}`
+  const resolved = toWasabiProxyPath(url) || url
+  if (resolved.startsWith('http')) return resolved
+  if (resolved.startsWith('/')) return `${SITE_URL}${resolved}`
+  return `${SITE_URL}/${resolved}`
 }
 
 function toVideoProxyUrl(url?: string): string {
   if (!url) return ''
-  if (url.startsWith('http')) return url
-  if (url.startsWith('/media/')) {
-    return `${SITE_URL}/api/video-proxy?path=${url.substring(1)}`
-  }
-  if (url.startsWith('/')) return `${SITE_URL}${url}`
-  return `${SITE_URL}/${url}`
+  const resolved = toWasabiVideoProxyPath(url) || url
+  if (resolved.startsWith('http')) return resolved
+  if (resolved.startsWith('/')) return `${SITE_URL}${resolved}`
+  return `${SITE_URL}/${resolved}`
 }
 
 function normalizeMediaUrls(postData: any): string[] {
