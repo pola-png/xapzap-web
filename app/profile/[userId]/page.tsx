@@ -10,6 +10,7 @@ import { useProfileStore } from '../../../profileStore'
 import { useAuthStore } from '../../../authStore'
 import { VerifiedBadge } from '../../../components/VerifiedBadge'
 import { hasVerifiedBadge } from '../../../lib/verification'
+import { normalizeWasabiImage } from '../../../lib/wasabi'
 import { AdcashBanner300x100 } from '../../../components/AdcashBanner300x100'
 import { getUploadProgressByUser, removeUploadProgressItem, UploadProgressItem } from '../../../lib/upload-progress'
 
@@ -380,7 +381,7 @@ export default function ProfilePage() {
       <div className="relative h-48 bg-gradient-to-br from-blue-600 to-purple-700 dark:from-[#0f172a] dark:to-[#1e293b] group">
         {profile.coverUrl && shouldLoadCover && (
           <img
-            src={profile.coverUrl.startsWith('/media/') ? `/api/image-proxy?path=${profile.coverUrl.substring(1)}` : profile.coverUrl}
+            src={normalizeWasabiImage(profile.coverUrl) || profile.coverUrl}
             alt="Cover"
             className="w-full h-full object-cover"
           />
@@ -432,7 +433,7 @@ export default function ProfilePage() {
           <div className="w-24 h-24 rounded-full border-4 border-black bg-gray-800 flex items-center justify-center relative group">
             {profile.avatarUrl && shouldLoadAvatar ? (
               <img
-                src={profile.avatarUrl.startsWith('/media/') ? `/api/image-proxy?path=${profile.avatarUrl.substring(1)}` : profile.avatarUrl}
+                src={normalizeWasabiImage(profile.avatarUrl) || profile.avatarUrl}
                 alt={profile.displayName}
                 className="w-full h-full rounded-full object-cover"
               />
@@ -486,11 +487,16 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Profile Info */}
-      <div className="px-4 pt-16 pb-4">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1">
-            <div className="mb-1 flex items-center gap-4 flex-wrap">
+
+      {/* Main Responsive Grid Wrapper */}
+      <div className="flex flex-col lg:flex-row gap-6 max-w-6xl mx-auto px-4 pb-20">
+
+        {/* LEFT: Feed Column */}
+        <div className="flex-1 min-w-0">
+
+          {/* Mobile-only profile info */}
+          <div className="lg:hidden px-0 pt-16 pb-4">
+            <div className="mb-1 flex items-center gap-3 flex-wrap">
               <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))] inline-flex items-center gap-1">
                 {profile.displayName}
                 {profile.isVerified && <VerifiedBadge className="h-5 w-5 align-middle inline-flex" />}
@@ -498,240 +504,246 @@ export default function ProfilePage() {
               {isCurrentUser && !profile.isVerified && (
                 <button
                   onClick={() => router.push('/premium')}
-                  className="px-5 py-2 rounded-full bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition-colors"
+                  className="px-4 py-1.5 rounded-full bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 transition-colors"
                 >
-                  Verified Now
+                  Get Verified
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-2 mb-2 text-[rgb(var(--text-secondary))]">
-              <p>@{profile.username}</p>
+            <p className="text-[rgb(var(--text-secondary))] text-sm mb-2">
+              @{profile.username}{profile.category && ` · ${profile.category}`}
+            </p>
+            {profile.bio && <p className="text-[rgb(var(--text-primary))] text-sm mb-2">{profile.bio}</p>}
+            {profile.joinedAt && (
+              <div className="flex items-center text-[rgb(var(--text-secondary))] text-xs mb-3">
+                <Calendar className="w-3.5 h-3.5 mr-1" />
+                Joined {new Date(profile.joinedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </div>
+            )}
+            <div className="flex gap-5 mb-4">
+              <div className="text-center">
+                <div className="text-lg font-bold text-[rgb(var(--text-primary))]">{stats.posts}</div>
+                <div className="text-xs text-[rgb(var(--text-secondary))]">Posts</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-[rgb(var(--text-primary))]">{stats.followers}</div>
+                <div className="text-xs text-[rgb(var(--text-secondary))]">Followers</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-[rgb(var(--text-primary))]">{stats.following}</div>
+                <div className="text-xs text-[rgb(var(--text-secondary))]">Following</div>
+              </div>
+            </div>
+            <div className="flex gap-2 mb-4">
+              {isCurrentUser ? (
+                <>
+                  <button onClick={() => router.push('/profile/edit')} className="flex-1 bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))] py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 text-sm">
+                    <Settings className="w-4 h-4" />Edit Profile
+                  </button>
+                  <button onClick={handleShare} className="bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))] p-2 rounded-lg" aria-label="Share"><Share className="w-5 h-5" /></button>
+                  <button onClick={() => router.push('/profile/menu')} className="bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))] p-2 rounded-lg" aria-label="Menu"><Menu className="w-5 h-5" /></button>
+                </>
+              ) : (
+                <>
+                  <button onClick={handleFollow} disabled={followLoading} className={`flex-1 py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 text-sm ${isFollowing ? 'bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))]' : 'bg-xapzap-blue text-white'}`}>
+                    {followLoading ? <div className="w-4 h-4 border border-current border-t-transparent rounded-full animate-spin" /> : isFollowing ? <><UserMinus className="w-4 h-4" />Following</> : <><UserPlus className="w-4 h-4" />Follow</>}
+                  </button>
+                  <button onClick={handleMessage} className="bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))] p-2 rounded-lg" aria-label="Message"><MessageCircle className="w-5 h-5" /></button>
+                  <button onClick={handleShare} className="bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))] p-2 rounded-lg" aria-label="Share"><Share className="w-5 h-5" /></button>
+                </>
+              )}
+            </div>
+            {isCurrentUser && (
+              <div className="bg-[rgb(var(--bg-secondary))] rounded-xl p-3 mb-4">
+                <h3 className="text-[rgb(var(--text-primary))] font-semibold text-sm mb-2">Creator Tools</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={() => router.push('/dashboard')} className="p-2.5 rounded-lg bg-[rgb(var(--bg-primary))] flex items-center gap-2 text-left">
+                    <BarChart3 className="w-4 h-4 text-blue-400 shrink-0" />
+                    <div><div className="text-[rgb(var(--text-primary))] text-xs font-medium">Dashboard</div><div className="text-[rgb(var(--text-secondary))] text-[10px]">Insights</div></div>
+                  </button>
+                  <button onClick={() => router.push('/monetization')} className="p-2.5 rounded-lg bg-[rgb(var(--bg-primary))] flex items-center gap-2 text-left">
+                    <DollarSign className="w-4 h-4 text-green-400 shrink-0" />
+                    <div><div className="text-[rgb(var(--text-primary))] text-xs font-medium">Monetize</div><div className="text-[rgb(var(--text-secondary))] text-[10px]">Earnings</div></div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Tabs */}
+          <div className="lg:pt-16">
+            <div className="flex border-b border-[rgb(var(--border-color))] mb-4">
+              {(['posts', 'videos', 'news', 'all'] as TabType[]).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => { setActiveTab(tab); profileStore.updateActiveTab(userId, tab) }}
+                  className={`flex-1 py-3 text-center font-medium transition-colors ${
+                    activeTab === tab ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            {/* Upload progress */}
+            <div className="space-y-3 mb-2">
+              {isCurrentUser && uploadProgressItems.map((item) => (
+                <div key={`upload-progress-${item.id}`} className="rounded-2xl border border-[rgb(var(--border-color))] bg-[rgb(var(--bg-secondary))] p-4">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[rgb(var(--text-primary))]">{item.title || item.content || 'Uploading post...'}</p>
+                      <p className="text-xs text-[rgb(var(--text-secondary))]">{item.status === 'completed' ? 'Upload completed' : item.status === 'failed' ? 'Upload failed' : 'Uploading...'}</p>
+                    </div>
+                    {(item.status === 'completed' || item.status === 'failed') && (
+                      <button onClick={() => { removeUploadProgressItem(item.id); setUploadProgressItems((prev) => prev.filter((e) => e.id !== item.id)) }} className="rounded-full border border-[rgb(var(--border-color))] px-3 py-1 text-xs text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))]">Dismiss</button>
+                    )}
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-black/20">
+                    <div className={`h-2 rounded-full transition-all duration-300 ${item.status === 'failed' ? 'bg-red-500' : item.status === 'completed' ? 'bg-green-500' : 'bg-blue-500'}`} style={{ width: `${Math.max(2, Math.min(100, item.progress))}%` }} />
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-xs text-[rgb(var(--text-secondary))]"><span>{item.message}</span><span>{Math.round(item.progress)}%</span></div>
+                </div>
+              ))}
+            </div>
+
+            {/* Posts */}
+            {filteredPosts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-400">No {activeTab} yet</p>
+              </div>
+            ) : activeTab === 'videos' ? (
+              <div className="grid grid-cols-2 gap-3">
+                {filteredPosts.map((post, index) => (
+                  <Fragment key={post.id}>
+                    <PostCard post={post} currentUserId={currentUserId} feedType="home" />
+                    {index < filteredPosts.length - 1 && (
+                      <div className="col-span-2 flex justify-center">
+                        <AdcashBanner300x100 slotKey={`profile-${userId}-${post.id}-${index}`} />
+                      </div>
+                    )}
+                  </Fragment>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredPosts.map((post, index) => (
+                  <Fragment key={post.id}>
+                    <PostCard post={post} currentUserId={currentUserId} feedType="home" />
+                    {index < filteredPosts.length - 1 && (
+                      <AdcashBanner300x100 slotKey={`profile-${userId}-${post.id}-${index}`} />
+                    )}
+                  </Fragment>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT: Desktop Sidebar (hidden on mobile) */}
+        <aside className="hidden lg:flex flex-col w-[300px] xl:w-[340px] flex-shrink-0 pt-16 gap-5">
+
+          {/* Profile card */}
+          <div className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] rounded-2xl p-5 space-y-4">
+            <div>
+              <h2 className="text-xl font-bold text-[rgb(var(--text-primary))] flex items-center gap-1.5 flex-wrap">
+                {profile.displayName}
+                {profile.isVerified && <VerifiedBadge className="h-5 w-5 align-middle shrink-0" />}
+              </h2>
+              <p className="text-[rgb(var(--text-secondary))] text-sm">@{profile.username}</p>
               {profile.category && (
-                <span>• {profile.category}</span>
+                <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">{profile.category}</span>
               )}
             </div>
 
-            {profile.bio && (
-              <p className="text-[rgb(var(--text-primary))] mb-2">{profile.bio}</p>
-            )}
+            {profile.bio && <p className="text-sm text-[rgb(var(--text-primary))] leading-relaxed whitespace-pre-wrap">{profile.bio}</p>}
 
             {profile.joinedAt && (
-              <div className="flex items-center text-[rgb(var(--text-secondary))] text-sm mb-3">
-                <Calendar className="w-4 h-4 mr-1" />
-                Joined {new Date(profile.joinedAt).toLocaleDateString('en-US', {
-                  month: 'long',
-                  year: 'numeric'
-                })}
+              <div className="flex items-center text-[rgb(var(--text-secondary))] text-xs">
+                <Calendar className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+                Joined {new Date(profile.joinedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </div>
             )}
 
-            {/* Stats */}
-            <div className="flex gap-6 mb-4">
+            <div className="grid grid-cols-3 gap-2 border-t border-[rgb(var(--border-color))] pt-4">
               <div className="text-center">
-                <div className="text-xl font-bold text-[rgb(var(--text-primary))]">{stats.posts}</div>
-                <div className="text-sm text-[rgb(var(--text-secondary))]">Posts</div>
+                <div className="text-base font-bold text-[rgb(var(--text-primary))]">{stats.posts}</div>
+                <div className="text-xs text-[rgb(var(--text-secondary))]">Posts</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold text-[rgb(var(--text-primary))]">{stats.followers}</div>
-                <div className="text-sm text-[rgb(var(--text-secondary))]">Followers</div>
+                <div className="text-base font-bold text-[rgb(var(--text-primary))]">{stats.followers}</div>
+                <div className="text-xs text-[rgb(var(--text-secondary))]">Followers</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold text-[rgb(var(--text-primary))]">{stats.following}</div>
-                <div className="text-sm text-[rgb(var(--text-secondary))]">Following</div>
+                <div className="text-base font-bold text-[rgb(var(--text-primary))]">{stats.following}</div>
+                <div className="text-xs text-[rgb(var(--text-secondary))]">Following</div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 mb-6">
-          {isCurrentUser ? (
-            <>
-              <button
-                onClick={() => router.push('/profile/edit')}
-                className="flex-1 bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))] py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                <Settings className="w-4 h-4" />
-                Edit Profile
-              </button>
-              <button
-                onClick={handleShare}
-                className="bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))] p-2 rounded-lg transition-colors"
-                aria-label="Share profile"
-              >
-                <Share className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => router.push('/profile/menu')}
-                className="bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))] p-2 rounded-lg transition-colors"
-                aria-label="Menu"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={handleFollow}
-                disabled={followLoading}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-                  isFollowing
-                    ? 'bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))]'
-                    : 'bg-xapzap-blue hover:bg-xapzap-darkBlue text-white'
-                }`}
-              >
-                {followLoading ? (
-                  <div className="w-4 h-4 border border-current border-t-transparent rounded-full animate-spin"></div>
-                ) : isFollowing ? (
-                  <>
-                    <UserMinus className="w-4 h-4" />
-                    Following
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="w-4 h-4" />
-                    Follow
-                  </>
-                )}
-              </button>
-              <button
-                onClick={handleMessage}
-                className="bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))] p-2 rounded-lg transition-colors"
-                aria-label="Message user"
-              >
-                <MessageCircle className="w-5 h-5" />
-              </button>
-              <button
-                onClick={handleShare}
-                className="bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))] p-2 rounded-lg transition-colors"
-                aria-label="Share profile"
-              >
-                <Share className="w-5 h-5" />
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Creator Tools */}
-        {isCurrentUser && (
-          <div className="bg-[rgb(var(--bg-secondary))] rounded-xl p-4 mb-6">
-            <h3 className="text-[rgb(var(--text-primary))] font-semibold mb-3">Creator Tools</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 p-3 rounded-lg transition-colors flex items-center gap-3"
-              >
-                <BarChart3 className="w-5 h-5 text-blue-400" />
-                <div className="text-left">
-                  <div className="text-[rgb(var(--text-primary))] font-medium text-sm">Dashboard</div>
-                  <div className="text-[rgb(var(--text-secondary))] text-xs">Insights & performance</div>
-                </div>
-              </button>
-              <button
-                onClick={() => router.push('/monetization')}
-                className="bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 p-3 rounded-lg transition-colors flex items-center gap-3"
-              >
-                <DollarSign className="w-5 h-5 text-green-400" />
-                <div className="text-left">
-                  <div className="text-[rgb(var(--text-primary))] font-medium text-sm">Monetization</div>
-                  <div className="text-[rgb(var(--text-secondary))] text-xs">Earnings & eligibility</div>
-                </div>
-              </button>
-            </div>
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            {isCurrentUser ? (
+              <>
+                <button
+                  onClick={() => router.push('/profile/edit')}
+                  className="flex-1 bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))] py-2.5 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 text-sm border border-[rgb(var(--border-color))]"
+                >
+                  <Settings className="w-4 h-4" />Edit Profile
+                </button>
+                <button onClick={handleShare} className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] text-[rgb(var(--text-primary))] p-2.5 rounded-xl transition-colors hover:bg-[rgb(var(--bg-secondary))]/80" aria-label="Share">
+                  <Share className="w-4 h-4" />
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={handleFollow}
+                  disabled={followLoading}
+                  className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 text-sm ${isFollowing ? 'bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))] border border-[rgb(var(--border-color))]' : 'bg-xapzap-blue hover:bg-xapzap-darkBlue text-white'}`}
+                >
+                  {followLoading ? <div className="w-4 h-4 border border-current border-t-transparent rounded-full animate-spin" /> : isFollowing ? 'Following' : 'Follow'}
+                </button>
+                <button onClick={handleMessage} className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] text-[rgb(var(--text-primary))] p-2.5 rounded-xl transition-colors" aria-label="Message">
+                  <MessageCircle className="w-4 h-4" />
+                </button>
+                <button onClick={handleShare} className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] text-[rgb(var(--text-primary))] p-2.5 rounded-xl transition-colors" aria-label="Share">
+                  <Share className="w-4 h-4" />
+                </button>
+              </>
+            )}
           </div>
-        )}
 
-        {/* Tabs */}
-        <div className="flex border-b border-[rgb(var(--border-color))] mb-4">
-          {(['posts', 'videos', 'news', 'all'] as TabType[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => {
-                setActiveTab(tab)
-                profileStore.updateActiveTab(userId, tab)
-              }}
-              className={`flex-1 py-3 text-center font-medium transition-colors ${
-                activeTab === tab
-                  ? 'text-blue-400 border-b-2 border-blue-400'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        {/* Posts */}
-        <div className="space-y-4">
-          {isCurrentUser &&
-            uploadProgressItems.map((item) => (
-              <div
-                key={`upload-progress-${item.id}`}
-                className="rounded-2xl border border-[rgb(var(--border-color))] bg-[rgb(var(--bg-secondary))] p-4"
-              >
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-[rgb(var(--text-primary))]">
-                      {item.title || item.content || 'Uploading post...'}
-                    </p>
-                    <p className="text-xs text-[rgb(var(--text-secondary))]">
-                      {item.status === 'completed'
-                        ? 'Upload completed'
-                        : item.status === 'failed'
-                          ? 'Upload failed'
-                          : 'Uploading...'}
-                    </p>
+          {/* Creator Tools */}
+          {isCurrentUser && (
+            <div className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] rounded-2xl p-4 space-y-3">
+              <h3 className="text-[rgb(var(--text-primary))] font-semibold text-sm">Creator Tools</h3>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => router.push('/dashboard')}
+                  className="w-full bg-[rgb(var(--bg-primary))] hover:bg-[rgb(var(--bg-secondary))]/80 p-3 rounded-xl transition-all border border-[rgb(var(--border-color))] flex items-center gap-3"
+                >
+                  <BarChart3 className="w-5 h-5 text-blue-400" />
+                  <div className="text-left">
+                    <div className="text-[rgb(var(--text-primary))] font-medium text-xs">Dashboard</div>
+                    <div className="text-[rgb(var(--text-secondary))] text-[10px]">Insights & performance</div>
                   </div>
-                  {(item.status === 'completed' || item.status === 'failed') && (
-                    <button
-                      onClick={() => {
-                        removeUploadProgressItem(item.id)
-                        setUploadProgressItems((prev) => prev.filter((entry) => entry.id !== item.id))
-                      }}
-                      className="rounded-full border border-[rgb(var(--border-color))] px-3 py-1 text-xs text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))]"
-                    >
-                      Dismiss
-                    </button>
-                  )}
-                </div>
-                <div className="h-2 w-full rounded-full bg-black/20">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      item.status === 'failed'
-                        ? 'bg-red-500'
-                        : item.status === 'completed'
-                          ? 'bg-green-500'
-                          : 'bg-blue-500'
-                    }`}
-                    style={{ width: `${Math.max(2, Math.min(100, item.progress))}%` }}
-                  />
-                </div>
-                <div className="mt-2 flex items-center justify-between text-xs text-[rgb(var(--text-secondary))]">
-                  <span>{item.message}</span>
-                  <span>{Math.round(item.progress)}%</span>
-                </div>
+                </button>
+                <button
+                  onClick={() => router.push('/monetization')}
+                  className="w-full bg-[rgb(var(--bg-primary))] hover:bg-[rgb(var(--bg-secondary))]/80 p-3 rounded-xl transition-all border border-[rgb(var(--border-color))] flex items-center gap-3"
+                >
+                  <DollarSign className="w-5 h-5 text-green-400" />
+                  <div className="text-left">
+                    <div className="text-[rgb(var(--text-primary))] font-medium text-xs">Monetization</div>
+                    <div className="text-[rgb(var(--text-secondary))] text-[10px]">Earnings & eligibility</div>
+                  </div>
+                </button>
               </div>
-            ))}
-
-          {filteredPosts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-400">No {activeTab} yet</p>
             </div>
-          ) : (
-            filteredPosts.map((post, index) => (
-              <Fragment key={post.id}>
-                <PostCard
-                  post={post}
-                  currentUserId={currentUserId}
-                  feedType="home"
-                />
-                {index < filteredPosts.length - 1 && (
-                  <AdcashBanner300x100 slotKey={`profile-${userId}-${post.id}-${index}`} />
-                )}
-              </Fragment>
-            ))
           )}
-        </div>
+        </aside>
+
       </div>
     </div>
   )
