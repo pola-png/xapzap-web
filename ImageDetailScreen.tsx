@@ -5,6 +5,7 @@ import { ArrowLeft, MessageCircle, X } from 'lucide-react'
 import { Post } from './types'
 import { PostCard } from './PostCard'
 import { CommentScreen } from './CommentScreen'
+import { normalizeWasabiImage } from './lib/wasabi'
 
 interface ImageDetailScreenProps {
   post: Post
@@ -40,7 +41,7 @@ export function ImageDetailScreen({ post, onClose, isGuest = false, onGuestActio
         </button>
         
         <img
-          src={post.mediaUrls?.[0]}
+          src={normalizeWasabiImage(post.mediaUrls?.[0]) || post.mediaUrls?.[0]}
           alt="Full size image"
           className="max-w-full max-h-full object-contain"
           onClick={() => setShowFullImage(false)}
@@ -77,7 +78,7 @@ export function ImageDetailScreen({ post, onClose, isGuest = false, onGuestActio
           {post.mediaUrls && post.mediaUrls.length > 0 && (
             <div className="relative">
               <img
-                src={post.mediaUrls[0]}
+                src={normalizeWasabiImage(post.mediaUrls[0]) || post.mediaUrls[0]}
                 alt="Post image"
                 className="w-full max-h-[70vh] object-contain cursor-zoom-in"
                 onClick={() => setShowFullImage(true)}
