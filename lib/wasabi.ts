@@ -41,6 +41,28 @@ export function toWasabiProxyPath(urlOrKey: string): string | null {
 
   let objectKey = urlOrKey.trim()
 
+  // Support appwrite:// protocol (new Appwrite Storage system)
+  if (objectKey.startsWith('appwrite://')) {
+    try {
+      const url = new URL(objectKey)
+      const bucketId = url.host
+      const pathParts = url.pathname.split('/').filter(p => p)
+      const fileId = pathParts[0] || ''
+      const fileName = pathParts.slice(1).join('/')
+      
+      if (bucketId && fileId) {
+        return `https://nyc.cloud.appwrite.io/v1/storage/buckets/${bucketId}/files/${fileId}/view?project=690641ad0029b51eefe0&mode=public${fileName ? `&filename=${encodeURIComponent(fileName)}` : ''}`
+      }
+    } catch (e) {
+      console.error('Failed to parse appwrite ref:', e)
+    }
+  }
+
+  // If already a full Appwrite storage view URL, return as-is
+  if (objectKey.includes('/storage/buckets/') && objectKey.includes('/files/')) {
+    return objectKey
+  }
+
   // If it's a full Wasabi URL, extract the key
   if (objectKey.includes('wasabisys.com')) {
     try {

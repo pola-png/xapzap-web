@@ -1,16 +1,15 @@
-'use client'
-
 import { Fragment, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { StoryBar } from "./StoryBar"
 import { PostCard } from "./PostCard"
 import { CommentModal } from "./CommentModal"
-import { Post } from "./types"
+import { Post, Chat } from "./types"
 import appwriteService from "./appwriteService"
 import { useAuthStore } from "./authStore"
 import { useFeedStore } from "./feedStore"
-import { hasVerifiedBadge } from "./lib/verification"
+import { hasVerifiedBadge, isPremiumBadge } from "./lib/verification"
 import { AdcashBanner300x100 } from "./components/AdcashBanner300x100"
+import { ChatList, ChatView } from "./ChatScreen"
 
 export function HomeScreen() {
   const router = useRouter()
@@ -23,6 +22,11 @@ export function HomeScreen() {
   const [authChecked, setAuthChecked] = useState(false)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [showComments, setShowComments] = useState(false)
+  
+  // Sidebar Chat States
+  const [sidebarChats, setSidebarChats] = useState<Chat[]>([])
+  const [selectedSidebarChat, setSelectedSidebarChat] = useState<Chat | null>(null)
+  const [sidebarLoading, setSidebarLoading] = useState(true)
   const isAuthenticated = Boolean(authStore.currentUserId || currentUserId)
   const showStorySection = authChecked && isAuthenticated
   const showOnboardingPrompt = authChecked && !isAuthenticated
@@ -52,6 +56,55 @@ export function HomeScreen() {
       isMounted = false
     }
   }, [])
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    const loadSidebarChats = async () => {
+      setSidebarLoading(true)
+      try {
+        const user = await appwriteService.getCurrentUser()
+        if (!user) {
+          setSidebarLoading(false)
+          return
+        }
+        const result = await appwriteService.fetchChatsForUser(user.$id)
+        const mappedChats = await Promise.all(result.documents.map(async (doc: any) => {
+          const memberIds = doc.memberIds.split(',').map((id: string) => id.trim())
+          const partnerId = memberIds.find((id: string) => id !== user.$id) || 'unknown'
+          const partnerProfile = await appwriteService.getProfileByUserId(partnerId)
+          const partnerIsVerified = hasVerifiedBadge(partnerProfile)
+          const partnerIsAdmin = isPremiumBadge(partnerProfile)
+          return {
+            id: doc.$id,
+            chatId: doc.chatId,
+            memberIds: doc.memberIds,
+            partnerId,
+            partnerName: partnerProfile?.displayName || partnerId.slice(0, 8),
+            partnerAvatar: partnerProfile?.avatarUrl || '',
+            lastMessage: doc.lastMessage || 'No messages',
+            timestamp: new Date(doc.lastMessageAt || doc.timestamp || doc.createdAt || doc.$createdAt),
+            unreadCount: doc.unreadCount || 0,
+            isOnline: false,
+            partnerIsVerified,
+            partnerIsAdmin,
+          } as Chat
+        }))
+        setSidebarChats(mappedChats)
+      } catch (error) {
+        console.error('Failed to load sidebar chats:', error)
+      } finally {
+        setSidebarLoading(false)
+      }
+    }
+
+    loadSidebarChats()
+
+    const unsubscribe = appwriteService.subscribeToCollection('messages', () => {
+      loadSidebarChats()
+    })
+    return unsubscribe
+  }, [isAuthenticated])
 
   useEffect(() => {
     if (!showComments || !selectedPost) return
@@ -194,44 +247,69 @@ export function HomeScreen() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-      {showOnboardingPrompt && (
-        <div className="mt-3 mb-3 rounded-xl border border-[rgb(var(--border-color))] bg-[rgb(var(--bg-secondary))] px-4 py-3 text-sm flex items-center justify-between gap-3">
-          <div className="text-[rgb(var(--text-secondary))]">
-            <div className="font-semibold text-[rgb(var(--text-primary))] mb-0.5">
-              Enjoying the feed?
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 lg:grid lg:grid-cols-3 lg:gap-8">
+      {/* Feed Column */}
+      <div className="lg:col-span-2">
+        {showOnboardingPrompt && (
+          <div className="mt-3 mb-3 rounded-xl border border-[rgb(var(--border-color))] bg-[rgb(var(--bg-secondary))] px-4 py-3 text-sm flex items-center justify-between gap-3">
+            <div className="text-[rgb(var(--text-secondary))]">
+              <div className="font-semibold text-[rgb(var(--text-primary))] mb-0.5">
+                Enjoying the feed?
+              </div>
+              <div>Sign up to post your own stories, reels, and chat with others.</div>
             </div>
-            <div>Sign up to post your own stories, reels, and chat with others.</div>
-          </div>
-          <button
-            onClick={() => router.push('/auth/signup')}
-            className="shrink-0 px-3 py-1.5 rounded-full bg-[#1DA1F2] text-white text-xs font-semibold hover:bg-[#1A8CD8] transition"
-          >
-            Sign up
-          </button>
-        </div>
-      )}
-      {showStorySection && <StoryBar />}
-      <div className="space-y-4 pb-20 sm:pb-24">
-        {posts.map((post, index) => (
-          <Fragment key={post.id}>
-            <PostCard
-              post={post}
-              currentUserId={currentUserId}
-              feedType="home"
-              onCommentClick={() => handleCommentClick(post)}
-            />
-            {index < posts.length - 1 && (
-              <AdcashBanner300x100 slotKey={`home-${post.id}-${index}`} />
-            )}
-          </Fragment>
-        ))}
-        {loading && (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <button
+              onClick={() => router.push('/auth/signup')}
+              className="shrink-0 px-3 py-1.5 rounded-full bg-[#1DA1F2] text-white text-xs font-semibold hover:bg-[#1A8CD8] transition"
+            >
+              Sign up
+            </button>
           </div>
         )}
+        {showStorySection && <StoryBar />}
+        <div className="space-y-4 pb-20 sm:pb-24">
+          {posts.map((post, index) => (
+            <Fragment key={post.id}>
+              <PostCard
+                post={post}
+                currentUserId={currentUserId}
+                feedType="home"
+                onCommentClick={() => handleCommentClick(post)}
+              />
+              {index < posts.length - 1 && (
+                <AdcashBanner300x100 slotKey={`home-${post.id}-${index}`} />
+              )}
+            </Fragment>
+          ))}
+          {loading && (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Right Chat Sidebar */}
+      <div className="hidden lg:block border-l border-[rgb(var(--border-color))] pl-6 h-[calc(100vh-80px)] sticky top-20">
+        <div className="h-full flex flex-col">
+          <h3 className="font-extrabold text-xl mb-4 text-[rgb(var(--text-primary))]">Direct Messages</h3>
+          <div className="flex-1 bg-[rgb(var(--bg-secondary))] rounded-2xl border border-[rgb(var(--border-color))] overflow-hidden shadow-sm flex flex-col h-[calc(100vh-160px)]">
+            {selectedSidebarChat ? (
+              <ChatView 
+                chat={selectedSidebarChat} 
+                onBack={() => setSelectedSidebarChat(null)} 
+              />
+            ) : (
+              <ChatList 
+                chats={sidebarChats} 
+                onChatSelect={setSelectedSidebarChat} 
+                loading={sidebarLoading} 
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
       {showComments && selectedPost && <CommentModal post={selectedPost} onClose={handleCloseComments} />}
     </div>
   )

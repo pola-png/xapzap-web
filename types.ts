@@ -67,6 +67,8 @@ export interface Chat {
   unreadCount: number
   isOnline: boolean
   createdAt: string
+  partnerIsVerified?: boolean
+  partnerIsAdmin?: boolean
 }
 
 export interface User {
@@ -103,6 +105,9 @@ export interface Message {
   imageUrl?: string
   videoUrl?: string
   voiceUrl?: string
+  ciphertext?: string
+  nonce?: string
+  mac?: string
 }
 
 export interface NewsArticle {

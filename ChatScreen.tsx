@@ -6,6 +6,8 @@ import { Chat, Message } from './types'
 import appwriteService from './appwriteService'
 import { useRealtimeChat } from './realtime'
 import { useAuthStore } from './authStore'
+import { VerifiedBadge } from './components/VerifiedBadge'
+import { hasVerifiedBadge, isPremiumBadge } from './lib/verification'
 
 function formatTime(date: Date): string {
   const now = new Date()
@@ -17,13 +19,13 @@ function formatTime(date: Date): string {
   return `${Math.floor(diff / (24 * 60 * 60 * 1000))}d`
 }
 
-interface ChatListProps {
+export interface ChatListProps {
   chats: Chat[]
   onChatSelect: (chat: Chat) => void
   loading?: boolean
 }
 
-function ChatList({ chats, onChatSelect, loading }: ChatListProps) {
+export function ChatList({ chats, onChatSelect, loading }: ChatListProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [shouldLoadAvatars, setShouldLoadAvatars] = useState<Set<string>>(new Set())
   const avatarRefs = useRef<Map<string, HTMLDivElement>>(new Map())
@@ -114,7 +116,12 @@ function ChatList({ chats, onChatSelect, loading }: ChatListProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold truncate">{chat.partnerName}</h3>
+                      <h3 className="font-semibold truncate flex items-center gap-1">
+                        {chat.partnerName}
+                        {chat.partnerIsVerified && (
+                          <VerifiedBadge className="h-3.5 w-3.5 shrink-0" isPremium={chat.partnerIsAdmin} />
+                        )}
+                      </h3>
                       <span className="text-sm text-muted-foreground">
                         {formatTime(chat.timestamp)}
                       </span>
@@ -140,15 +147,15 @@ function ChatList({ chats, onChatSelect, loading }: ChatListProps) {
   )
 }
 
-interface ChatViewProps {
+export interface ChatViewProps {
   chat: Chat
   onBack: () => void
 }
 
-function ChatView({ chat, onBack }: ChatViewProps) {
+export function ChatView({ chat, onBack }: ChatViewProps) {
   const [newMessage, setNewMessage] = useState('')
   const authStore = useAuthStore()
-  const { messages, sendMessage } = useRealtimeChat(chat.id)
+  const { messages, sendMessage } = useRealtimeChat(chat.id, chat.partnerId)
 
   const scrollToBottom = () => {
     const messagesEnd = document.getElementById('messages-end')
@@ -196,7 +203,12 @@ function ChatView({ chat, onBack }: ChatViewProps) {
             )}
           </div>
           <div>
-            <h2 className="font-semibold">{chat.partnerName}</h2>
+            <h2 className="font-semibold flex items-center gap-1">
+              {chat.partnerName}
+              {chat.partnerIsVerified && (
+                <VerifiedBadge className="h-4 w-4 shrink-0" isPremium={chat.partnerIsAdmin} />
+              )}
+            </h2>
             <p className="text-sm text-muted-foreground">
               {chat.isOnline ? 'Online' : 'Offline'}
             </p>
@@ -308,6 +320,8 @@ export function ChatScreen() {
         const memberIds = doc.memberIds.split(',').map((id: string) => id.trim())
         const partnerId = memberIds.find((id: string) => id !== user.$id) || 'unknown'
         const partnerProfile = await appwriteService.getProfileByUserId(partnerId)
+        const partnerIsVerified = hasVerifiedBadge(partnerProfile)
+        const partnerIsAdmin = isPremiumBadge(partnerProfile)
         return {
           id: doc.$id,
           chatId: doc.chatId,
@@ -319,6 +333,8 @@ export function ChatScreen() {
           timestamp: new Date(doc.lastMessageAt || doc.timestamp || doc.createdAt || doc.$createdAt),
           unreadCount: doc.unreadCount || 0,
           isOnline: false,
+          partnerIsVerified,
+          partnerIsAdmin,
         } as Chat
       }))
       setChats(mappedChats)

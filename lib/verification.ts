@@ -12,3 +12,8 @@ export function hasVerifiedBadge(entity: any): boolean {
   )
 }
 
+export function isPremiumBadge(entity: any): boolean {
+  const e: any = entity || {}
+  return !!e.isAdmin || !!e.isPremium || e.premium === true
+}
+

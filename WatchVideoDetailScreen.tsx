@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Eye, Loader2 } from 'lucide-react'
+import { ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Eye, Loader2, X } from 'lucide-react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { normalizeWasabiImage } from './lib/wasabi'
@@ -472,9 +472,9 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
   }
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed inset-0 bg-background z-50 flex flex-col lg:flex-row animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Header - Outside video */}
-      <div className="bg-background/95 backdrop-blur-md p-4 sm:p-5 z-20 flex items-center justify-between border-b border-border/50 shadow-sm transition-all">
+      <div className="bg-background/95 backdrop-blur-md p-4 sm:p-5 z-20 flex items-center justify-between border-b border-border/50 shadow-sm transition-all lg:hidden">
         <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
           {post.userAvatar ? (
             <img src={toImageProxyUrl(post.userAvatar)} alt={post.displayName} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover ring-2 ring-border transition-transform hover:scale-105" />
@@ -501,7 +501,15 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       </div>
 
       {/* Video Player Container */}
-      <div className="w-full aspect-video bg-black relative overflow-hidden">
+      <div className="w-full lg:flex-1 lg:h-full lg:aspect-auto bg-black relative overflow-hidden flex items-center justify-center">
+        {/* Desktop Close/Back Button - Top Left of Video */}
+        <button
+          onClick={onClose}
+          className="hidden lg:flex absolute top-4 left-4 z-30 w-10 h-10 bg-black/60 backdrop-blur-md rounded-full items-center justify-center text-white hover:bg-black/80 transition-all hover:scale-110 active:scale-95"
+          aria-label="Back"
+        >
+          <ArrowLeft size={20} />
+        </button>
         {shouldLoadVideo ? (
         <>
         <video
@@ -616,7 +624,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       </div>
 
       {/* Controls Below Video */}
-      <div className="bg-background px-4 sm:px-5 pb-2 pt-3">
+      <div className="bg-background px-4 sm:px-5 pb-2 pt-3 lg:hidden">
         {/* Title with Username and View Count */}
         {post.title && (
           <div>
@@ -676,7 +684,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Description Modal */}
       {showDescription && !showComments && (
-        <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
+        <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col lg:hidden" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
           <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer rounded-t-3xl" onClick={() => setShowDescription(false)}>
             <div className="w-12 h-1 bg-border rounded-full" />
           </div>
@@ -689,7 +697,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Replies Overlay */}
       {selectedCommentForReplies && (
-        <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col animate-in slide-in-from-bottom duration-300" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
+        <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col animate-in slide-in-from-bottom duration-300 lg:hidden" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
           <div className="flex items-center justify-between p-4 border-b border-border">
             <button
               onClick={() => { 
@@ -754,7 +762,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
 
       {/* Comments Overlay */}
       {showComments && !selectedCommentForReplies && (
-        <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col animate-in slide-in-from-bottom duration-300 rounded-t-3xl" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
+        <div className="fixed inset-x-0 bottom-0 bg-background z-[60] flex flex-col animate-in slide-in-from-bottom duration-300 rounded-t-3xl lg:hidden" style={{ top: 'calc(100vw * 9 / 16 + 60px)' }}>
           <div className="w-full py-3 flex justify-center border-b border-border cursor-pointer rounded-t-3xl" onClick={() => setShowComments(false)}>
             <div className="w-12 h-1 bg-border rounded-full" />
           </div>
@@ -934,7 +942,7 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
       )}
 
       {/* Bottom Section - Reactions & Comments */}
-      <div className="flex-1 bg-background flex flex-col min-h-0 relative">
+      <div className="flex-1 bg-background flex flex-col min-h-0 relative lg:hidden">
         {/* Reactions Bar */}
         <div className="flex items-center justify-between gap-2 py-3 sm:py-4 px-4 sm:px-5 bg-primary/10 flex-wrap rounded-lg">
           <button onClick={handleSave} className={`flex items-center justify-center transition-all p-2.5 rounded-lg hover:scale-110 active:scale-95 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400 hover:text-yellow-500'}`} aria-label="Save">
@@ -1108,7 +1116,156 @@ export function VideoDetailScreen({ post, onClose, isGuest = false, onGuestActio
           </div>
         </div>
       </div>
+
+      {/* Desktop-only right sidebar */}
+      <div className="hidden lg:flex lg:w-[420px] lg:h-full lg:flex-col lg:border-l lg:border-border lg:bg-background lg:flex-shrink-0 text-foreground">
+        {/* Desktop Header */}
+        <div className="bg-background p-4 sm:p-5 flex items-center justify-between border-b border-border/50 shadow-sm">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            {post.userAvatar ? (
+              <img src={toImageProxyUrl(post.userAvatar)} alt={post.displayName} className="w-10 h-10 rounded-full object-cover ring-2 ring-border transition-transform hover:scale-105" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-sm shadow-md">
+                {(post.displayName || 'U')[0].toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <h3 className="text-foreground font-semibold text-base truncate flex items-center gap-1">
+                {post.displayName || 'User'}
+                {post.isVerified && <VerifiedBadge className="h-4 w-4 shrink-0" />}
+              </h3>
+              <span className="text-muted-foreground text-xs">{formatTimeAgo(post.createdAt)}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="w-9 h-9 flex items-center justify-center text-foreground hover:bg-muted rounded-full transition-all"
+              aria-label="More options"
+            >
+              <MoreHorizontal size={20} />
+            </button>
+            <button
+              onClick={onClose}
+              className="w-9 h-9 flex items-center justify-center text-foreground hover:bg-muted rounded-full transition-all"
+              aria-label="Close video"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Scrollable details and comments */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {/* Title & Description */}
+          {post.title && (
+            <div className="border-b border-border/50 pb-4">
+              <h3 className="text-foreground font-extrabold text-xl leading-snug">{post.title}</h3>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 mb-3">
+                {post.username && <span>@{post.username}</span>}
+                <span>•</span>
+                <span>{formatCount(views)} views</span>
+              </div>
+              {post.content && (
+                <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-wrap font-normal">
+                  {parseHashtags(post.content)}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Social Actions */}
+          <div className="flex items-center justify-between gap-1 py-2 border-b border-border/50 px-2 flex-wrap">
+            <button onClick={handleSave} className={`flex items-center justify-center transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${saved ? 'text-yellow-500' : 'text-gray-500 dark:text-gray-400 hover:text-yellow-500'}`} aria-label="Save">
+              <Bookmark size={20} className={saved ? 'fill-yellow-500' : ''} />
+            </button>
+            <button onClick={handleShare} className="flex items-center justify-center hover:text-blue-500 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 text-gray-500 dark:text-gray-400" aria-label="Share">
+              <Share size={20} />
+            </button>
+            <button onClick={handleRepost} className={`flex items-center gap-1.5 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${reposted ? 'text-green-500' : 'text-gray-500 dark:text-gray-400 hover:text-green-500'}`} aria-label="Repost">
+              <Repeat2 size={20} />
+              <span className="text-xs font-semibold">{formatCount(reposts)}</span>
+            </button>
+            <button onClick={handleLike} className={`flex items-center gap-1.5 transition-all p-2 rounded-lg hover:scale-110 active:scale-95 ${liked ? 'text-red-500' : 'text-gray-500 dark:text-gray-400 hover:text-red-500'}`} aria-label="Like">
+              <Heart size={20} className={liked ? 'fill-red-500' : ''} />
+              <span className="text-xs font-semibold">{formatCount(likes)}</span>
+            </button>
+          </div>
+
+          {/* Inline Comments Section */}
+          <div className="space-y-4">
+            <h4 className="font-bold text-sm text-foreground">Comments ({formatCount(comments)})</h4>
+            
+            {loadingComments ? (
+              <div className="flex items-center justify-center py-6">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              </div>
+            ) : commentsList.length === 0 ? (
+              <p className="text-muted-foreground text-xs text-center py-6">No comments yet</p>
+            ) : (
+              <div className="space-y-4">
+                {commentsList.map((comment) => (
+                  <div key={comment.$id} className="flex gap-2">
+                    <img 
+                      src={toImageProxyUrl(comment.userAvatar)} 
+                      alt={comment.username} 
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer" 
+                      onClick={() => window.location.href = `/profile/${comment.userId}`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="bg-muted rounded-xl px-3 py-2">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="font-semibold text-xs inline-flex items-center gap-0.5">
+                            {comment.username}
+                            {comment.isVerified && <VerifiedBadge className="h-3.5 w-3.5 shrink-0" />}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">{formatTimeAgo(new Date(comment.createdAt || comment.$createdAt))}</span>
+                        </div>
+                        <p className="text-xs">{String(comment.content || '').split(' ').map((word: string, i: number) => 
+                          word.startsWith('@') ? <span key={i} className="text-blue-500">{word} </span> : word + ' '
+                        )}</p>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1 ml-2 text-[11px] text-muted-foreground">
+                        <button onClick={() => handleLikeComment(comment.$id)} className="hover:text-foreground">Like</button>
+                        <button onClick={() => { setReplyTo(comment.$id); setCommentText(`${comment.username} `); }} className="hover:text-foreground">Reply</button>
+                        {comment.isLiked && <span className="text-red-500 ml-auto">{comment.likes} likes</span>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Comment input fixed at bottom */}
+        <div className="p-3 bg-muted/30 border-t border-border/30">
+          <div className="flex items-center gap-2">
+            {currentUserAvatar ? (
+              <img src={toImageProxyUrl(currentUserAvatar)} alt="You" className="w-8 h-8 rounded-full object-cover ring-2 ring-border" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-semibold text-xs">
+                U
+              </div>
+            )}
+            <input
+              type="text"
+              placeholder="Add a comment..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSubmitComment()}
+              className="flex-1 bg-background border border-border rounded-full px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            />
+            <button 
+              onClick={handleSubmitComment}
+              disabled={!commentText.trim()}
+              className="px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-medium hover:bg-primary/90 transition-all shadow-md disabled:opacity-50"
+            >
+              Post
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
-

@@ -1,18 +1,37 @@
-import { Check } from 'lucide-react'
+import { BadgeCheck } from 'lucide-react'
 
 interface VerifiedBadgeProps {
   className?: string
+  isPremium?: boolean
 }
 
-export function VerifiedBadge({ className = '' }: VerifiedBadgeProps) {
+export function VerifiedBadge({ className = '', isPremium = false }: VerifiedBadgeProps) {
+  const gradientId = isPremium ? 'gold-gradient' : 'cyan-green-gradient'
+
   return (
-    <span
-      className={`relative inline-flex h-4 w-4 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 text-white ring-1 ring-blue-200/80 shadow-[0_0_0_1px_rgba(255,255,255,0.28)_inset,0_2px_8px_rgba(37,99,235,0.45)] ${className}`}
-      aria-label="Verified"
-      title="Verified"
-    >
-      <Check size={10} strokeWidth={3} />
-      <span className="absolute left-0.5 top-0.5 h-1 w-1 rounded-full bg-white/80" aria-hidden="true" />
+    <span className="inline-flex shrink-0" title={isPremium ? "Premium Verified" : "Verified"}>
+      <svg width="0" height="0" className="absolute">
+        <defs>
+          <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FFD700" />
+            <stop offset="50%" stopColor="#FFA500" />
+            <stop offset="100%" stopColor="#FF8C00" />
+          </linearGradient>
+          <linearGradient id="cyan-green-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#00C9FF" />
+            <stop offset="100%" stopColor="#92FE9D" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <BadgeCheck
+        className={`inline-block ${className}`}
+        style={{
+          fill: `url(#${gradientId})`,
+          stroke: 'white',
+          strokeWidth: 2,
+        }}
+        aria-label={isPremium ? "Premium Verified" : "Verified"}
+      />
     </span>
   )
 }

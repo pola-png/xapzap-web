@@ -15,7 +15,7 @@ import { CommentModal } from './CommentModal'
 import { CommentScreen } from './CommentScreen'
 import { ReelsDetailScreen } from './VideoDetailScreen'
 import { VerifiedBadge } from './components/VerifiedBadge'
-import { hasVerifiedBadge } from './lib/verification'
+import { hasVerifiedBadge, isPremiumBadge } from './lib/verification'
 import { cacheRoutePost } from './lib/route-post-cache'
 
 interface PostCardProps {
@@ -549,7 +549,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
     if (post.postType === 'image') {
       return (
         <div 
-          className="w-full rounded-xl mb-3 overflow-hidden bg-gray-100 dark:bg-gray-800 relative"
+          className="w-full rounded-xl mb-3 overflow-hidden bg-gray-100 dark:bg-gray-800 relative max-h-[520px]"
           style={{ aspectRatio: '1/1.2' }}
         >
           <div
@@ -596,14 +596,14 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
       return (
         <>
           <div
-            className="relative w-full rounded-xl mb-3 bg-gray-900 cursor-pointer overflow-hidden"
+            className="relative w-full rounded-xl mb-3 bg-gray-900 cursor-pointer overflow-hidden max-h-[480px] flex items-center justify-center"
             onClick={navigateToVideoDetail}
           >
             {thumbnailUrl && (
               <img
                 src={thumbnailUrl}
                 alt="Video thumbnail"
-                className="w-full h-auto object-contain"
+                className="max-w-full max-h-[480px] object-contain"
                 loading="lazy"
               />
             )}
@@ -654,7 +654,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
         // Other feeds - 1:1 square
         return (
           <div
-            className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden aspect-square"
+            className="relative w-full rounded-xl mb-3 bg-black cursor-pointer overflow-hidden aspect-square max-h-[480px]"
             onClick={openReelDetail}
           >
             <img
@@ -765,7 +765,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
               aria-label={`View ${userProfile?.displayName || 'User'}'s profile`}
             >
               {userProfile?.displayName || 'User'}
-              {showVerifiedBadge && <VerifiedBadge className="h-4 w-4 shrink-0" />}
+              {showVerifiedBadge && <VerifiedBadge className="h-4 w-4 shrink-0" isPremium={isPremiumBadge(userProfile || post)} />}
             </button>
             <span className="text-gray-500 dark:text-gray-400 text-[13px] ml-2 font-semibold">{formatTimeAgo(post.createdAt)}</span>
           </div>

@@ -1,12 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=badmuscodehive.appldq'
-
-function isAndroidPhone(userAgent: string) {
-  const ua = userAgent.toLowerCase()
-  return ua.includes('android') && !ua.includes('tablet')
-}
-
 function isBot(userAgent: string) {
   const ua = userAgent.toLowerCase()
   return (
@@ -33,10 +26,6 @@ export function middleware(request: NextRequest) {
   const userAgent = request.headers.get('user-agent') || ''
   if (isBot(userAgent)) {
     return NextResponse.next()
-  }
-
-  if (isAndroidPhone(userAgent)) {
-    return NextResponse.redirect(new URL(PLAY_STORE_URL))
   }
 
   return NextResponse.next()

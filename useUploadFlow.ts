@@ -372,32 +372,9 @@ export function useUploadFlow({ onUploadSuccess }: UseUploadFlowOptions) {
     }
   }
 
-  const uploadToWasabi = async (file: File) => {
-    const presignedResponse = await fetch('/api/presigned-url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fileName: file.name,
-        fileType: file.type,
-      }),
-    })
-
-    if (!presignedResponse.ok) {
-      throw new Error('Failed to get upload URL.')
-    }
-
-    const { presignedUrl, url } = await presignedResponse.json()
-    const uploadResponse = await fetch(presignedUrl, {
-      method: 'PUT',
-      body: file,
-      headers: { 'Content-Type': file.type || 'application/octet-stream' },
-    })
-
-    if (!uploadResponse.ok) {
-      throw new Error('File upload failed.')
-    }
-
-    return url as string
+  const uploadToAppwrite = async (file: File) => {
+    const result = await appwriteService.uploadFile(file)
+    return `appwrite://6915baaa00381391d7b2/${result.id}/${encodeURIComponent(file.name)}`
   }
 
   const validateBeforeUpload = () => {
@@ -490,7 +467,7 @@ export function useUploadFlow({ onUploadSuccess }: UseUploadFlowOptions) {
         if (seoCategory.trim()) formData.append('seoCategory', seoCategory.trim())
 
         if (selectedVideoFile) {
-          const videoUrl = await uploadToWasabi(selectedVideoFile)
+          const videoUrl = await uploadToAppwrite(selectedVideoFile)
           formData.append('mediaUrl', videoUrl)
           completedSteps += 1
           updateProgress('Video uploaded')
@@ -498,7 +475,7 @@ export function useUploadFlow({ onUploadSuccess }: UseUploadFlowOptions) {
 
         const thumbnailFile = customThumbnail || generatedThumbnail
         if (thumbnailFile) {
-          const thumbnailUrl = await uploadToWasabi(thumbnailFile)
+          const thumbnailUrl = await uploadToAppwrite(thumbnailFile)
           formData.append('thumbnailUrl', thumbnailUrl)
           completedSteps += 1
           updateProgress('Thumbnail uploaded')
@@ -508,7 +485,7 @@ export function useUploadFlow({ onUploadSuccess }: UseUploadFlowOptions) {
       if (selectedType === 'image' && imageItems.length > 0) {
         let imageIndex = 0
         for (const item of imageItems) {
-          const imageUrl = await uploadToWasabi(item.file)
+          const imageUrl = await uploadToAppwrite(item.file)
           formData.append('mediaUrl', imageUrl)
           imageIndex += 1
           completedSteps += 1

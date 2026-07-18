@@ -11,7 +11,7 @@ import { CommentModal } from './CommentModal'
 import { formatCount, formatTimeAgo } from './utils'
 import { playAdcashInstreamAd } from './lib/instream-ads'
 import { VerifiedBadge } from './components/VerifiedBadge'
-import { hasVerifiedBadge } from './lib/verification'
+import { hasVerifiedBadge, isPremiumBadge } from './lib/verification'
 
 export function ReelsScreen() {
   const feedStore = useFeedStore()
@@ -22,8 +22,9 @@ export function ReelsScreen() {
   const [hasLoadedInitial, setHasLoadedInitial] = useState(false)
   const [isPageVisible, setIsPageVisible] = useState(true)
   const [viewportHeight, setViewportHeight] = useState(0)
-  const [showNav, setShowNav] = useState(false)
   const [showControls, setShowControls] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(false)
+  const [showNav, setShowNav] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
   const touchStartY = useRef(0)
@@ -117,7 +118,10 @@ export function ReelsScreen() {
   }, [])
 
   useEffect(() => {
-    const updateViewportHeight = () => setViewportHeight(window.innerHeight)
+    const updateViewportHeight = () => {
+      setViewportHeight(window.innerHeight)
+      setIsDesktop(window.innerWidth >= 1024)
+    }
     updateViewportHeight()
     window.addEventListener('resize', updateViewportHeight)
     return () => window.removeEventListener('resize', updateViewportHeight)
@@ -549,6 +553,8 @@ export function ReelsScreen() {
     )
   }
 
+  const slideHeight = isDesktop ? Math.min(800, viewportHeight - 100) : viewportHeight
+
   return (
     <div>
       <style jsx global>{`
@@ -563,7 +569,7 @@ export function ReelsScreen() {
       `}</style>
       <div 
         ref={containerRef}
-        className="reels-fullscreen fixed inset-0 bg-black overflow-hidden touch-none"
+        className="reels-fullscreen fixed inset-0 lg:left-[200px] lg:top-[60px] bg-black lg:bg-[rgb(18,18,18)] overflow-hidden touch-none lg:flex lg:items-center lg:justify-center"
         onWheel={handleWheel}
         onPointerDown={handleScreenTap}
         onTouchStart={handleTouchStart}
@@ -571,15 +577,13 @@ export function ReelsScreen() {
         onClick={handleScreenTap}
         style={{ 
           overscrollBehavior: 'none',
-          height: viewportHeight ? `${viewportHeight}px` : '100vh'
+          height: isDesktop ? `${viewportHeight - 60}px` : (viewportHeight ? `${viewportHeight}px` : '100vh')
         }}
       >
       <div 
-        className="h-full transition-transform duration-300 ease-out"
+        className="h-full transition-transform duration-300 ease-out lg:w-[450px]"
         style={{
-          transform: viewportHeight
-            ? `translateY(-${currentIndex * viewportHeight}px)`
-            : `translateY(-${currentIndex * 100}vh)`
+          transform: `translateY(-${currentIndex * slideHeight}px)`
         }}
       >
         {posts.map((post, index) => {
@@ -596,8 +600,8 @@ export function ReelsScreen() {
           return (
           <div
             key={post.id}
-            className="w-screen relative"
-            style={{ height: viewportHeight ? `${viewportHeight}px` : '100vh' }}
+            className="w-full lg:w-[450px] relative lg:mx-auto lg:rounded-2xl lg:overflow-hidden lg:shadow-2xl bg-black border border-transparent lg:border-gray-800 flex-shrink-0 flex items-center justify-center"
+            style={{ height: `${slideHeight}px` }}
             ref={el => { if (el) mediaRefs.current.set(post.id, el) }}
           >
             {shouldRenderMedia ? (
@@ -788,7 +792,7 @@ export function ReelsScreen() {
                     <div className="flex items-center gap-2">
                       <span className="text-white font-bold text-lg flex items-center gap-1">
                         {post.displayName || 'User'}
-                        {post.isVerified && <VerifiedBadge className="h-4 w-4" />}
+                        {post.isVerified && <VerifiedBadge className="h-4 w-4" isPremium={isPremiumBadge(post)} />}
                       </span>
                       <span className="flex items-center gap-1 text-gray-300 text-sm">
                         <Eye size={14} />

@@ -1,6 +1,7 @@
 import { Client, Account, Databases, Storage, Functions, ID, Query, ExecutionMethod } from 'appwrite'
 import { Chat, Message } from './types'
 import { getUploadAccess } from './lib/creator-plan'
+import { encryptMessage } from './lib/crypto'
 
 class AppwriteService {
   private static instance: AppwriteService
@@ -832,9 +833,24 @@ class AppwriteService {
     )
   }
 
-  async sendMessage(chatId: string, content: string) {
+  async sendMessage(chatId: string, content: string, partnerUserId?: string) {
     const user = await this.getCurrentUser()
     if (!user) throw new Error('User must be signed in')
+
+    let ciphertext = ''
+    let nonce = ''
+    let mac = ''
+    let contentToSave = content
+
+    if (partnerUserId) {
+      const encrypted = await encryptMessage(chatId, user.$id, partnerUserId, content)
+      if (encrypted) {
+        ciphertext = encrypted.ciphertext
+        nonce = encrypted.nonce
+        mac = encrypted.mac
+        contentToSave = ''
+      }
+    }
 
     return await this.databases.createDocument(
       this.databaseId,
@@ -843,10 +859,13 @@ class AppwriteService {
       {
         chatId,
         senderId: user.$id,
-        content,
+        content: contentToSave,
         timestamp: new Date().toISOString(),
         readBy: user.$id,
-        messageType: 'text'
+        messageType: 'text',
+        ciphertext,
+        nonce,
+        mac
       }
     )
   }

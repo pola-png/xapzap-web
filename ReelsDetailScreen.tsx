@@ -195,6 +195,8 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
     }
   }
 
+
+
   const handleSave = async () => {
     try {
       await appwriteService.savePost(post.id)
@@ -235,9 +237,9 @@ export function ReelsDetailScreen({ post, onClose, isGuest = false, onGuestActio
   return (
     <>
       {showComments && <CommentModal post={post} onClose={() => setShowComments(false)} />}
-      <div className="fixed inset-0 bg-black z-50">
+      <div className="fixed inset-0 bg-black lg:bg-black/85 z-50 lg:flex lg:items-center lg:justify-center">
       {/* Full screen vertical video */}
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full lg:w-[450px] lg:h-[calc(100vh-80px)] lg:max-h-[800px] lg:rounded-2xl lg:overflow-hidden lg:shadow-2xl bg-black border border-transparent lg:border-gray-800">
         {shouldLoadVideo ? (
         <>
         <video

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Chat, Message } from './types'
 import appwriteService from './appwriteService'
+import { decryptMessage } from './lib/crypto'
 
 interface RealtimeUpdate {
   type: 'like' | 'comment' | 'repost' | 'share' | 'impression'
@@ -87,7 +88,10 @@ class RealtimeService {
           content: messageData.content,
           timestamp: new Date(messageData.timestamp),
           readBy: messageData.readBy || '',
-          messageType: messageData.messageType || 'text'
+          messageType: messageData.messageType || 'text',
+          ciphertext: messageData.ciphertext,
+          nonce: messageData.nonce,
+          mac: messageData.mac
         }
         
         this.notifyChatSubscribers(messageData.chatId, {
@@ -185,17 +189,20 @@ class RealtimeService {
     }
   }
 
-  async sendMessage(chatId: string, content: string): Promise<Message> {
-    const messageDoc = await appwriteService.sendMessage(chatId, content)
+  async sendMessage(chatId: string, content: string, partnerUserId?: string): Promise<Message> {
+    const messageDoc = await appwriteService.sendMessage(chatId, content, partnerUserId)
     
     const message: Message = {
       id: messageDoc.$id,
       chatId: messageDoc.chatId,
       senderId: messageDoc.senderId,
-      content: messageDoc.content,
+      content: content,
       timestamp: new Date(messageDoc.timestamp),
       readBy: messageDoc.readBy || '',
-      messageType: messageDoc.messageType || 'text'
+      messageType: messageDoc.messageType || 'text',
+      ciphertext: messageDoc.ciphertext,
+      nonce: messageDoc.nonce,
+      mac: messageDoc.mac
     }
 
     return message
@@ -262,46 +269,83 @@ export function useRealtimePost(postId: string) {
   return updates
 }
 
-export function useRealtimeChat(chatId: string) {
+export function useRealtimeChat(chatId: string, partnerUserId?: string) {
   const [messages, setMessages] = useState<Message[]>([])
 
-  const handleChatUpdate = useCallback((update: ChatUpdate) => {
-    if (update.type === 'message' && update.message) {
-      setMessages(prev => [...prev, update.message!])
+  const decryptRow = useCallback(async (msg: Message) => {
+    const cipher = msg.ciphertext || '';
+    const nonce = msg.nonce || '';
+    const mac = msg.mac || '';
+    let content = msg.content || '';
+
+    if (cipher && nonce && mac && partnerUserId) {
+      const me = await appwriteService.getCurrentUser();
+      if (me) {
+        const decrypted = await decryptMessage(
+          chatId,
+          me.$id,
+          partnerUserId,
+          cipher,
+          nonce,
+          mac
+        );
+        if (decrypted !== null) {
+          content = decrypted;
+        }
+      }
     }
-  }, [])
+    return {
+      ...msg,
+      content
+    };
+  }, [chatId, partnerUserId]);
+
+  const handleChatUpdate = useCallback(async (update: ChatUpdate) => {
+    if (update.type === 'message' && update.message) {
+      const decrypted = await decryptRow(update.message);
+      setMessages(prev => [...prev, decrypted]);
+    }
+  }, [decryptRow]);
 
   useEffect(() => {
     if (!chatId) return
-    
+
     // Load existing messages
     const loadMessages = async () => {
       try {
         const result = await appwriteService.fetchMessagesForChat(chatId)
-        const messages: Message[] = result.documents.map(doc => ({
+        const messagesWithDec: Message[] = result.documents.map(doc => ({
           id: doc.$id,
           chatId: doc.chatId,
           senderId: doc.senderId,
           content: doc.content,
           timestamp: new Date(doc.timestamp),
           readBy: doc.readBy || '',
-          messageType: doc.messageType || 'text'
-        })).reverse()
-        setMessages(messages)
+          messageType: doc.messageType || 'text',
+          ciphertext: doc.ciphertext,
+          nonce: doc.nonce,
+          mac: doc.mac
+        }));
+
+        const decryptedMessages = await Promise.all(
+          messagesWithDec.map(msg => decryptRow(msg))
+        );
+
+        setMessages(decryptedMessages.reverse())
       } catch (error) {
         console.error('Failed to load messages:', error)
       }
     }
-    
+
     loadMessages()
     const unsubscribe = realtimeService.subscribeToChat(chatId, handleChatUpdate)
     return unsubscribe
-  }, [chatId, handleChatUpdate])
+  }, [chatId, handleChatUpdate, decryptRow])
 
   const sendMessage = useCallback(async (content: string) => {
     if (!chatId) return
-    return await realtimeService.sendMessage(chatId, content)
-  }, [chatId])
+    return await realtimeService.sendMessage(chatId, content, partnerUserId)
+  }, [chatId, partnerUserId])
 
   return { messages, sendMessage }
 }
