@@ -51,20 +51,20 @@ export function ImageDetailScreen({ post, onClose, isGuest = false, onGuestActio
   }
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col">
+    <div className="fixed inset-0 bg-[rgb(var(--bg-primary))] text-[rgb(var(--text-primary))] z-50 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border">
+      <div className="flex items-center justify-between p-4 border-b border-[rgb(var(--border-color))] bg-[rgb(var(--bg-primary))]">
         <button
           onClick={onClose}
-          className="p-2 hover:bg-accent rounded-full transition-colors"
+          className="p-2 hover:bg-[rgb(var(--bg-secondary))] rounded-full transition-colors text-[rgb(var(--text-primary))]"
           aria-label="Go back"
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-lg font-semibold">Photo</h1>
+        <h1 className="text-lg font-bold text-[rgb(var(--text-primary))]">Photo</h1>
         <button
           onClick={() => setShowComments(true)}
-          className="p-2 hover:bg-accent rounded-full transition-colors"
+          className="p-2 hover:bg-[rgb(var(--bg-secondary))] rounded-full transition-colors text-[rgb(var(--text-primary))]"
           aria-label="View comments"
         >
           <MessageCircle size={20} />
@@ -72,7 +72,7 @@ export function ImageDetailScreen({ post, onClose, isGuest = false, onGuestActio
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-[rgb(var(--bg-primary))]">
         <div className="max-w-4xl mx-auto">
           {/* Image */}
           {post.mediaUrls && post.mediaUrls.length > 0 && (
@@ -87,11 +87,12 @@ export function ImageDetailScreen({ post, onClose, isGuest = false, onGuestActio
           )}
 
           {/* Post Info */}
-          <div className="border-t border-border">
+          <div className="border-t border-[rgb(var(--border-color))] bg-[rgb(var(--bg-primary))]">
             <PostCard
               post={post}
               isGuest={isGuest}
               onGuestAction={onGuestAction}
+              feedType="detail"
             />
           </div>
         </div>

@@ -10,7 +10,7 @@ export function VerifiedBadge({ className = '', isPremium = false }: VerifiedBad
 
   return (
     <span className="inline-flex shrink-0" title={isPremium ? "Premium Verified" : "Verified"}>
-      <svg width="0" height="0" className="absolute">
+      <svg width="0" height="0" className="absolute" aria-hidden="true">
         <defs>
           <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#FFD700" />
@@ -27,7 +27,7 @@ export function VerifiedBadge({ className = '', isPremium = false }: VerifiedBad
         className={`inline-block ${className}`}
         style={{
           fill: `url(#${gradientId})`,
-          stroke: 'white',
+          stroke: 'var(--verified-badge-stroke, #fff)',
           strokeWidth: 2,
         }}
         aria-label={isPremium ? "Premium Verified" : "Verified"}

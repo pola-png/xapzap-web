@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { VideoDetailScreen } from '../../../VideoDetailScreen'
+import { ImageDetailScreen } from '../../../ImageDetailScreen'
 import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
 import { extractCandidateIdsFromSlug } from '../../../lib/slug'
@@ -208,6 +209,10 @@ export default function WatchDetailClient({ initialPost = null, slugId }: WatchD
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white" />
       </div>
     )
+  }
+
+  if (post.postType === 'image') {
+    return <ImageDetailScreen post={post} onClose={() => router.back()} />
   }
 
   return <VideoDetailScreen post={post} onClose={() => router.back()} />

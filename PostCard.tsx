@@ -708,12 +708,10 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           >
             {(() => {
               const currentImageUrl = post.mediaUrls[currentImageIndex] || post.mediaUrls[0]
-              const proxiedImageUrl = currentImageUrl.startsWith('/media/')
-                ? `/api/image-proxy?path=${currentImageUrl.substring(1)}`
-                : currentImageUrl
+              const resolvedUrl = normalizeWasabiImage(currentImageUrl) || currentImageUrl
               return (
             <img
-              src={proxiedImageUrl}
+              src={resolvedUrl}
               alt="Post"
               className="max-w-full max-h-full object-contain"
             />
@@ -722,6 +720,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           </div>
         </div>
       )}
+
       {showReelDetail && post.postType === 'reel' && (
         <ReelsDetailScreen post={post} onClose={closeReelDetail} />
       )}

@@ -77,7 +77,7 @@ function buildInitialPost(postData: any, profile: any): Post {
     title: postData.title || '',
     caption: postData.caption || '',
     thumbnailUrl: toImageProxyUrl(postData.thumbnailUrl || ''),
-    mediaUrls: mediaUrls.map((url) => toVideoProxyUrl(url)),
+    mediaUrls: mediaUrls.map((url) => postData.postType === 'image' ? toImageProxyUrl(url) : toVideoProxyUrl(url)),
     timestamp: new Date(postData.$createdAt || postData.createdAt || new Date().toISOString()),
     createdAt: postData.$createdAt || postData.createdAt || new Date().toISOString(),
     likes: postData.likes || 0,

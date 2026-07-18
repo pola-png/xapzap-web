@@ -15,6 +15,7 @@
     --text-secondary: 115 115 115;
     --border-color: 219 219 219;
     --accent-blue: 29 161 242;
+    --verified-badge-stroke: #e5e7eb;
     
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
@@ -44,6 +45,7 @@
     --text-primary: 255 255 255;
     --text-secondary: 163 163 163;
     --border-color: 42 42 42;
+    --verified-badge-stroke: #ffffff;
     
     --background: 0 0% 10%;
     --foreground: 0 0% 98%;

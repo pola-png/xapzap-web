@@ -2,7 +2,7 @@
 
 import { Fragment, useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Calendar, MessageCircle, UserPlus, UserMinus, Share, Settings, BarChart3, DollarSign, Menu } from 'lucide-react'
+import { Calendar, MessageCircle, UserPlus, UserMinus, Share, Settings, BarChart3, DollarSign, Menu, Bookmark, LogOut, FileText, Gift, ShieldAlert, Trash2 } from 'lucide-react'
 import { PostCard } from '../../../PostCard'
 import { Post } from '../../../types'
 import appwriteService from '../../../appwriteService'
@@ -61,6 +61,17 @@ export default function ProfilePage() {
   }, [])
 
   const isCurrentUser = authStore.currentUserId === userId
+
+  const handleSignOut = async () => {
+    try {
+      await appwriteService.signOut()
+      authStore.clearAuth()
+      router.push('/')
+    } catch (error) {
+      console.error('Sign out failed:', error)
+    }
+  }
+
 
   useEffect(() => {
     if (!isCurrentUser) {
@@ -491,11 +502,11 @@ export default function ProfilePage() {
       {/* Main Responsive Grid Wrapper */}
       <div className="flex flex-col lg:flex-row gap-6 max-w-6xl mx-auto px-4 pb-20">
 
-        {/* LEFT: Feed Column */}
+        {/* LEFT: Profile Info & Feed Column */}
         <div className="flex-1 min-w-0">
 
-          {/* Mobile-only profile info */}
-          <div className="lg:hidden px-0 pt-16 pb-4">
+          {/* Profile info (Visible on both Mobile and Desktop) */}
+          <div className="px-0 pt-16 pb-4">
             <div className="mb-1 flex items-center gap-3 flex-wrap">
               <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))] inline-flex items-center gap-1">
                 {profile.displayName}
@@ -571,7 +582,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Tabs */}
-          <div className="lg:pt-16">
+          <div className="mt-4">
             <div className="flex border-b border-[rgb(var(--border-color))] mb-4">
               {(['posts', 'videos', 'news', 'all'] as TabType[]).map((tab) => (
                 <button
@@ -612,19 +623,6 @@ export default function ProfilePage() {
               <div className="text-center py-12">
                 <p className="text-gray-400">No {activeTab} yet</p>
               </div>
-            ) : activeTab === 'videos' ? (
-              <div className="grid grid-cols-2 gap-3">
-                {filteredPosts.map((post, index) => (
-                  <Fragment key={post.id}>
-                    <PostCard post={post} currentUserId={currentUserId} feedType="home" />
-                    {index < filteredPosts.length - 1 && (
-                      <div className="col-span-2 flex justify-center">
-                        <AdcashBanner300x100 slotKey={`profile-${userId}-${post.id}-${index}`} />
-                      </div>
-                    )}
-                  </Fragment>
-                ))}
-              </div>
             ) : (
               <div className="space-y-4">
                 {filteredPosts.map((post, index) => (
@@ -637,107 +635,87 @@ export default function ProfilePage() {
                 ))}
               </div>
             )}
+
           </div>
         </div>
 
         {/* RIGHT: Desktop Sidebar (hidden on mobile) */}
         <aside className="hidden lg:flex flex-col w-[300px] xl:w-[340px] flex-shrink-0 pt-16 gap-5">
+          {isCurrentUser ? (
+            <div className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] rounded-2xl p-4 space-y-1">
+              <h3 className="text-[rgb(var(--text-primary))] font-extrabold text-lg px-2 mb-3">Menu</h3>
+              
+              <button onClick={() => router.push('/profile/edit')} className="w-full flex items-center gap-3 p-3 hover:bg-[rgb(var(--bg-primary))] rounded-xl transition-all text-left text-sm font-semibold text-[rgb(var(--text-primary))]">
+                <Settings className="w-4 h-4 text-blue-500" />
+                <span>Edit Profile</span>
+              </button>
 
-          {/* Profile card */}
-          <div className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] rounded-2xl p-5 space-y-4">
-            <div>
-              <h2 className="text-xl font-bold text-[rgb(var(--text-primary))] flex items-center gap-1.5 flex-wrap">
-                {profile.displayName}
-                {profile.isVerified && <VerifiedBadge className="h-5 w-5 align-middle shrink-0" />}
-              </h2>
-              <p className="text-[rgb(var(--text-secondary))] text-sm">@{profile.username}</p>
-              {profile.category && (
-                <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">{profile.category}</span>
-              )}
+              <button onClick={() => router.push('/profile/menu')} className="w-full flex items-center gap-3 p-3 hover:bg-[rgb(var(--bg-primary))] rounded-xl transition-all text-left text-sm font-semibold text-[rgb(var(--text-primary))]">
+                <Bookmark className="w-4 h-4 text-yellow-500" />
+                <span>Saved Posts</span>
+              </button>
+
+              <button onClick={() => router.push('/profile/menu')} className="w-full flex items-center gap-3 p-3 hover:bg-[rgb(var(--bg-primary))] rounded-xl transition-all text-left text-sm font-semibold text-[rgb(var(--text-primary))]">
+                <FileText className="w-4 h-4 text-purple-500" />
+                <span>Drafts</span>
+              </button>
+
+              <button onClick={() => router.push('/dashboard')} className="w-full flex items-center gap-3 p-3 hover:bg-[rgb(var(--bg-primary))] rounded-xl transition-all text-left text-sm font-semibold text-[rgb(var(--text-primary))]">
+                <BarChart3 className="w-4 h-4 text-indigo-500" />
+                <span>Analytics</span>
+              </button>
+
+              <button onClick={() => router.push('/monetization')} className="w-full flex items-center gap-3 p-3 hover:bg-[rgb(var(--bg-primary))] rounded-xl transition-all text-left text-sm font-semibold text-[rgb(var(--text-primary))]">
+                <DollarSign className="w-4 h-4 text-green-500" />
+                <span>Monetization</span>
+              </button>
+
+              <button onClick={() => router.push('/referrals')} className="w-full flex items-center gap-3 p-3 hover:bg-[rgb(var(--bg-primary))] rounded-xl transition-all text-left text-sm font-semibold text-[rgb(var(--text-primary))]">
+                <Gift className="w-4 h-4 text-pink-500" />
+                <span>Referrals</span>
+              </button>
+
+              <button onClick={() => router.push('/premium')} className="w-full flex items-center gap-3 p-3 hover:bg-[rgb(var(--bg-primary))] rounded-xl transition-all text-left text-sm font-semibold text-[rgb(var(--text-primary))]">
+                <DollarSign className="w-4 h-4 text-amber-500" />
+                <span>Premium</span>
+              </button>
+
+              <div className="h-px bg-[rgb(var(--border-color))] my-2" />
+
+              <button onClick={() => router.push('/terms')} className="w-full flex items-center gap-3 p-3 hover:bg-[rgb(var(--bg-primary))] rounded-xl transition-all text-left text-sm font-semibold text-[rgb(var(--text-primary))]">
+                <FileText className="w-4 h-4 text-gray-500" />
+                <span>Terms of Service</span>
+              </button>
+
+              <button onClick={() => router.push('/privacy')} className="w-full flex items-center gap-3 p-3 hover:bg-[rgb(var(--bg-primary))] rounded-xl transition-all text-left text-sm font-semibold text-[rgb(var(--text-primary))]">
+                <ShieldAlert className="w-4 h-4 text-red-500" />
+                <span>Privacy Policy</span>
+              </button>
+
+              <button onClick={() => router.push('/account-deletion')} className="w-full flex items-center gap-3 p-3 hover:bg-[rgb(var(--bg-primary))] rounded-xl transition-all text-left text-sm font-semibold text-[rgb(var(--text-primary))]">
+                <Trash2 className="w-4 h-4 text-rose-600" />
+                <span>Account Deletion</span>
+              </button>
+
+              <div className="h-px bg-[rgb(var(--border-color))] my-2" />
+
+              <button onClick={handleSignOut} className="w-full flex items-center gap-3 p-3 hover:bg-red-500/10 rounded-xl transition-all text-left text-sm font-bold text-red-500">
+                <LogOut className="w-4 h-4" />
+                <span>Sign Out</span>
+              </button>
             </div>
-
-            {profile.bio && <p className="text-sm text-[rgb(var(--text-primary))] leading-relaxed whitespace-pre-wrap">{profile.bio}</p>}
-
-            {profile.joinedAt && (
-              <div className="flex items-center text-[rgb(var(--text-secondary))] text-xs">
-                <Calendar className="w-3.5 h-3.5 mr-1.5 shrink-0" />
-                Joined {new Date(profile.joinedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-              </div>
-            )}
-
-            <div className="grid grid-cols-3 gap-2 border-t border-[rgb(var(--border-color))] pt-4">
-              <div className="text-center">
-                <div className="text-base font-bold text-[rgb(var(--text-primary))]">{stats.posts}</div>
-                <div className="text-xs text-[rgb(var(--text-secondary))]">Posts</div>
-              </div>
-              <div className="text-center">
-                <div className="text-base font-bold text-[rgb(var(--text-primary))]">{stats.followers}</div>
-                <div className="text-xs text-[rgb(var(--text-secondary))]">Followers</div>
-              </div>
-              <div className="text-center">
-                <div className="text-base font-bold text-[rgb(var(--text-primary))]">{stats.following}</div>
-                <div className="text-xs text-[rgb(var(--text-secondary))]">Following</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            {isCurrentUser ? (
-              <>
-                <button
-                  onClick={() => router.push('/profile/edit')}
-                  className="flex-1 bg-[rgb(var(--bg-secondary))] hover:bg-[rgb(var(--bg-secondary))]/80 text-[rgb(var(--text-primary))] py-2.5 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 text-sm border border-[rgb(var(--border-color))]"
-                >
-                  <Settings className="w-4 h-4" />Edit Profile
-                </button>
-                <button onClick={handleShare} className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] text-[rgb(var(--text-primary))] p-2.5 rounded-xl transition-colors hover:bg-[rgb(var(--bg-secondary))]/80" aria-label="Share">
-                  <Share className="w-4 h-4" />
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={handleFollow}
-                  disabled={followLoading}
-                  className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 text-sm ${isFollowing ? 'bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))] border border-[rgb(var(--border-color))]' : 'bg-xapzap-blue hover:bg-xapzap-darkBlue text-white'}`}
-                >
-                  {followLoading ? <div className="w-4 h-4 border border-current border-t-transparent rounded-full animate-spin" /> : isFollowing ? 'Following' : 'Follow'}
-                </button>
-                <button onClick={handleMessage} className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] text-[rgb(var(--text-primary))] p-2.5 rounded-xl transition-colors" aria-label="Message">
-                  <MessageCircle className="w-4 h-4" />
-                </button>
-                <button onClick={handleShare} className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] text-[rgb(var(--text-primary))] p-2.5 rounded-xl transition-colors" aria-label="Share">
-                  <Share className="w-4 h-4" />
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Creator Tools */}
-          {isCurrentUser && (
-            <div className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] rounded-2xl p-4 space-y-3">
-              <h3 className="text-[rgb(var(--text-primary))] font-semibold text-sm">Creator Tools</h3>
+          ) : (
+            <div className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] rounded-2xl p-5 space-y-4 text-center">
+              <h3 className="text-[rgb(var(--text-primary))] font-extrabold text-lg">Support Creator</h3>
+              <p className="text-xs text-[rgb(var(--text-secondary))] leading-relaxed">
+                Share this profile with others, or message them to connect.
+              </p>
               <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => router.push('/dashboard')}
-                  className="w-full bg-[rgb(var(--bg-primary))] hover:bg-[rgb(var(--bg-secondary))]/80 p-3 rounded-xl transition-all border border-[rgb(var(--border-color))] flex items-center gap-3"
-                >
-                  <BarChart3 className="w-5 h-5 text-blue-400" />
-                  <div className="text-left">
-                    <div className="text-[rgb(var(--text-primary))] font-medium text-xs">Dashboard</div>
-                    <div className="text-[rgb(var(--text-secondary))] text-[10px]">Insights & performance</div>
-                  </div>
+                <button onClick={handleShare} className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-4 rounded-xl font-bold transition-all text-sm flex items-center justify-center gap-2">
+                  <Share className="w-4 h-4" /> Share Profile
                 </button>
-                <button
-                  onClick={() => router.push('/monetization')}
-                  className="w-full bg-[rgb(var(--bg-primary))] hover:bg-[rgb(var(--bg-secondary))]/80 p-3 rounded-xl transition-all border border-[rgb(var(--border-color))] flex items-center gap-3"
-                >
-                  <DollarSign className="w-5 h-5 text-green-400" />
-                  <div className="text-left">
-                    <div className="text-[rgb(var(--text-primary))] font-medium text-xs">Monetization</div>
-                    <div className="text-[rgb(var(--text-secondary))] text-[10px]">Earnings & eligibility</div>
-                  </div>
+                <button onClick={handleMessage} className="w-full bg-[rgb(var(--bg-primary))] border border-[rgb(var(--border-color))] text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--bg-secondary))] py-2.5 px-4 rounded-xl font-semibold transition-all text-sm flex items-center justify-center gap-2">
+                  <MessageCircle className="w-4 h-4" /> Message
                 </button>
               </div>
             </div>
