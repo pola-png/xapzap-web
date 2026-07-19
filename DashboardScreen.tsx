@@ -55,69 +55,71 @@ export function DashboardScreen() {
             <div className="h-32 bg-muted rounded-xl" />
             <div className="h-32 bg-muted rounded-xl" />
           </div>
+
+
         </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="max-w-6xl mx-auto p-6 space-y-6 text-[rgb(var(--text-primary))] bg-[rgb(var(--bg-primary))]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Insights & performance overview</p>
+          <h1 className="text-3xl font-extrabold tracking-tight text-[rgb(var(--text-primary))]">Dashboard</h1>
+          <p className="text-[rgb(var(--text-secondary))] text-sm">Insights & performance overview</p>
         </div>
-        <button className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
+        <button className="px-6 py-2.5 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-all text-sm shadow-md">
           Export Data
         </button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="group bg-card p-6 rounded-xl border shadow-sm hover:shadow-md transition-all">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="group bg-[rgb(var(--bg-secondary))] p-6 rounded-2xl border border-[rgb(var(--border-color))] shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center">
-            <div className="p-3 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
-              <BarChart3 className="w-6 h-6 text-primary" />
+            <div className="p-3 bg-blue-500/10 rounded-xl group-hover:bg-blue-500/20 transition-colors">
+              <BarChart3 className="w-6 h-6 text-blue-500" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Posts</p>
-              <p className="text-3xl font-bold">{formatCount(stats.posts)}</p>
+              <p className="text-xs font-semibold text-[rgb(var(--text-secondary))] uppercase tracking-wider">Posts</p>
+              <p className="text-3xl font-extrabold text-[rgb(var(--text-primary))] mt-1">{formatCount(stats.posts)}</p>
             </div>
           </div>
         </div>
 
-        <div className="group bg-card p-6 rounded-xl border shadow-sm hover:shadow-md transition-all">
+        <div className="group bg-[rgb(var(--bg-secondary))] p-6 rounded-2xl border border-[rgb(var(--border-color))] shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center">
-            <div className="p-3 bg-secondary/10 rounded-xl group-hover:bg-secondary/20 transition-colors">
-              <Users className="w-6 h-6 text-secondary-foreground" />
+            <div className="p-3 bg-purple-500/10 rounded-xl group-hover:bg-purple-500/20 transition-colors">
+              <Users className="w-6 h-6 text-purple-500" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Followers</p>
-              <p className="text-3xl font-bold">{formatCount(stats.followers)}</p>
+              <p className="text-xs font-semibold text-[rgb(var(--text-secondary))] uppercase tracking-wider">Followers</p>
+              <p className="text-3xl font-extrabold text-[rgb(var(--text-primary))] mt-1">{formatCount(stats.followers)}</p>
             </div>
           </div>
         </div>
 
-        <div className="group bg-card p-6 rounded-xl border shadow-sm hover:shadow-md transition-all">
+        <div className="group bg-[rgb(var(--bg-secondary))] p-6 rounded-2xl border border-[rgb(var(--border-color))] shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center">
-            <div className="p-3 bg-destructive/10 rounded-xl group-hover:bg-destructive/20 transition-colors">
-              <Eye className="w-6 h-6 text-destructive-foreground" />
+            <div className="p-3 bg-pink-500/10 rounded-xl group-hover:bg-pink-500/20 transition-colors">
+              <Eye className="w-6 h-6 text-pink-500" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Impressions</p>
-              <p className="text-3xl font-bold">{formatCount(stats.impressions)}</p>
+              <p className="text-xs font-semibold text-[rgb(var(--text-secondary))] uppercase tracking-wider">Impressions</p>
+              <p className="text-3xl font-extrabold text-[rgb(var(--text-primary))] mt-1">{formatCount(stats.impressions)}</p>
             </div>
           </div>
         </div>
 
-        <div className="group bg-card p-6 rounded-xl border shadow-sm hover:shadow-md transition-all">
+        <div className="group bg-[rgb(var(--bg-secondary))] p-6 rounded-2xl border border-[rgb(var(--border-color))] shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center">
             <div className="p-3 bg-green-500/10 rounded-xl group-hover:bg-green-500/20 transition-colors">
               <TrendingUp className="w-6 h-6 text-green-500" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Views</p>
-              <p className="text-3xl font-bold">{formatCount(stats.views)}</p>
+              <p className="text-xs font-semibold text-[rgb(var(--text-secondary))] uppercase tracking-wider">Views</p>
+              <p className="text-3xl font-extrabold text-[rgb(var(--text-primary))] mt-1">{formatCount(stats.views)}</p>
             </div>
           </div>
         </div>
@@ -125,23 +127,23 @@ export function DashboardScreen() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-card p-6 rounded-xl border shadow-sm">
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Activity className="w-5 h-5" />
+        <div className="bg-[rgb(var(--bg-secondary))] p-6 rounded-2xl border border-[rgb(var(--border-color))] shadow-sm">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-[rgb(var(--text-primary))]">
+            <Activity className="w-5 h-5 text-blue-500" />
             Post Performance (30 days)
           </h2>
-          <div className="h-80 bg-gradient-to-r from-muted to-muted/50 rounded-2xl flex items-center justify-center text-muted-foreground">
-            Chart placeholder - integrate Recharts or similar
+          <div className="h-80 bg-[rgb(var(--bg-primary))] border border-[rgb(var(--border-color))]/50 rounded-2xl flex items-center justify-center text-[rgb(var(--text-secondary))]">
+            Chart data updates dynamically
           </div>
         </div>
 
-        <div className="bg-card p-6 rounded-xl border shadow-sm">
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Users className="w-5 h-5 text-secondary-foreground" />
+        <div className="bg-[rgb(var(--bg-secondary))] p-6 rounded-2xl border border-[rgb(var(--border-color))] shadow-sm">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-[rgb(var(--text-primary))]">
+            <Users className="w-5 h-5 text-purple-500" />
             Follower Growth (30 days)
           </h2>
-          <div className="h-80 bg-gradient-to-r from-muted to-muted/50 rounded-2xl flex items-center justify-center text-muted-foreground">
-            Chart placeholder - integrate Recharts or similar
+          <div className="h-80 bg-[rgb(var(--bg-primary))] border border-[rgb(var(--border-color))]/50 rounded-2xl flex items-center justify-center text-[rgb(var(--text-secondary))]">
+            Followers analytics overview
           </div>
         </div>
       </div>

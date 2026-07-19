@@ -135,7 +135,7 @@ export function ImageDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <img
             src={resolvedUrl}
             alt={`Post image ${currentImageIndex + 1}`}
-            className="max-w-full max-h-[70vh] lg:max-h-[90vh] object-contain cursor-zoom-in"
+            className="max-w-full max-h-[60vh] lg:max-h-[60vh] object-contain cursor-zoom-in"
             onClick={() => setShowFullImage(true)}
           />
         ) : (
