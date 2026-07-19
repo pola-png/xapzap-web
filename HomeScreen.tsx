@@ -267,7 +267,7 @@ export function HomeScreen() {
           </div>
         )}
         {showStorySection && <StoryBar />}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-20 sm:pb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 grid-flow-row-dense gap-4 pb-20 sm:pb-24">
           {posts.map((post, index) => (
             <Fragment key={post.id}>
               <div className={post.postType === 'reel' ? 'col-span-1' : 'col-span-1 md:col-span-2'}>
