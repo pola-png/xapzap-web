@@ -71,7 +71,7 @@ export function ImageDetailScreen({ post, onClose, isGuest = false, onGuestActio
         <img
           src={resolvedUrl}
           alt={`Full size image ${currentImageIndex + 1}`}
-          className="max-w-full max-h-full object-contain"
+          className="max-w-[80%] max-h-[75vh] object-contain"
           onClick={() => setShowFullImage(false)}
         />
 
@@ -135,7 +135,7 @@ export function ImageDetailScreen({ post, onClose, isGuest = false, onGuestActio
           <img
             src={resolvedUrl}
             alt={`Post image ${currentImageIndex + 1}`}
-            className="max-w-full max-h-[60vh] lg:max-h-[60vh] object-contain cursor-zoom-in"
+            className="max-w-full max-h-[45vh] lg:max-h-[45vh] object-contain cursor-zoom-in"
             onClick={() => setShowFullImage(true)}
           />
         ) : (
