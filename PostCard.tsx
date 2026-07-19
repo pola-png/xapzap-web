@@ -23,7 +23,7 @@ interface PostCardProps {
   isGuest?: boolean
   onGuestAction?: () => void
   currentUserId?: string
-  feedType?: 'home' | 'watch' | 'following' | 'news' | 'reels'
+  feedType?: 'home' | 'watch' | 'following' | 'news' | 'reels' | 'detail'
   onVideoClick?: (post: Post) => void
   onCommentClick?: () => void
 }
@@ -200,7 +200,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           userId: user.$id,
           postId: post.id,
           creatorId: post.userId,
-          feed: feedType,
+          feed: feedType === 'detail' ? 'home' : feedType,
           eventType: 'comment',
           position: 0
         })
@@ -327,7 +327,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             userId: user.$id,
             postId: post.id,
             creatorId: post.userId,
-            feed: feedType,
+            feed: feedType === 'detail' ? 'home' : feedType,
             eventType: 'impression',
             position: 0
           })
@@ -381,7 +381,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             userId: currentUser.$id,
             postId: post.id,
             creatorId: post.userId,
-            feed: feedType,
+            feed: feedType === 'detail' ? 'home' : feedType,
             eventType: 'like',
             position: 0
           })
@@ -416,7 +416,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           userId: currentUser.$id,
           postId: post.id,
           creatorId: post.userId,
-          feed: feedType,
+          feed: feedType === 'detail' ? 'home' : feedType,
           eventType: 'save',
           position: 0
         })
@@ -452,7 +452,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           userId: currentUser.$id,
           postId: post.id,
           creatorId: post.userId,
-          feed: feedType,
+          feed: feedType === 'detail' ? 'home' : feedType,
           eventType: 'repost',
           position: 0
         })
@@ -486,7 +486,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             userId: user.$id,
             postId: post.id,
             creatorId: post.userId,
-            feed: feedType,
+            feed: feedType === 'detail' ? 'home' : feedType,
             eventType: 'share',
             position: 0
           })
