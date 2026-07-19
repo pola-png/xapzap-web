@@ -527,6 +527,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   }
 
   const renderMedia = () => {
+    if (feedType === 'detail') return null
     if (!post.mediaUrls || post.mediaUrls.length === 0) return null
     if (!shouldLoadMedia) return <div className="w-full aspect-square rounded-xl mb-3 bg-gray-100 dark:bg-gray-800" />
 

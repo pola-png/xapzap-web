@@ -66,20 +66,20 @@ export default function HashtagPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-[rgb(var(--bg-primary))] flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-[rgb(var(--bg-primary))] text-[rgb(var(--text-primary))]">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-black border-b border-gray-800 p-4">
-        <div className="flex items-center space-x-3">
+      <div className="sticky top-0 z-50 bg-[rgb(var(--bg-primary))]/95 backdrop-blur-md border-b border-[rgb(var(--border-color))] p-4">
+        <div className="max-w-2xl mx-auto flex items-center space-x-3">
           <button
             onClick={() => router.back()}
-            className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+            className="p-2 hover:bg-[rgb(var(--bg-secondary))] rounded-full transition-colors text-[rgb(var(--text-primary))]"
             aria-label="Go back"
           >
             <ArrowLeft size={20} />
@@ -89,23 +89,23 @@ export default function HashtagPage() {
               <Hash size={20} className="text-blue-400" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">#{tag}</h1>
-              <p className="text-sm text-gray-400">{posts.length} posts</p>
+              <h1 className="text-xl font-bold text-[rgb(var(--text-primary))]">#{tag}</h1>
+              <p className="text-sm text-[rgb(var(--text-secondary))]">{posts.length} posts</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Posts */}
-      <div className="flex-1">
+      <div className="max-w-2xl mx-auto px-4 pb-20 pt-4">
         {posts.length === 0 ? (
           <div className="text-center py-12">
-            <Hash size={48} className="mx-auto mb-4 text-gray-600" />
-            <p className="text-gray-400">No posts found for #{tag}</p>
-            <p className="text-sm text-gray-500 mt-2">Be the first to use this hashtag!</p>
+            <Hash size={48} className="mx-auto mb-4 text-[rgb(var(--text-secondary))]" />
+            <p className="text-[rgb(var(--text-secondary))]">No posts found for #{tag}</p>
+            <p className="text-sm text-[rgb(var(--text-secondary))]/80 mt-2">Be the first to use this hashtag!</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-800">
+          <div className="divide-y divide-[rgb(var(--border-color))]">
             {posts.map((post, index) => (
               <Fragment key={post.id}>
                 <PostCard
@@ -114,7 +114,9 @@ export default function HashtagPage() {
                   feedType="home"
                 />
                 {index < posts.length - 1 && (
-                  <AdcashBanner300x100 slotKey={`hashtag-${tag}-${post.id}-${index}`} />
+                  <div className="py-4">
+                    <AdcashBanner300x100 slotKey={`hashtag-${tag}-${post.id}-${index}`} />
+                  </div>
                 )}
               </Fragment>
             ))}
