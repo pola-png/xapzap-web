@@ -136,7 +136,7 @@ export default function PremiumPage() {
         }
 
         if (isMounted) {
-          alert('Payment verified successfully. Your upgrade is now pending admin approval.')
+          alert('Payment verified successfully. Your upgrade is being processed.')
           await loadPlan()
           router.replace('/premium')
         }
@@ -167,7 +167,7 @@ export default function PremiumPage() {
       }
 
       if (requestStatus === 'pending') {
-        alert('Your previous upgrade request is still pending admin approval.')
+        alert('Your previous upgrade request is still processing.')
         return
       }
 
@@ -201,7 +201,7 @@ export default function PremiumPage() {
           Creator Plans
         </h1>
         <p className="mt-3 text-sm text-[rgb(var(--text-secondary))] sm:text-base">
-          Monthly plans. Basic is $2.5/month, Business is $5/month (auto-converted by country/currency).
+          Monthly plans. Basic is $2.5/month, Business is $5/month.
         </p>
 
         <div className="mt-6 rounded-xl border border-border/60 bg-card p-4 text-sm text-[rgb(var(--text-secondary))]">
@@ -216,18 +216,7 @@ export default function PremiumPage() {
           )}
           {requestStatus === 'pending' && requestedTier !== 'free' && (
             <div className="mt-2 text-amber-600 dark:text-amber-400">
-              Upgrade request pending: {requestedTier === 'business' ? 'Business' : 'Basic'} (awaiting admin approval)
-            </div>
-          )}
-          {pricingLoading ? null : (
-            <div className="mt-2">
-              Currency detected: <span className="font-semibold">{pricing.currency}</span>{' '}
-              ({pricing.country})
-            </div>
-          )}
-          {!pricingLoading && pricing.usedFallbackCurrency && (
-            <div className="mt-1 text-xs text-muted-foreground">
-              Local currency is not supported for checkout, so billing uses {pricing.currency}.
+              Upgrade request pending: {requestedTier === 'business' ? 'Business' : 'Basic'} (processing)
             </div>
           )}
         </div>
@@ -254,7 +243,7 @@ export default function PremiumPage() {
               {currentPlan === 'basic'
                 ? 'Active Plan'
                 : requestStatus === 'pending' && requestedTier === 'basic'
-                  ? 'Awaiting Admin Approval'
+                  ? 'Processing Upgrade...'
                   : updatingPlan === 'basic'
                     ? 'Redirecting...'
                     : 'Pay & Activate Basic'}
@@ -282,7 +271,7 @@ export default function PremiumPage() {
               {currentPlan === 'business'
                 ? 'Active Plan'
                 : requestStatus === 'pending' && requestedTier === 'business'
-                  ? 'Awaiting Admin Approval'
+                  ? 'Processing Upgrade...'
                   : updatingPlan === 'business'
                     ? 'Redirecting...'
                     : 'Pay & Activate Business'}
@@ -291,8 +280,7 @@ export default function PremiumPage() {
         </div>
 
         <p className="mt-6 text-xs text-[rgb(var(--text-secondary))]">
-          Payment is verified server-side through Paystack before your account is marked paid.
-          After successful payment, admin verification/approval is still required for benchmark badge and full activation.
+          Payments are securely processed. Your plan will activate once verification is complete.
         </p>
       </div>
     </div>

@@ -31,7 +31,7 @@ export default function MonetizationPage() {
       <section className="mt-8 rounded-xl border border-border bg-card p-5 sm:p-6">
         <h2 className="text-2xl font-bold text-foreground">Current Status</h2>
         <p className="mt-3 text-muted-foreground">
-          Verified creators and admins already access longer video upload capability. Full premium
+          Verified creators already access longer video upload capability. Full premium
           monetization flows are in progress.
         </p>
       </section>
