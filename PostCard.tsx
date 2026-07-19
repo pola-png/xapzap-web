@@ -727,7 +727,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
                 <img
                   src={resolvedUrl}
                   alt="Post"
-                  className="max-w-[90%] max-h-[55vh] md:max-w-[80%] md:max-h-[45vh] object-contain rounded-xl border border-white/10 shadow-2xl transition-all"
+                  className="max-w-[95%] max-h-[75vh] md:max-w-[85%] md:max-h-[75vh] object-contain rounded-xl border border-white/10 shadow-2xl transition-all"
                 />
               )
             })()}
