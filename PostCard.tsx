@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Play, ArrowLeft } from 'lucide-react'
+import { Heart, MessageCircle, Repeat2, Share, Bookmark, MoreHorizontal, BarChart2, Play, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Post } from './types'
 import appwriteService from './appwriteService'
 import { OptimizedImage } from './components/OptimizedImage'
@@ -680,8 +680,8 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
   return (
     <>
       {showFullPost && post.postType === 'image' && post.mediaUrls && post.mediaUrls.length > 0 && (
-        <div className="fixed inset-0 bg-black z-50 flex flex-col">
-          <div className="flex items-center justify-between p-4 bg-black/80">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4">
+          <div className="w-full max-w-4xl flex items-center justify-between p-4 bg-black/40 rounded-t-2xl border-t border-x border-white/10">
             <button onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
@@ -689,11 +689,11 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             }} className="p-2 hover:bg-white/10 rounded-full text-white">
               <ArrowLeft size={24} />
             </button>
-            <div className="text-white text-sm">{currentImageIndex + 1} / {post.mediaUrls.length}</div>
+            <div className="text-white text-sm font-semibold">{currentImageIndex + 1} / {post.mediaUrls.length}</div>
             <div className="w-10" />
           </div>
           <div 
-            className="flex-1 relative flex items-center justify-center"
+            className="w-full max-w-4xl flex-1 bg-black/60 flex items-center justify-center relative select-none p-6 rounded-b-2xl border-b border-x border-white/10 overflow-hidden"
             onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
             onTouchEnd={(e) => {
               const touchEndX = e.changedTouches[0].clientX
@@ -707,17 +707,43 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
               }
             }}
           >
+            {post.mediaUrls.length > 1 && currentImageIndex > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setCurrentImageIndex(prev => prev - 1)
+                }}
+                className="absolute left-4 p-2 bg-black/50 hover:bg-black/75 text-white rounded-full transition-colors z-20"
+                aria-label="Previous image"
+              >
+                <ChevronLeft size={24} />
+              </button>
+            )}
+
             {(() => {
               const currentImageUrl = post.mediaUrls[currentImageIndex] || post.mediaUrls[0]
               const resolvedUrl = normalizeWasabiImage(currentImageUrl) || currentImageUrl
               return (
-            <img
-              src={resolvedUrl}
-              alt="Post"
-              className="max-w-full max-h-full object-contain"
-            />
+                <img
+                  src={resolvedUrl}
+                  alt="Post"
+                  className="max-w-[90%] max-h-[55vh] md:max-w-[80%] md:max-h-[45vh] object-contain rounded-xl border border-white/10 shadow-2xl transition-all"
+                />
               )
             })()}
+
+            {post.mediaUrls.length > 1 && currentImageIndex < post.mediaUrls.length - 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setCurrentImageIndex(prev => prev + 1)
+                }}
+                className="absolute right-4 p-2 bg-black/50 hover:bg-black/75 text-white rounded-full transition-colors z-20"
+                aria-label="Next image"
+              >
+                <ChevronRight size={24} />
+              </button>
+            )}
           </div>
         </div>
       )}
