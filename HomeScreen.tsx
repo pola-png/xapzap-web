@@ -278,7 +278,7 @@ export function HomeScreen() {
                   onCommentClick={() => handleCommentClick(post)}
                 />
               </div>
-              {index < posts.length - 1 && (
+              {index < posts.length - 1 && index % 3 === 2 && (
                 <div className="col-span-1 md:col-span-2">
                   <AdcashBanner300x100 slotKey={`home-${post.id}-${index}`} />
                 </div>
