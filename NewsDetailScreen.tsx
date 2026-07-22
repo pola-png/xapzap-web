@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { ArrowLeft, Clock, Calendar, Share2, Bookmark, CheckCircle2, User } from 'lucide-react'
 import { OptimizedImage } from './components/OptimizedImage'
 import { formatTimeAgo } from './utils'
@@ -10,6 +11,21 @@ interface NewsDetailScreenProps {
 }
 
 export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
+  useEffect(() => {
+    if (article.videoUrl && (article.videoUrl.includes('twitter.com') || article.videoUrl.includes('x.com'))) {
+      const script = document.createElement('script')
+      script.setAttribute('src', 'https://platform.twitter.com/widgets.js')
+      script.setAttribute('async', 'true')
+      script.setAttribute('charset', 'utf-8')
+      document.head.appendChild(script)
+      return () => {
+        try {
+          document.head.removeChild(script)
+        } catch (_) {}
+      }
+    }
+  }, [article.videoUrl])
+
   const title = article.title || ''
   const content = article.content || ''
   const summary = article.summary || article.seoDescription || ''
@@ -207,6 +223,31 @@ export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
                       Image Source: {article.mediaCredits || 'Original Publisher'} ({article.mediaSource || 'Official Source'})
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Social Embed Section */}
+              {article.videoUrl && (article.videoUrl.includes('twitter.com') || article.videoUrl.includes('x.com')) && (
+                <div className="bg-accent/30 rounded-2xl p-6 border border-border/80 my-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                      Live Social Update
+                    </span>
+                    <a
+                      href={article.videoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-muted-foreground hover:text-primary transition-colors underline"
+                    >
+                      View on X
+                    </a>
+                  </div>
+                  <div className="flex justify-center w-full min-h-[150px] bg-background/50 rounded-xl p-4 border border-border/40 overflow-x-auto">
+                    <blockquote className="twitter-tweet" data-theme="dark" data-align="center">
+                      <a href={article.videoUrl}>Loading original post...</a>
+                    </blockquote>
+                  </div>
                 </div>
               )}
 

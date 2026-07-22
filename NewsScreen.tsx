@@ -11,6 +11,7 @@ import { Clock, Calendar, CheckCircle2, TrendingUp, Filter, Sparkles } from 'luc
 import { OptimizedImage } from './components/OptimizedImage'
 import { formatTimeAgo } from './utils'
 import { Post } from './types'
+import { generateSlug, extractIdFromSlug } from './lib/slug'
 
 export function NewsScreen() {
   const feedStore = useFeedStore()
@@ -115,7 +116,8 @@ export function NewsScreen() {
       const path = window.location.pathname
       const matches = path.match(/\/news\/([a-zA-Z0-9_-]+)/)
       if (matches && matches[1]) {
-        const found = enrichedPosts.find(p => p.id === matches[1])
+        const docId = extractIdFromSlug(matches[1])
+        const found = enrichedPosts.find(p => p.id === docId)
         if (found) setActiveArticle(found as Post)
       }
     } catch (error) {
@@ -127,7 +129,8 @@ export function NewsScreen() {
 
   const handleOpenArticle = (article: Post) => {
     setActiveArticle(article)
-    window.history.pushState(null, '', `/news/${article.id}`)
+    const slug = generateSlug(article.title || 'news', article.id)
+    window.history.pushState(null, '', `/news/${slug}`)
   }
 
   const handleCloseArticle = () => {

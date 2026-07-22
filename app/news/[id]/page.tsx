@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import appwriteService from '../../../appwriteService'
 import { NewsDetailScreenDirect } from './NewsDetailScreenDirect'
+import { extractIdFromSlug } from '../../../lib/slug'
 
 type NewsDetailPageProps = {
   params: { id?: string } | Promise<{ id?: string }>
@@ -11,8 +12,9 @@ export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: NewsDetailPageProps): Promise<Metadata> {
   const resolvedParams = await params
-  const id = resolvedParams?.id
-  if (!id) return {}
+  const rawId = resolvedParams?.id
+  if (!rawId) return {}
+  const id = extractIdFromSlug(rawId)
 
   try {
     const rawDoc = await appwriteService.fetchNewsArticle(id)
@@ -46,11 +48,13 @@ export async function generateMetadata({ params }: NewsDetailPageProps): Promise
 
 export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
   const resolvedParams = await params
-  const id = resolvedParams?.id
+  const rawId = resolvedParams?.id
 
-  if (!id) {
+  if (!rawId) {
     redirect('/news')
   }
+
+  const id = extractIdFromSlug(rawId)
 
   try {
     const rawDoc = await appwriteService.fetchNewsArticle(id)

@@ -92,18 +92,18 @@ function createVideoSitemapEntry(
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static routes with high priority
   const routes = [
-    { url: `${SITE_URL}`, priority: 1, changeFrequency: 'hourly' as const },
-    { url: `${SITE_URL}/for-you`, priority: 0.9, changeFrequency: 'hourly' as const },
-    { url: `${SITE_URL}/watch`, priority: 0.9, changeFrequency: 'hourly' as const },
-    { url: `${SITE_URL}/reels`, priority: 0.9, changeFrequency: 'hourly' as const },
-    { url: `${SITE_URL}/news`, priority: 0.9, changeFrequency: 'hourly' as const },
-    { url: `${SITE_URL}/chinese-drama-movies`, priority: 0.9, changeFrequency: 'daily' as const },
+    { url: `${SITE_URL}`, priority: 1.0, changeFrequency: 'hourly' as const },
+    { url: `${SITE_URL}/for-you`, priority: 1.0, changeFrequency: 'hourly' as const },
+    { url: `${SITE_URL}/watch`, priority: 1.0, changeFrequency: 'hourly' as const },
+    { url: `${SITE_URL}/reels`, priority: 1.0, changeFrequency: 'hourly' as const },
+    { url: `${SITE_URL}/news`, priority: 1.0, changeFrequency: 'hourly' as const },
+    { url: `${SITE_URL}/chinese-drama-movies`, priority: 1.0, changeFrequency: 'daily' as const },
     { url: `${SITE_URL}/about`, priority: 0.8, changeFrequency: 'monthly' as const },
     { url: `${SITE_URL}/premium`, priority: 0.8, changeFrequency: 'weekly' as const },
     { url: `${SITE_URL}/monetization`, priority: 0.8, changeFrequency: 'weekly' as const },
-    { url: `${SITE_URL}/following`, priority: 0.7, changeFrequency: 'hourly' as const },
-    { url: `${SITE_URL}/live`, priority: 0.8, changeFrequency: 'always' as const },
-    { url: `${SITE_URL}/search`, priority: 0.6, changeFrequency: 'daily' as const },
+    { url: `${SITE_URL}/following`, priority: 0.8, changeFrequency: 'hourly' as const },
+    { url: `${SITE_URL}/live`, priority: 0.9, changeFrequency: 'always' as const },
+    { url: `${SITE_URL}/search`, priority: 0.7, changeFrequency: 'daily' as const },
     { url: `${SITE_URL}/auth/signin`, priority: 0.5, changeFrequency: 'monthly' as const },
     { url: `${SITE_URL}/auth/signup`, priority: 0.5, changeFrequency: 'monthly' as const },
   ].map((route) => ({
@@ -172,11 +172,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         if (post.isSeoIndexable === false) {
           return
         }
+        const imageUrl = post.thumbnailUr || post.thumbnailUrl || '';
+        const slug = generateSlug(post.title || post.caption || 'news', post.$id)
         allUrls.push({
-          url: `${SITE_URL}/news/${post.$id}`,
+          url: `${SITE_URL}/news/${slug}`,
           lastModified: new Date(post.$updatedAt || post.$createdAt),
           changeFrequency: 'daily',
           priority: 1.0,
+          images: imageUrl ? [escapeXml(imageUrl)] : undefined,
           news: {
             title: escapeXml(post.title || 'News Update'),
             publication: {
