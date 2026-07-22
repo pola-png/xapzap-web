@@ -52,6 +52,7 @@ export function OptimizedImage({
           onLoad={handleLoad}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
+          referrerPolicy="no-referrer"
         />
       </>
     )
@@ -68,6 +69,7 @@ export function OptimizedImage({
       onLoad={handleLoad}
       loading={priority ? 'eager' : 'lazy'}
       decoding="async"
+      referrerPolicy="no-referrer"
     />
   )
 }
