@@ -78,7 +78,6 @@ function createVideoSitemapEntry(
             description: escapeXml(description),
             thumbnail_loc: escapeXml(thumbnailUrl),
             content_loc: escapeXml(videoUrl),
-            player_loc: escapeXml(pageUrl),
             publication_date: new Date(post.$createdAt || post.createdAt || post.$updatedAt || Date.now()).toISOString(),
             family_friendly: 'yes',
             live: 'no',
