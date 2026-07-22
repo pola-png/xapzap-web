@@ -172,9 +172,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         if (post.isSeoIndexable === false) {
           return
         }
-        const slug = post.slug || generateSlug(post.title || post.caption || 'article', post.$id)
         allUrls.push({
-          url: `${SITE_URL}/news/${slug}`,
+          url: `${SITE_URL}/news/${post.$id}`,
           lastModified: new Date(post.$updatedAt || post.$createdAt),
           changeFrequency: 'daily',
           priority: 1.0,
