@@ -177,7 +177,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           lastModified: new Date(post.$updatedAt || post.$createdAt),
           changeFrequency: 'daily',
           priority: 1.0,
-        })
+          news: {
+            title: escapeXml(post.title || 'News Update'),
+            publication: {
+              name: 'XapZap News',
+              language: 'en',
+            },
+            publication_date: new Date(post.$createdAt || post.createdAt || Date.now()).toISOString(),
+          }
+        } as any)
       })
 
       newsCount += news.documents.length

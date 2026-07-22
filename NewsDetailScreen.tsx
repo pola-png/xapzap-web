@@ -193,13 +193,20 @@ export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
 
               {/* Cover Image */}
               {thumbnail && (
-                <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden shadow-xl border border-border group">
-                  <OptimizedImage
-                    src={thumbnail}
-                    alt={title}
-                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                <div className="space-y-2">
+                  <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden shadow-xl border border-border group">
+                    <OptimizedImage
+                      src={thumbnail}
+                      alt={title}
+                      className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  </div>
+                  {(article.mediaCredits || article.mediaSource) && (
+                    <div className="text-right text-xs text-muted-foreground/85 italic pr-2">
+                      Image Source: {article.mediaCredits || 'Original Publisher'} ({article.mediaSource || 'Official Source'})
+                    </div>
+                  )}
                 </div>
               )}
 
