@@ -26,7 +26,7 @@ export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
   let inlineImageIndex = 0
 
   // Standard renderer helper
-  lines.forEach((line, index) => {
+  lines.forEach((line: string, index: number) => {
     const trimmed = line.trim()
     if (trimmed.startsWith('# ')) {
       // H1 (Title) - skip as we display it in header
@@ -71,9 +71,9 @@ export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
           {quoteText}
         </blockquote>
       )
-    } else if (trimmed.isNotEmpty) {
+    } else if (trimmed.length > 0) {
       // Check if image tag is embedded
-      if (trimmed.startsWith('![') && trimmed.contains('](')) {
+      if (trimmed.startsWith('![') && trimmed.includes('](')) {
         // Embed image tag parsed
         const start = trimmed.indexOf('(') + 1
         const end = trimmed.indexOf(')')
@@ -100,7 +100,7 @@ export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
 
   // Ensure at least 2 images are embedded inside content
   // If the markdown parsing didn't find embedded images but we have imageUrls, append them
-  if (imageUrls.length > 1 && processedBody.filter(x => x && (x as any).key && (x as any).key.toString().includes('embed-img')).length === 0) {
+  if (imageUrls.length > 1 && processedBody.filter((x: any) => x && x.key && x.key.toString().includes('embed-img')).length === 0) {
     const additionalImages: React.ReactNode[] = []
     imageUrls.forEach((img: string, idx: number) => {
       // Skip the thumbnail

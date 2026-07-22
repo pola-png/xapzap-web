@@ -17,11 +17,7 @@ export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
   }
 
   try {
-    const rawDoc = await appwriteService.databases.getDocument(
-      appwriteService.databaseId,
-      appwriteService.collections.news,
-      id
-    )
+    const rawDoc = await appwriteService.fetchNewsArticle(id)
 
     if (!rawDoc) {
       redirect('/news')

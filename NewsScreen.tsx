@@ -14,10 +14,10 @@ import { Post } from './types'
 
 export function NewsScreen() {
   const feedStore = useFeedStore()
-  const [posts, setPosts] = useState<Post[]>([])
+  const [posts, setPosts] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('All')
-  const [activeArticle, setActiveArticle] = useState<Post | null>(null)
+  const [activeArticle, setActiveArticle] = useState<any | null>(null)
 
   // Listen to popstate to handle back button smoothly when detail is open
   useEffect(() => {

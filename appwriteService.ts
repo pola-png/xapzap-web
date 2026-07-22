@@ -629,6 +629,14 @@ class AppwriteService {
     )
   }
 
+  async fetchNewsArticle(id: string) {
+    return await this.databases.getDocument(
+      this.databaseId,
+      this.collections.news,
+      id
+    )
+  }
+
   // Likes methods
   async isPostLikedBy(userId: string, postId: string) {
     try {
