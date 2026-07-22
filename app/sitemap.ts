@@ -42,6 +42,15 @@ function getDurationSeconds(post: any): number | undefined {
   return Math.max(1, Math.floor(durationMs / 1000))
 }
 
+function escapeXml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
 function createVideoSitemapEntry(
   post: any,
   pathPrefix: '/watch' | '/reels',
@@ -65,11 +74,11 @@ function createVideoSitemapEntry(
     videos: videoUrl
       ? [
           {
-            title,
-            description,
-            thumbnail_loc: thumbnailUrl,
-            content_loc: videoUrl,
-            player_loc: pageUrl,
+            title: escapeXml(title),
+            description: escapeXml(description),
+            thumbnail_loc: escapeXml(thumbnailUrl),
+            content_loc: escapeXml(videoUrl),
+            player_loc: escapeXml(pageUrl),
             publication_date: new Date(post.$createdAt || post.createdAt || post.$updatedAt || Date.now()).toISOString(),
             family_friendly: 'yes',
             live: 'no',
