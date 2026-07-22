@@ -165,7 +165,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const maxNews = 50000
 
     while (newsCount < maxNews) {
-      const news = await appwriteService.fetchPostsByKind('news', 500, newsCursor)
+      const news = await appwriteService.fetchNewsArticles(500, newsCursor)
       if (news.documents.length === 0) break
 
       news.documents.forEach((post: any) => {
