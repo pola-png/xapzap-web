@@ -169,85 +169,114 @@ export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
       </div>
 
       {/* Main Content Layout */}
-      <div className="flex-1 overflow-y-auto safe-area-inset-bottom">
-        <div className="max-w-4xl mx-auto px-6 py-8 md:py-12">
-          {/* Article Header Metadata */}
-          <div className="space-y-4 mb-8">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-              {category}
-            </span>
-            <h1 className="text-3xl md:text-5xl font-black text-foreground tracking-tight leading-tight">
-              {title}
-            </h1>
-            {article.subtitle && (
-              <p className="text-xl text-muted-foreground font-medium leading-normal">
-                {article.subtitle}
-              </p>
-            )}
+      <div className="flex-1 overflow-y-auto safe-area-inset-bottom bg-background">
+        <div className="max-w-6xl mx-auto px-6 py-8 md:py-12">
+          {/* Grid Layout: Main content (left 2/3) & Sidebar (right 1/3) on desktop */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            {/* Author Card Row */}
-            <div className="flex flex-wrap items-center gap-4 pt-4 border-y border-border py-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                  <User size={18} />
+            {/* Left Content Column */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Article Header Metadata */}
+              <div className="space-y-4">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                  {category}
+                </span>
+                <h1 className="text-3xl md:text-5xl font-black text-foreground tracking-tight leading-tight">
+                  {title}
+                </h1>
+                {article.subtitle && (
+                  <p className="text-xl text-muted-foreground font-medium leading-normal">
+                    {article.subtitle}
+                  </p>
+                )}
+              </div>
+
+              {/* Cover Image */}
+              {thumbnail && (
+                <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden shadow-xl border border-border group">
+                  <OptimizedImage
+                    src={thumbnail}
+                    alt={title}
+                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                 </div>
-                <div>
-                  <div className="flex items-center space-x-1.5">
-                    <span className="font-semibold text-foreground">{author}</span>
-                    <CheckCircle2 size={14} className="text-primary fill-primary/10" />
+              )}
+
+              {/* Dynamic Rendered Body */}
+              <div className="prose prose-lg dark:prose-invert max-w-none pt-4">
+                {processedBody}
+              </div>
+            </div>
+
+            {/* Right Sidebar Column */}
+            <div className="lg:col-span-1 space-y-6 lg:border-l lg:border-border lg:pl-8">
+              
+              {/* Publisher Detail Widget */}
+              <div className="bg-accent/40 rounded-2xl p-6 border border-border/60">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Publisher Desk</h3>
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black">
+                    XZ
                   </div>
-                  <span className="text-xs text-muted-foreground">Verified Publisher</span>
+                  <div>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="font-bold text-foreground">{author}</span>
+                      <CheckCircle2 size={14} className="text-primary fill-primary/10" />
+                    </div>
+                    <span className="text-xs text-muted-foreground">Verified Publisher</span>
+                  </div>
                 </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  XapZap News provides rapid, detailed reporting on emerging global trends, curated concurrently across 32 countries.
+                </p>
               </div>
-              
-              <div className="h-4 w-px bg-border hidden sm:block" />
-              
-              <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                <div className="flex items-center space-x-1.5">
-                  <Clock size={15} />
-                  <span>8 min read</span>
+
+              {/* Meta Stats & Actions Widget */}
+              <div className="bg-accent/40 rounded-2xl p-6 border border-border/60 space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Article Info</h3>
+                
+                <div className="space-y-3 text-sm text-muted-foreground pt-2">
+                  <div className="flex items-center space-x-2.5">
+                    <Clock size={16} className="text-primary" />
+                    <span>8 min read</span>
+                  </div>
+                  <div className="flex items-center space-x-2.5">
+                    <Calendar size={16} className="text-primary" />
+                    <span>{formatTimeAgo(publishedDate)}</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-1.5">
-                  <Calendar size={15} />
-                  <span>{formatTimeAgo(publishedDate)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Featured Large Image */}
-          {thumbnail && (
-            <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden shadow-2xl border border-border mb-8 group">
-              <OptimizedImage
-                src={thumbnail}
-                alt={title}
-                className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-            </div>
-          )}
-
-          {/* Dynamic Rendered Body */}
-          <div className="prose prose-lg dark:prose-invert max-w-none">
-            {processedBody}
-          </div>
-
-          {/* Tags Footer Section */}
-          {article.tags && article.tags.length > 0 && (
-            <div className="mt-12 pt-8 border-t border-border">
-              <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">Topic Tags</h4>
-              <div className="flex flex-wrap gap-2">
-                {article.tags.map((tag: string, idx: number) => (
-                  <span
-                    key={idx}
-                    className="px-3.5 py-1.5 bg-accent hover:bg-accent/80 text-foreground text-xs font-semibold rounded-full border border-border cursor-pointer transition-colors"
+                <div className="pt-4 border-t border-border/60">
+                  <button
+                    onClick={handleShare}
+                    className="w-full flex items-center justify-center space-x-2 py-3 px-4 bg-primary hover:bg-primary/95 text-primary-foreground font-semibold rounded-xl shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    #{tag}
-                  </span>
-                ))}
+                    <Share2 size={16} />
+                    <span>Share This Story</span>
+                  </button>
+                </div>
               </div>
+
+              {/* Tags Widget */}
+              {article.tags && article.tags.length > 0 && (
+                <div className="bg-accent/40 rounded-2xl p-6 border border-border/60">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Topic Tags</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {article.tags.map((tag: string, idx: number) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-1 bg-accent border border-border/80 hover:border-primary/40 text-foreground text-xs font-medium rounded-full cursor-pointer transition-colors"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+
+          </div>
         </div>
       </div>
     </div>
