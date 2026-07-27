@@ -2,6 +2,9 @@ import { MetadataRoute } from 'next'
 import appwriteService from '../appwriteService'
 import { generateSlug } from '../lib/slug'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 3600 // Revalidate at most every hour
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://xapzap.com'
 
 function toAbsoluteImageUrl(value?: string): string {
