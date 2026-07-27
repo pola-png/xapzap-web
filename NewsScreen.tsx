@@ -13,6 +13,16 @@ import { formatTimeAgo } from './utils'
 import { Post } from './types'
 import { generateSlug, extractIdFromSlug } from './lib/slug'
 
+function cleanPreviewText(text?: string): string {
+  if (!text) return ''
+  // Remove markdown links [Label](url) with just Label
+  let cleaned = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+  // Remove raw URLs
+  cleaned = cleaned.replace(/https?:\/\/[^\s]+/g, '')
+  // Normalize spacing
+  return cleaned.replace(/\s+/g, ' ').trim()
+}
+
 export function NewsScreen() {
   const feedStore = useFeedStore()
   const [posts, setPosts] = useState<any[]>([])
@@ -245,7 +255,7 @@ export function NewsScreen() {
                     {featuredStory.title}
                   </h2>
                   <p className="text-white/80 text-sm sm:text-base line-clamp-2 max-w-2xl font-light">
-                    {featuredStory.summary || featuredStory.content}
+                    {cleanPreviewText(featuredStory.summary || featuredStory.content)}
                   </p>
                 </div>
               </div>
@@ -332,7 +342,7 @@ export function NewsScreen() {
                         {post.title}
                       </h4>
                       <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed font-light">
-                        {post.summary || post.content}
+                        {cleanPreviewText(post.summary || post.content)}
                       </p>
                     </div>
 

@@ -11,8 +11,22 @@ interface NewsDetailScreenProps {
 }
 
 export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
+  const title = article.title || ''
+  const content = article.content || ''
+  const summary = article.summary || article.seoDescription || ''
+  const category = article.category || 'General'
+  const author = 'XapZap News'
+  const publishedDate = article.createdAt || article.publishedAt
+  const imageUrls = article.imageUrls || []
+  const thumbnail = article.thumbnailUrl || article.thumbnailUr || (imageUrls.length > 0 ? imageUrls[0] : null)
+
   useEffect(() => {
-    if (article.videoUrl && (article.videoUrl.includes('twitter.com') || article.videoUrl.includes('x.com'))) {
+    const hasTwitterLink = 
+      (article.videoUrl && (article.videoUrl.includes('twitter.com') || article.videoUrl.includes('x.com'))) ||
+      content.includes('twitter.com') ||
+      content.includes('x.com')
+
+    if (hasTwitterLink) {
       const script = document.createElement('script')
       script.setAttribute('src', 'https://platform.twitter.com/widgets.js')
       script.setAttribute('async', 'true')
@@ -24,16 +38,90 @@ export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
         } catch (_) {}
       }
     }
-  }, [article.videoUrl])
+  }, [article.videoUrl, content])
 
-  const title = article.title || ''
-  const content = article.content || ''
-  const summary = article.summary || article.seoDescription || ''
-  const category = article.category || 'General'
-  const author = 'XapZap News'
-  const publishedDate = article.createdAt || article.publishedAt
-  const imageUrls = article.imageUrls || []
-  const thumbnail = article.thumbnailUrl || article.thumbnailUr || (imageUrls.length > 0 ? imageUrls[0] : null)
+  useEffect(() => {
+    const hasInstagramLink = 
+      (article.videoUrl && article.videoUrl.includes('instagram.com')) ||
+      content.includes('instagram.com')
+
+    if (hasInstagramLink) {
+      const script = document.createElement('script')
+      script.setAttribute('src', 'https://www.instagram.com/embed.js')
+      script.setAttribute('async', 'true')
+      document.head.appendChild(script)
+      
+      script.onload = () => {
+        if (typeof window !== 'undefined' && (window as any).instgrm?.Embeds?.process) {
+          (window as any).instgrm.Embeds.process()
+        }
+      }
+
+      return () => {
+        try {
+          document.head.removeChild(script)
+        } catch (_) {}
+      }
+    }
+  }, [article.videoUrl, content])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).instgrm?.Embeds?.process) {
+      (window as any).instgrm.Embeds.process()
+    }
+  }, [content])
+
+  // Helper to turn raw URLs and markdown links into React elements
+  function parseTextWithLinks(text: string): React.ReactNode[] {
+    const parts = text.split(/(\[[^\]]+\]\([^)]+\)|https?:\/\/[^\s\)]+)/g)
+    
+    return parts.map((part, index) => {
+      // Check if it's a markdown link [label](url)
+      const markdownMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+      if (markdownMatch) {
+        const [_, label, url] = markdownMatch
+        return (
+          <a
+            key={index}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline font-semibold"
+          >
+            {label}
+          </a>
+        )
+      }
+      
+      // Check if it's a plain URL
+      const urlMatch = part.match(/^(https?:\/\/[^\s\)]+)$/)
+      if (urlMatch) {
+        const url = urlMatch[1]
+        let cleanedUrl = url
+        let trailing = ""
+        const trailingPunctuationMatch = url.match(/([.,;!?]+)$/)
+        if (trailingPunctuationMatch) {
+          cleanedUrl = url.substring(0, url.length - trailingPunctuationMatch[0].length)
+          trailing = trailingPunctuationMatch[0]
+        }
+        return (
+          <span key={index}>
+            <a
+              href={cleanedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-semibold break-all"
+            >
+              {cleanedUrl}
+            </a>
+            {trailing}
+          </span>
+        )
+      }
+      
+      return part
+    })
+  }
 
   // Parse markdown headings, point outline, and paragraphs for a standard structure
   const lines = content.split('\n')
@@ -67,7 +155,7 @@ export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
       processedBody.push(
         <div key={index} className="flex items-start space-x-3 my-2 text-muted-foreground leading-relaxed pl-2">
           <span className="text-primary mt-1.5">•</span>
-          <span>{bulletText}</span>
+          <span>{parseTextWithLinks(bulletText)}</span>
         </div>
       )
     } else if (trimmed.startsWith('1. ') || trimmed.startsWith('2. ') || trimmed.startsWith('3. ') || trimmed.startsWith('4. ') || trimmed.startsWith('5. ')) {
@@ -76,7 +164,7 @@ export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
       processedBody.push(
         <div key={index} className="flex items-start space-x-3 my-2 text-muted-foreground leading-relaxed pl-2">
           <span className="text-primary font-bold">{trimmed.substring(0, 2)}</span>
-          <span>{numText}</span>
+          <span>{parseTextWithLinks(numText)}</span>
         </div>
       )
     } else if (trimmed.startsWith('> ')) {
@@ -84,7 +172,7 @@ export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
       const quoteText = trimmed.replace('> ', '')
       processedBody.push(
         <blockquote key={index} className="border-l-4 border-primary pl-4 py-1 my-4 italic text-muted-foreground bg-accent/30 rounded-r-md">
-          {quoteText}
+          {parseTextWithLinks(quoteText)}
         </blockquote>
       )
     } else if (trimmed.length > 0) {
@@ -104,10 +192,150 @@ export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
           </div>
         )
       } else {
+        // Check if the entire paragraph is a raw media URL
+        const isRawUrl = /^(https?:\/\/[^\s]+)$/.test(trimmed)
+        if (isRawUrl) {
+          // Check for YouTube
+          const ytMatch = trimmed.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/)
+          if (ytMatch) {
+            const videoId = ytMatch[1]
+            processedBody.push(
+              <div key={index} className="my-6 rounded-xl overflow-hidden shadow-lg border border-border aspect-video">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={`https://www.youtube.com/embed/${videoId}`}
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </div>
+            )
+            return
+          }
+
+          // Check for Twitter/X status URL
+          const twitterMatch = trimmed.match(/(?:twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/status\/([0-9]+)/)
+          if (twitterMatch) {
+            processedBody.push(
+              <div key={index} className="bg-accent/30 rounded-2xl p-6 border border-border/80 my-6 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    Embedded Post
+                  </span>
+                  <a
+                    href={trimmed}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors underline"
+                  >
+                    View on X
+                  </a>
+                </div>
+                <div className="flex justify-center w-full min-h-[150px] bg-background/50 rounded-xl p-4 border border-border/40 overflow-x-auto">
+                  <blockquote className="twitter-tweet" data-theme="dark" data-align="center">
+                    <a href={trimmed}>Loading post...</a>
+                  </blockquote>
+                </div>
+              </div>
+            )
+            return
+          }
+
+          // Check for Instagram post or reel URL
+          const instagramMatch = trimmed.match(/(?:instagram\.com)\/(?:p|reel|tv)\/([a-zA-Z0-9_-]+)/)
+          if (instagramMatch) {
+            processedBody.push(
+              <div key={index} className="bg-accent/30 rounded-2xl p-6 border border-border/80 my-6 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    Instagram Feed
+                  </span>
+                  <a
+                    href={trimmed}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors underline"
+                  >
+                    View on Instagram
+                  </a>
+                </div>
+                <div className="flex justify-center w-full min-h-[300px] bg-background/50 rounded-xl p-4 border border-border/40 overflow-x-auto">
+                  <blockquote className="instagram-media w-full max-w-[400px]" data-instgrm-permalink={trimmed} data-instgrm-version="14">
+                    <a href={trimmed}>Loading Instagram post...</a>
+                  </blockquote>
+                </div>
+              </div>
+            )
+            return
+          }
+
+          // Check for Facebook post or video URL
+          const isFacebook = /facebook\.com\//.test(trimmed)
+          if (isFacebook) {
+            const isVideo = /facebook\.com\/watch|fb\.watch|plugins\/video\.php/.test(trimmed)
+            const pluginUrl = isVideo 
+              ? `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(trimmed)}&show_text=true&width=500`
+              : `https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(trimmed)}&show_text=true&width=500`
+
+            processedBody.push(
+              <div key={index} className="bg-accent/30 rounded-2xl p-6 border border-border/80 my-6 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    Facebook Update
+                  </span>
+                  <a
+                    href={trimmed}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors underline"
+                  >
+                    View on Facebook
+                  </a>
+                </div>
+                <div className="flex justify-center w-full bg-background/50 rounded-xl p-4 border border-border/40 overflow-hidden">
+                  <iframe
+                    src={pluginUrl}
+                    width="500"
+                    height={isVideo ? "280" : "450"}
+                    style={{ border: 'none', overflow: 'hidden' }}
+                    scrolling="no"
+                    frameBorder="0"
+                    allowFullScreen={true}
+                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                    className="w-full max-w-[500px] rounded-lg"
+                  />
+                </div>
+              </div>
+            )
+            return
+          }
+
+          // Check for image extensions
+          const isImageUrl = /\.(jpg|jpeg|png|webp|gif|svg)(?:\?.*)?$/i.test(trimmed)
+          if (isImageUrl) {
+            processedBody.push(
+              <div key={index} className="my-6 rounded-xl overflow-hidden shadow-lg border border-border">
+                <OptimizedImage
+                  src={trimmed}
+                  alt="Embedded visual asset"
+                  className="w-full h-auto object-cover max-h-[400px]"
+                />
+              </div>
+            )
+            return
+          }
+        }
+
         // Plain paragraph
         processedBody.push(
           <p key={index} className="my-4 text-muted-foreground leading-relaxed text-[17px]">
-            {trimmed}
+            {parseTextWithLinks(trimmed)}
           </p>
         )
       }
