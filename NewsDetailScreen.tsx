@@ -128,10 +128,71 @@ export function NewsDetailScreen({ article, onClose }: NewsDetailScreenProps) {
   const processedBody: React.ReactNode[] = []
 
   let inlineImageIndex = 0
+  let skipRemainingLines = false
 
   // Standard renderer helper
   lines.forEach((line: string, index: number) => {
     const trimmed = line.trim()
+    if (!trimmed || skipRemainingLines) return
+
+    // Detect "Sort replies:" or "Replying to @" which indicates the start of replies
+    if (trimmed.includes('Sort replies:') || trimmed.includes('Replying to @')) {
+      skipRemainingLines = true
+      return
+    }
+
+    // Check if the paragraph contains scraped metadata and an X/Twitter post link
+    // e.g. "[Scraped facts from original source https://xcancel.com/...]"
+    const scrapedSourceMatch = trimmed.match(/\[Scraped facts from original source\s+(https?:\/\/[^\]\s]+)\]/i) ||
+                               trimmed.match(/original source\s+(https?:\/\/[^\s\]\)]+)/i)
+
+    if (scrapedSourceMatch) {
+      let sourceUrl = scrapedSourceMatch[1]
+      // Convert alternative scraper frontends to official x.com
+      if (sourceUrl.includes('xcancel.com') || sourceUrl.includes('nitter')) {
+        sourceUrl = sourceUrl.replace(/(?:xcancel\.com|nitter\.[a-z]{2,3})/g, 'x.com')
+      }
+
+      // Check if there is any preceding text before the scraper bracket
+      const preMatchText = trimmed.split(/\[Scraped facts/i)[0].trim()
+      if (preMatchText && preMatchText.length > 5) {
+        processedBody.push(
+          <p key={`scraped-pre-${index}`} className="my-4 text-muted-foreground leading-relaxed text-[17px]">
+            {parseTextWithLinks(preMatchText)}
+          </p>
+        )
+      }
+
+      // Render the source post as a beautiful interactive embed
+      processedBody.push(
+        <div key={`scraped-embed-${index}`} className="bg-accent/30 rounded-2xl p-6 border border-border/80 my-6 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              Source Social Post
+            </span>
+            <a
+              href={sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors underline"
+            >
+              View on X
+            </a>
+          </div>
+          <div className="flex justify-center w-full min-h-[150px] bg-background/50 rounded-xl p-4 border border-border/40 overflow-x-auto">
+            <blockquote className="twitter-tweet" data-theme="dark" data-align="center">
+              <a href={sourceUrl}>Loading source post...</a>
+            </blockquote>
+          </div>
+        </div>
+      )
+
+      // Skip the rest of the scraped copy and replies
+      skipRemainingLines = true
+      return
+    }
+
     if (trimmed.startsWith('# ')) {
       // H1 (Title) - skip as we display it in header
       return
