@@ -548,33 +548,33 @@ export default function ProfilePage() {
             <div className="flex gap-2 mb-4">
               {isCurrentUser ? (
                 <>
-                  <button onClick={() => router.push('/profile/edit')} className="flex-1 bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))] py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 text-sm">
-                    <Settings className="w-4 h-4" />Edit Profile
+                  <button onClick={() => router.push('/profile/edit')} className="flex-1 bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all text-[rgb(var(--text-primary))] py-2.5 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm shadow-sm">
+                    <Settings className="w-4 h-4 text-blue-500" />Edit Profile
                   </button>
-                  <button onClick={handleShare} className="bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))] p-2 rounded-lg" aria-label="Share"><Share className="w-5 h-5" /></button>
-                  <button onClick={() => router.push('/profile/menu')} className="bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))] p-2 rounded-lg" aria-label="Menu"><Menu className="w-5 h-5" /></button>
+                  <button onClick={handleShare} className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all text-[rgb(var(--text-primary))] p-2.5 rounded-xl shadow-sm" aria-label="Share"><Share className="w-5 h-5" /></button>
+                  <button onClick={() => router.push('/profile/menu')} className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all text-[rgb(var(--text-primary))] p-2.5 rounded-xl shadow-sm" aria-label="Menu"><Menu className="w-5 h-5" /></button>
                 </>
               ) : (
                 <>
-                  <button onClick={handleFollow} disabled={followLoading} className={`flex-1 py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 text-sm ${isFollowing ? 'bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))]' : 'bg-xapzap-blue text-white'}`}>
-                    {followLoading ? <div className="w-4 h-4 border border-current border-t-transparent rounded-full animate-spin" /> : isFollowing ? <><UserMinus className="w-4 h-4" />Following</> : <><UserPlus className="w-4 h-4" />Follow</>}
+                  <button onClick={handleFollow} disabled={followLoading} className={`flex-1 py-2.5 px-4 rounded-xl font-bold flex items-center justify-center gap-2 text-sm transition-all shadow-sm ${isFollowing ? 'bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] text-[rgb(var(--text-primary))] hover:bg-neutral-100 dark:hover:bg-neutral-800' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}>
+                    {followLoading ? <div className="w-4 h-4 border border-current border-t-transparent rounded-full animate-spin" /> : isFollowing ? <><UserMinus className="w-4 h-4 text-purple-500" />Following</> : <><UserPlus className="w-4 h-4" />Follow</>}
                   </button>
-                  <button onClick={handleMessage} className="bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))] p-2 rounded-lg" aria-label="Message"><MessageCircle className="w-5 h-5" /></button>
-                  <button onClick={handleShare} className="bg-[rgb(var(--bg-secondary))] text-[rgb(var(--text-primary))] p-2 rounded-lg" aria-label="Share"><Share className="w-5 h-5" /></button>
+                  <button onClick={handleMessage} className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all text-[rgb(var(--text-primary))] p-2.5 rounded-xl shadow-sm" aria-label="Message"><MessageCircle className="w-5 h-5 text-blue-500" /></button>
+                  <button onClick={handleShare} className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all text-[rgb(var(--text-primary))] p-2.5 rounded-xl shadow-sm" aria-label="Share"><Share className="w-5 h-5 text-green-500" /></button>
                 </>
               )}
             </div>
             {isCurrentUser && (
-              <div className="bg-[rgb(var(--bg-secondary))] rounded-xl p-3 mb-4">
-                <h3 className="text-[rgb(var(--text-primary))] font-semibold text-sm mb-2">Creator Tools</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={() => router.push('/dashboard')} className="p-2.5 rounded-lg bg-[rgb(var(--bg-primary))] flex items-center gap-2 text-left">
-                    <BarChart3 className="w-4 h-4 text-blue-400 shrink-0" />
-                    <div><div className="text-[rgb(var(--text-primary))] text-xs font-medium">Dashboard</div><div className="text-[rgb(var(--text-secondary))] text-[10px]">Insights</div></div>
+              <div className="bg-[rgb(var(--bg-secondary))] border border-[rgb(var(--border-color))] rounded-2xl p-4 mb-4 shadow-sm">
+                <h3 className="text-[rgb(var(--text-primary))] font-extrabold text-sm mb-3">Creator Tools</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <button onClick={() => router.push('/dashboard')} className="p-3 rounded-xl bg-[rgb(var(--bg-primary))] border border-[rgb(var(--border-color))]/50 hover:border-blue-500/30 transition-all flex items-center gap-2.5 text-left shadow-sm">
+                    <BarChart3 className="w-4.5 h-4.5 text-blue-400 shrink-0" />
+                    <div><div className="text-[rgb(var(--text-primary))] text-xs font-bold">Dashboard</div><div className="text-[rgb(var(--text-secondary))] text-[10px] font-medium">Insights</div></div>
                   </button>
-                  <button onClick={() => router.push('/monetization')} className="p-2.5 rounded-lg bg-[rgb(var(--bg-primary))] flex items-center gap-2 text-left">
-                    <DollarSign className="w-4 h-4 text-green-400 shrink-0" />
-                    <div><div className="text-[rgb(var(--text-primary))] text-xs font-medium">Monetize</div><div className="text-[rgb(var(--text-secondary))] text-[10px]">Earnings</div></div>
+                  <button onClick={() => router.push('/monetization')} className="p-3 rounded-xl bg-[rgb(var(--bg-primary))] border border-[rgb(var(--border-color))]/50 hover:border-green-500/30 transition-all flex items-center gap-2.5 text-left shadow-sm">
+                    <DollarSign className="w-4.5 h-4.5 text-green-400 shrink-0" />
+                    <div><div className="text-[rgb(var(--text-primary))] text-xs font-bold">Monetize</div><div className="text-[rgb(var(--text-secondary))] text-[10px] font-medium">Earnings</div></div>
                   </button>
                 </div>
               </div>
@@ -583,16 +583,19 @@ export default function ProfilePage() {
 
           {/* Tabs */}
           <div className="mt-4">
-            <div className="flex border-b border-[rgb(var(--border-color))] mb-4">
+            <div className="flex border-b border-[rgb(var(--border-color))] mb-4 overflow-x-auto scrollbar-hide">
               {(['posts', 'videos', 'news', 'all'] as TabType[]).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => { setActiveTab(tab); profileStore.updateActiveTab(userId, tab) }}
-                  className={`flex-1 py-3 text-center font-medium transition-colors ${
-                    activeTab === tab ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-400 hover:text-white'
+                  className={`flex-1 min-w-[70px] py-3 text-center text-sm font-semibold transition-all relative ${
+                    activeTab === tab ? 'text-blue-500 font-extrabold' : 'text-gray-400 hover:text-[rgb(var(--text-primary))]'
                   }`}
                 >
                   {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {activeTab === tab && (
+                    <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-blue-500 rounded-full animate-fade-in" />
+                  )}
                 </button>
               ))}
             </div>

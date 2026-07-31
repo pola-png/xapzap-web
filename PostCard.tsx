@@ -610,7 +610,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           </div>
           {post.title && (
             <div className="mb-3 px-2">
-              <h3 className="text-gray-900 dark:text-white font-bold text-xl leading-snug line-clamp-2">{post.title}</h3>
+              <h3 className="text-gray-900 dark:text-white font-bold text-base leading-snug line-clamp-2">{post.title}</h3>
             </div>
           )}
         </>
@@ -781,26 +781,26 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
           <div className="flex-1 min-w-0">
             <button
               onClick={() => router.push(`/profile/${post.userId}`)}
-              className="text-gray-900 dark:text-white font-extrabold text-[21px] sm:text-[22px] leading-[1.35] hover:underline transition-all text-left flex items-center gap-1"
+              className="text-gray-900 dark:text-white font-bold text-[15px] sm:text-[16px] leading-[1.3] hover:underline transition-all text-left flex items-center gap-1"
               aria-label={`View ${userProfile?.displayName || 'User'}'s profile`}
             >
               {userProfile?.displayName || 'User'}
-              {showVerifiedBadge && <VerifiedBadge className="h-4 w-4 shrink-0" isPremium={isPremiumBadge(userProfile || post)} />}
+              {showVerifiedBadge && <VerifiedBadge className="h-3.5 w-3.5 shrink-0" isPremium={isPremiumBadge(userProfile || post)} />}
             </button>
-            <span className="text-gray-500 dark:text-gray-400 text-[13px] ml-2 font-semibold">{formatTimeAgo(post.createdAt)}</span>
+            <span className="text-gray-500 dark:text-gray-400 text-[12px] sm:text-[13px] ml-2 font-medium">{formatTimeAgo(post.createdAt)}</span>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {currentUserId && currentUserId !== post.userId && isFollowing === false && (
             <button
               onClick={handleFollow}
-              className="px-4 py-1.5 rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 bg-blue-500 text-white hover:bg-blue-600"
+              className="px-3.5 py-1 rounded-full text-xs font-semibold transition-all hover:scale-105 active:scale-95 bg-blue-500 text-white hover:bg-blue-600"
             >
               Follow
             </button>
           )}
           <button onClick={() => setShowMenu(!showMenu)} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white p-1" aria-label="More options">
-            <MoreHorizontal size={20} />
+            <MoreHorizontal size={18} />
           </button>
         </div>
       </div>
@@ -815,13 +815,13 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
             <div className="flex items-center">
               {currentUserId === post.userId && (
                 <>
-                  <button onClick={handleDelete} className="px-4 py-3 text-sm font-semibold text-red-600 hover:bg-muted transition-colors">
+                  <button onClick={handleDelete} className="px-4 py-3 text-xs font-semibold text-red-600 hover:bg-muted transition-colors">
                     Delete
                   </button>
                   <span className="text-border">•</span>
                 </>
               )}
-              <button className="px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted transition-colors">
+              <button className="px-4 py-3 text-xs font-semibold text-foreground hover:bg-muted transition-colors">
                 Report
               </button>
             </div>
@@ -837,19 +837,19 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
       }}>
         {post.textBgColor ? (
           <div
-            className={`text-white text-center leading-[1.75] tracking-[0.03em] p-4 rounded-xl mb-3 max-w-sm ${
+            className={`text-white text-center leading-[1.6] tracking-[0.01em] p-4 rounded-xl mb-3 max-w-sm ${
               (post.content?.length || 0) < 50
-                ? 'text-3xl font-extrabold'
+                ? 'text-2xl font-extrabold'
                 : (post.content?.length || 0) < 100
-                ? 'text-2xl font-bold'
-                : 'text-xl font-semibold'
+                ? 'text-xl font-bold'
+                : 'text-lg font-semibold'
             }`}
             style={{ backgroundColor: post.textBgColor ? `#${post.textBgColor.toString(16).padStart(6, '0')}` : undefined }}
           >
             {post.content}
           </div>
         ) : (post.content && !(post.postType === 'video' && (feedType === 'home' || feedType === 'watch'))) ? (
-          <div className="text-gray-900 dark:text-white text-[17px] leading-[1.85] tracking-[0.03em] mb-3 font-medium">
+          <div className="text-gray-900 dark:text-white text-[15px] sm:text-[16px] leading-[1.6] tracking-[0.015em] mb-2.5 font-normal">
             {(() => {
               const contentLength = post.content.length
               let maxLines = 2
@@ -870,7 +870,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
               
               return (
                 <>
-                  <p className={`leading-[1.8] tracking-[0.03em] ${expandedText ? '' : `line-clamp-${maxLines}`}`}>
+                  <p className={`leading-[1.6] tracking-[0.015em] ${expandedText ? '' : `line-clamp-${maxLines}`}`}>
                     {parseHashtags(post.content)}
                   </p>
                   {needsTruncation && (
@@ -885,7 +885,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
                           setExpandedText(!expandedText)
                         }
                       }}
-                      className="text-blue-500 hover:underline text-sm font-semibold mt-1"
+                      className="text-blue-500 hover:underline text-xs font-semibold mt-1"
                     >
                       {expandedText ? 'Show less' : 'more'}
                     </button>
@@ -901,7 +901,7 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
 
         {post.postType === 'news' && post.title && (
           <div className="border-l-4 border-blue-500 pl-4 mb-3">
-            <h3 className="post-title font-extrabold text-xl text-gray-900 dark:text-white leading-snug">
+            <h3 className="post-title font-extrabold text-lg text-gray-900 dark:text-white leading-snug">
               {post.title}
             </h3>
           </div>
