@@ -778,16 +778,18 @@ export const PostCard = ({ post, currentUserId: propCurrentUserId, feedType = 'h
               </div>
             )}
           </button>
-          <div className="flex-1 min-w-0">
-            <button
-              onClick={() => router.push(`/profile/${post.userId}`)}
-              className="text-gray-900 dark:text-white font-bold text-[15px] sm:text-[16px] leading-[1.3] hover:underline transition-all text-left flex items-center gap-1"
-              aria-label={`View ${userProfile?.displayName || 'User'}'s profile`}
-            >
-              {userProfile?.displayName || 'User'}
-              {showVerifiedBadge && <VerifiedBadge className="h-3.5 w-3.5 shrink-0" isPremium={isPremiumBadge(userProfile || post)} />}
-            </button>
-            <span className="text-gray-500 dark:text-gray-400 text-[12px] sm:text-[13px] ml-2 font-medium">{formatTimeAgo(post.createdAt)}</span>
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                onClick={() => router.push(`/profile/${post.userId}`)}
+                className="text-gray-900 dark:text-white font-bold text-[15px] sm:text-[16px] leading-[1.3] hover:underline transition-all text-left flex items-center gap-1"
+                aria-label={`View ${userProfile?.displayName || 'User'}'s profile`}
+              >
+                {userProfile?.displayName || 'User'}
+                {showVerifiedBadge && <VerifiedBadge className="h-3.5 w-3.5 shrink-0" isPremium={isPremiumBadge(userProfile || post)} />}
+              </button>
+            </div>
+            <span className="text-gray-500 dark:text-gray-400 text-[13px] font-medium mt-0.5">{formatTimeAgo(post.createdAt)}</span>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">

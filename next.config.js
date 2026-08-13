@@ -10,6 +10,15 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "https://www.google.com/search?q=XapZap",
+        permanent: false,
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig

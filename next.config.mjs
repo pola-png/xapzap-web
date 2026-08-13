@@ -9,6 +9,15 @@ const nextConfig = {
     }
   },
   reactStrictMode: false,
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "https://www.google.com/search?q=XapZap",
+        permanent: false,
+      },
+    ];
+  },
   async headers() {
     return [
       {
