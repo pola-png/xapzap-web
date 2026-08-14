@@ -28,6 +28,20 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Redirect root `/` to Google Search, UNLESS they came from a Google/search engine referrer
+  if (pathname === '/') {
+    const referer = request.headers.get('referer') || ''
+    const isFromSearchEngine = 
+      referer.includes('google.com') || 
+      referer.includes('bing.com') || 
+      referer.includes('yahoo.com') || 
+      referer.includes('duckduckgo.com')
+
+    if (!isFromSearchEngine) {
+      return NextResponse.redirect('https://www.google.com/search?q=XapZap', 302)
+    }
+  }
+
   return NextResponse.next()
 }
 
