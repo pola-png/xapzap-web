@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Home, MessageCircle, PlusSquare, Bell, User, Search, Video, Film, Radio, Newspaper, Users } from 'lucide-react'
+import { Home, MessageCircle, PlusSquare, Bell, User, Search, Video, Film, Radio, Newspaper, Users, Briefcase } from 'lucide-react'
 import { cn } from './utils'
 import appwriteService from './appwriteService'
 
@@ -129,10 +129,11 @@ export function MainLayout({ children, currentTab, onTabChange, onCreateClick, i
     { icon: Film, label: 'Reels', index: 8 },
     { icon: Radio, label: 'Live', index: 9 },
     { icon: Newspaper, label: 'News', index: 10 },
+    { icon: Briefcase, label: 'Jobs', index: 12 },
     { icon: Users, label: 'Following', index: 11 },
   ]
 
-  const isHomeTab = [0, 7, 8, 9, 10, 11].includes(currentTab)
+  const isHomeTab = [0, 7, 8, 9, 10, 11, 12].includes(currentTab)
 
   return (
     <div className="min-h-screen bg-[rgb(var(--bg-primary))]">

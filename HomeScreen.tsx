@@ -10,6 +10,7 @@ import { useFeedStore } from "./feedStore"
 import { hasVerifiedBadge, isPremiumBadge } from "./lib/verification"
 import { AdcashBanner300x100 } from "./components/AdcashBanner300x100"
 import { ChatList, ChatView } from "./ChatScreen"
+import { Briefcase, ArrowRight } from "lucide-react"
 
 export function HomeScreen() {
   const router = useRouter()
@@ -266,6 +267,46 @@ export function HomeScreen() {
             </button>
           </div>
         )}
+        
+        {/* Flagship Micro Jobs Promo Card */}
+        <div className="mt-3 mb-4 overflow-hidden rounded-2xl border border-[#1DA1F2]/30 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-5 shadow-lg relative">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-cyan-400 to-[#1DA1F2] opacity-10 rounded-bl-full blur-xl pointer-events-none" />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex gap-3 items-start">
+              <div className="p-3 rounded-xl bg-[#1DA1F2]/10 border border-[#1DA1F2]/20 text-[#1DA1F2] shrink-0 mt-0.5 sm:mt-0">
+                <Briefcase className="w-6 h-6 animate-pulse" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-red-500/30">
+                    Flagship Feature
+                  </span>
+                  <h4 className="font-extrabold text-base text-white tracking-wide">
+                    Earn with XapZap Micro Jobs!
+                  </h4>
+                </div>
+                <p className="text-slate-300 text-xs mt-1.5 max-w-lg leading-relaxed font-semibold">
+                  Complete short tasks like video annotations, app testing, and surveys directly on your mobile device to earn rewards. Start earning in minutes.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+              <button
+                onClick={() => router.push('/jobs')}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl border border-slate-600 text-slate-300 text-xs font-semibold hover:bg-slate-800 transition text-center"
+              >
+                Learn More
+              </button>
+              <button
+                onClick={() => router.push('/jobs')}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-[#1DA1F2] to-cyan-500 text-white text-xs font-bold hover:brightness-110 transition flex items-center justify-center gap-1.5 shadow-md shadow-cyan-900/30 whitespace-nowrap"
+              >
+                Download App <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
         {showStorySection && <StoryBar />}
         <div className="grid grid-cols-1 md:grid-cols-2 grid-flow-row-dense gap-4 pb-20 sm:pb-24">
           {posts.map((post, index) => (

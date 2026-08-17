@@ -1,8 +1,8 @@
-﻿'use client'
+'use client'
 
 import { ReactNode, useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Home, MessageCircle, PlusSquare, Bell, User, Search, Video, Film, Radio, Newspaper, Users, Image as ImageIcon, X } from 'lucide-react'
+import { Home, MessageCircle, PlusSquare, Bell, User, Search, Video, Film, Radio, Newspaper, Users, Image as ImageIcon, X, Briefcase } from 'lucide-react'
 import { cn } from './utils'
 import appwriteService from './appwriteService'
 
@@ -26,6 +26,21 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
   const [userAvatar, setUserAvatar] = useState('')
   const hideBottomNav = pathname.startsWith('/upload')
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false)
+  const [showMobileBanner, setShowMobileBanner] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const closed = localStorage.getItem('xapzap-app-banner-closed')
+      if (!closed) {
+        setShowMobileBanner(true)
+      }
+    }
+  }, [])
+
+  const handleDismissBanner = () => {
+    localStorage.setItem('xapzap-app-banner-closed', 'true')
+    setShowMobileBanner(false)
+  }
 
   useEffect(() => {
     if (isLegalPage) return
@@ -87,10 +102,11 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
     { icon: Film, label: 'Reels', path: '/reels' },
     { icon: Radio, label: 'Live', path: '/live' },
     { icon: Newspaper, label: 'News', path: '/news' },
+    { icon: Briefcase, label: 'Jobs', path: '/jobs' },
     { icon: Users, label: 'Following', path: '/following' },
   ]
 
-  const isHomeTab = ['/', '/watch', '/reels', '/live', '/news', '/following'].includes(pathname)
+  const isHomeTab = ['/', '/watch', '/reels', '/live', '/news', '/following', '/jobs'].includes(pathname)
 
   return (
     <div className="min-h-screen bg-[rgb(var(--bg-primary))]">
@@ -225,6 +241,33 @@ export function MainLayoutWrapper({ children }: MainLayoutWrapperProps) {
 
       {/* Mobile Layout */}
       <div className="lg:hidden">
+        {showMobileBanner && (
+          <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 border-b border-[#1DA1F2]/20 px-4 py-2 flex items-center justify-between gap-2.5 text-xs text-slate-100 z-[70] relative">
+            <div className="flex items-center gap-2 truncate">
+              <span className="flex-shrink-0 w-2 h-2 rounded-full bg-[#1DA1F2] animate-ping" />
+              <p className="truncate font-medium text-slate-200">
+                Get the XapZap app on Google Play to start doing Micro Jobs & earning!
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href="https://play.google.com/store/apps/details?id=com.xapzap.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-[#1DA1F2] hover:bg-[#1A8CD8] text-white px-2.5 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider transition whitespace-nowrap"
+              >
+                Install
+              </a>
+              <button
+                onClick={handleDismissBanner}
+                className="text-slate-400 hover:text-slate-200 p-1"
+                aria-label="Dismiss banner"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+        )}
         {isHomeTab && pathname !== '/reels' && (
           <header className="sticky top-0 z-50 bg-[rgb(var(--bg-primary))] border-b border-[rgb(var(--border-color))]">
             <div className="flex items-center justify-between px-4 py-3">

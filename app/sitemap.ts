@@ -99,6 +99,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/watch`, priority: 1.0, changeFrequency: 'hourly' as const },
     { url: `${SITE_URL}/reels`, priority: 1.0, changeFrequency: 'hourly' as const },
     { url: `${SITE_URL}/news`, priority: 1.0, changeFrequency: 'hourly' as const },
+    { url: `${SITE_URL}/jobs`, priority: 0.9, changeFrequency: 'daily' as const },
     { url: `${SITE_URL}/chinese-drama-movies`, priority: 1.0, changeFrequency: 'daily' as const },
     { url: `${SITE_URL}/about`, priority: 0.8, changeFrequency: 'monthly' as const },
     { url: `${SITE_URL}/premium`, priority: 0.8, changeFrequency: 'weekly' as const },
